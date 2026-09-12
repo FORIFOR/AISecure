@@ -1,0 +1,20 @@
+{
+  "method": "Read-only offline DOM rendering with Playwright Chromium; HTTP API tested separately by unittest. Direct browser localhost navigation was blocked by the managed browser environment.",
+  "desktop": "1512x1080",
+  "mobile": "390x844",
+  "console_errors": [],
+  "mobile_dimensions": {
+    "viewport": 390,
+    "body": 390,
+    "html": 390
+  },
+  "checks_passed": [
+    "overview rendered",
+    "preview write operations disabled",
+    "asset view",
+    "plan empty view",
+    "audit view",
+    "design view",
+    "mobile horizontal overflow absent"
+  ]
+}

@@ -1,0 +1,9 @@
+[project]
+name = "ai-secure-local-prototype"
+version = "0.1.0"
+description = "Evidence-linked, local-first security triage prototype. Not a production security control."
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,210 @@
+"""Local single-owner persistence with authenticated audit chains.
+
+The audit chain detects modification without the key. Tail truncation needs a
+separately retained checkpoint; host/key compromise is explicitly out of scope.
+"""
+from __future__ import annotations
+from contextlib import contextmanager
+from datetime import timedelta
+import hashlib
+import hmac
+import json
+import os
+from pathlib import Path
+import secrets
+import sqlite3
+import threading
+from .schema import canonical, normalize, utcnow, iso, parse_time, ValidationError
+from .engine import analyze, coverage, RULE_VERSION
+from .policy import plan_for, SimulationAdapter
+
+ZERO = "0" * 64
+
+
+class ConflictError(ValueError):
+    pass
+
+
+class IntegrityError(RuntimeError):
+    pass
+
+
+class Store:
+    def __init__(self, directory: str | Path):
+        self.directory = Path(directory).expanduser()
+        self.directory.mkdir(parents=True, exist_ok=True, mode=0o700)
+        if os.name != "nt":
+            self.directory.chmod(0o700)
+        key_path = self.directory / "master.key"
+        db_path = self.directory / "state.sqlite3"
+        # Never silently replace a lost key for existing evidence.
+        if db_path.exists() and not key_path.exists():
+            raise IntegrityError("既存DBの鍵がありません。新しい鍵では起動しません。")
+        try:
+            fd = os.open(key_path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        except FileExistsError:
+            pass
+        else:
+            with os.fdopen(fd, "wb") as f:
+                f.write(secrets.token_bytes(32))
+        self.master = key_path.read_bytes()
+        if len(self.master) != 32:
+            raise IntegrityError("鍵の長さが不正です。")
+        if os.name != "nt":
+            key_path.chmod(0o600)
+        self.identity_key = hmac.new(self.master, b"identity-v1", hashlib.sha256).digest()
+        self.audit_key = hmac.new(self.master, b"audit-v1", hashlib.sha256).digest()
+        self.lock = threading.RLock()
+        self.db = sqlite3.connect(db_path, check_same_thread=False, isolation_level=None)
+        self.db.row_factory = sqlite3.Row
+        self.db.execute("PRAGMA foreign_keys=ON")
+        self.db.execute("PRAGMA journal_mode=DELETE")
+        self.db.execute("PRAGMA busy_timeout=3000")
+        self.db.executescript("""
+          CREATE TABLE IF NOT EXISTS snapshots (
+            id TEXT PRIMARY KEY, created_at TEXT NOT NULL, body TEXT NOT NULL, mac TEXT NOT NULL);
+          CREATE TABLE IF NOT EXISTS current_snapshot (
+            singleton INTEGER PRIMARY KEY CHECK (singleton=1), id TEXT REFERENCES snapshots(id));
+          CREATE TABLE IF NOT EXISTS proposals (
+            id TEXT PRIMARY KEY, snapshot_id TEXT NOT NULL REFERENCES snapshots(id),
+            finding_id TEXT NOT NULL, body TEXT NOT NULL, created_at TEXT NOT NULL,
+            expires_at TEXT NOT NULL, status TEXT NOT NULL);
+          CREATE TABLE IF NOT EXISTS audit (
+            seq INTEGER PRIMARY KEY AUTOINCREMENT, at TEXT NOT NULL, action TEXT NOT NULL,
+            payload TEXT NOT NULL, prev TEXT NOT NULL, mac TEXT NOT NULL);
+        """)
+        if os.name != "nt":
+            db_path.chmod(0o600)
+        if not self.verify_audit()["valid"]:
+            raise IntegrityError("監査チェーンの検証に失敗しました。書き込みを停止します。")
+
+    def close(self):
+        self.db.close()
+
+    @contextmanager
+    def transaction(self):
+        with self.lock:
+            if not self.verify_audit()["valid"]:
+                raise IntegrityError("監査チェーンが不整合です。変更を拒否します。")
+            self.db.execute("BEGIN IMMEDIATE")
+            try:
+                yield
+                self.db.execute("COMMIT")
+            except Exception:
+                self.db.execute("ROLLBACK")
+                raise
+
+    def _audit(self, action: str, payload: dict):
+        last = self.db.execute("SELECT seq,mac FROM audit ORDER BY seq DESC LIMIT 1").fetchone()
+        seq, previous = (last["seq"] + 1, last["mac"]) if last else (1, ZERO)
+        at, body = iso(utcnow()), canonical(payload)
+        mac = hmac.new(self.audit_key, canonical([seq, at, action, body, previous]).encode(), hashlib.sha256).hexdigest()
+        self.db.execute("INSERT INTO audit(seq,at,action,payload,prev,mac) VALUES (?,?,?,?,?,?)", (seq, at, action, body, previous, mac))
+
+    def record(self, action: str, payload: dict):
+        with self.transaction():
+            self._audit(action, payload)
+
+    def verify_audit(self, anchor: dict | None = None) -> dict:
+        with self.lock:
+            rows = self.db.execute("SELECT * FROM audit ORDER BY seq").fetchall()
+            previous, valid, seen = ZERO, True, {0: ZERO}
+            for index, row in enumerate(rows, start=1):
+                expected = hmac.new(self.audit_key, canonical([row["seq"], row["at"], row["action"], row["payload"], row["prev"]]).encode(), hashlib.sha256).hexdigest()
+                if row["seq"] != index or row["prev"] != previous or not hmac.compare_digest(expected, row["mac"]):
+                    valid = False
+                previous = row["mac"]
+                seen[index] = previous
+            anchored = False
+            if anchor is not None:
+                count, tip = anchor.get("count"), anchor.get("tip")
+                anchored = type(count) is int and isinstance(tip, str) and count in seen and hmac.compare_digest(seen[count], tip)
+                valid = valid and anchored
+            return {"valid": valid, "count": len(rows), "tip": previous, "anchor_checked": anchor is not None, "anchor_valid": anchored,
+                    "limitation": "外部チェックポイントなしでは末尾削除を検出できません。ホストと鍵の同時侵害には耐えません。"}
+
+    def ingest(self, raw: dict, source_mode: str = "imported", now=None) -> str:
+        document = normalize(raw, self.identity_key, source_mode=source_mode, now=now)
+        body = canonical(document)
+        sid = "S-" + hashlib.sha256(body.encode()).hexdigest()[:24]
+        mac = hmac.new(self.audit_key, body.encode(), hashlib.sha256).hexdigest()
+        with self.transaction():
+            old = self.db.execute("SELECT body,mac FROM snapshots WHERE id=?", (sid,)).fetchone()
+            if old and (old["body"] != body or not hmac.compare_digest(old["mac"], mac)):
+                raise IntegrityError("同一IDのスナップショットが不整合です。")
+            self.db.execute("INSERT OR IGNORE INTO snapshots VALUES (?,?,?,?)", (sid, iso(utcnow()), body, mac))
+            self.db.execute("INSERT INTO current_snapshot VALUES(1,?) ON CONFLICT(singleton) DO UPDATE SET id=excluded.id", (sid,))
+            self._audit("snapshot.ingested", {"snapshot_id": sid, "source_mode": source_mode, "events": len(document["events"]), "assets": len(document["assets"]), "deduplicated_snapshot": old is not None})
+        return sid
+
+    def snapshot(self) -> tuple[str | None, dict | None]:
+        with self.lock:
+            row = self.db.execute("SELECT s.* FROM snapshots s JOIN current_snapshot c ON s.id=c.id WHERE c.singleton=1").fetchone()
+            if row is None:
+                return None, None
+            expected = hmac.new(self.audit_key, row["body"].encode(), hashlib.sha256).hexdigest()
+            expected_id = "S-" + hashlib.sha256(row["body"].encode()).hexdigest()[:24]
+            if not hmac.compare_digest(expected, row["mac"]) or row["id"] != expected_id:
+                raise IntegrityError("スナップショットの完全性検証に失敗しました。")
+            return row["id"], json.loads(row["body"])
+
+    def state(self) -> dict:
+        with self.lock:
+            sid, doc = self.snapshot()
+            audit = self.verify_audit()
+            findings = analyze(doc) if doc else []
+            proposals = []
+            if sid:
+                for row in self.db.execute("SELECT * FROM proposals WHERE snapshot_id=? ORDER BY created_at DESC", (sid,)).fetchall():
+                    status = "expired" if row["status"] == "pending" and parse_time(row["expires_at"]) < utcnow() else row["status"]
+                    proposals.append({"id": row["id"], "finding_id": row["finding_id"], "plan": json.loads(row["body"]), "created_at": row["created_at"], "expires_at": row["expires_at"], "status": status})
+            records = [{"seq": r["seq"], "at": r["at"], "action": r["action"], "payload": json.loads(r["payload"]), "mac": r["mac"]} for r in self.db.execute("SELECT * FROM audit ORDER BY seq DESC LIMIT 100")]
+            return {"version": "0.1.0", "rule_version": RULE_VERSION, "snapshot_id": sid, "snapshot": doc, "findings": findings, "proposals": proposals, "audit": audit, "audit_records": records, "coverage": coverage(doc) if doc else {"live_connectors": 0, "expected_connectors": 3, "snapshot_only": True, "missing_sources": ["資産台帳", "認証ログ", "ファイル参照ログ"]}, "mode": "local-prototype", "real_actions_enabled": False, "generated_at": iso(utcnow())}
+
+    def get_finding(self, sid: str, fid: str) -> dict:
+        current, document = self.snapshot()
+        if sid != current or document is None:
+            raise ConflictError("入力データが更新されています。画面を再読み込みしてください。")
+        f = next((f for f in analyze(document) if f["id"] == fid), None)
+        if f is None:
+            raise ValidationError("検知IDが見つかりません。")
+        return f
+
+    def propose(self, sid: str, fid: str) -> dict:
+        with self.transaction():
+            f = self.get_finding(sid, fid)
+            now = utcnow()
+            existing = self.db.execute("SELECT * FROM proposals WHERE snapshot_id=? AND finding_id=? AND status='pending' ORDER BY created_at DESC LIMIT 1", (sid, fid)).fetchone()
+            if existing and parse_time(existing["expires_at"]) > now:
+                return {"proposal_id": existing["id"], "plan": json.loads(existing["body"]), "expires_at": existing["expires_at"], "reused": True}
+            plan = plan_for(f)
+            pid, expires = "P-" + secrets.token_hex(12), iso(now + timedelta(minutes=5))
+            self.db.execute("INSERT INTO proposals VALUES(?,?,?,?,?,?,?)", (pid, sid, fid, canonical(plan), iso(now), expires, "pending"))
+            self._audit("plan.proposed", {"proposal_id": pid, "snapshot_id": sid, "finding_id": fid, "action": plan["action"], "execution_mode": "simulation_only"})
+            return {"proposal_id": pid, "plan": plan, "expires_at": expires, "reused": False}
+
+    def approve_and_simulate(self, proposal_id: str, expected_snapshot: str, confirmation: str, reason: str) -> dict:
+        if confirmation != "SIMULATE ONLY":
+            raise ValidationError("確認文字列が一致しません。")
+        if not isinstance(reason, str) or not 10 <= len(reason.strip()) <= 500:
+            raise ValidationError("承認理由は10〜500文字で入力してください。")
+        with self.transaction():
+            row = self.db.execute("SELECT * FROM proposals WHERE id=?", (proposal_id,)).fetchone()
+            if row is None:
+                raise ValidationError("計画が見つかりません。")
+            if row["status"] != "pending":
+                raise ConflictError("この計画はすでに処理済みです。")
+            if row["snapshot_id"] != expected_snapshot or self.snapshot()[0] != expected_snapshot:
+                raise ConflictError("計画作成後に入力が更新されました。再確認が必要です。")
+            if parse_time(row["expires_at"]) <= utcnow():
+                raise ConflictError("承認期限の5分を過ぎています。計画を作り直してください。")
+            # Do not trust a mutable stored action: compare against the current policy.
+            expected = plan_for(self.get_finding(expected_snapshot, row["finding_id"]))
+            if row["body"] != canonical(expected):
+                raise IntegrityError("計画と現行ポリシーの内容が一致しません。")
+            reason_mac = hmac.new(self.audit_key, reason.strip().encode(), hashlib.sha256).hexdigest()
+            self._audit("plan.approved", {"proposal_id": proposal_id, "operator": "local-owner", "reason_hmac": reason_mac, "reason_plaintext_saved": False})
+            result = SimulationAdapter().simulate(expected)
+            self.db.execute("UPDATE proposals SET status='simulated' WHERE id=?", (proposal_id,))
+            self._audit("plan.simulated", {"proposal_id": proposal_id, "executed": False, "adapter": result["adapter"]})
+            return result
