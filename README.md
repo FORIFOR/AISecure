@@ -36,6 +36,10 @@ Raising the threshold until the bulk rule goes quiet also stops it detecting the
 
 This is an early prototype and **the most useful thing right now is a second pair of eyes.** No security expertise needed.
 
+**No install? [▶ Try it in your browser](https://forifor.github.io/AISecure/try.html)** — the real UI on synthetic data, then hit "Give 2-min feedback". That's the fastest way to help.
+
+Prefer to run it for real:
+
 ```bash
 git clone https://github.com/FORIFOR/AISecure.git && cd AISecure
 python3 -m aisecure serve --demo   # opens a local, offline UI

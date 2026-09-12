@@ -1,0 +1,448 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Try AI Secure — in-browser preview</title><meta name="description" content="Try AI Secure in your browser — the real security-triage UI on synthetic data, no install."><meta property="og:title" content="Try AI Secure in your browser"><meta property="og:description" content="Click through the real UI on synthetic data — no install, no account."><meta property="og:image" content="https://forifor.github.io/AISecure/media/social-card.png"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://forifor.github.io/AISecure/media/social-card.png">
+<style>:root{--bg:#f6f7f5;--paper:#fff;--ink:#20352f;--muted:#6d7974;--green:#175b48;--green-hover:#104737;--mint:#edf5ef;--border:#e3e8e2;--orange:#9c4c25;--orange-bg:#fff3e9;--red:#a44136;--red-bg:#fff0ed;--shadow:0 12px 40px #23372b08;--radius:15px;--sans:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans JP","Hiragino Kaku Gothic ProN",Meiryo,sans-serif}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.65 var(--sans);letter-spacing:.005em}button,input,textarea{font:inherit}button,a,input,textarea{touch-action:manipulation}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.5}a{color:inherit;text-decoration:none}button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid #b2c8b7;outline-offset:3px}button{transition:background .15s ease,transform .15s ease}button:active:not(:disabled){transform:translateY(1px)}h1,h2,h3,p{margin-top:0}h1{font-size:27px;line-height:1.45;font-weight:650;letter-spacing:-.055em;margin:0 0 10px}h2{font-size:21px;line-height:1.5;font-weight:650;letter-spacing:-.035em}h3{font-size:15px;font-weight:650}small{color:var(--muted)}.app-shell{display:flex;min-height:100vh}.sidebar{width:236px;flex-shrink:0;padding:31px 18px 23px;background:#fff;border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;bottom:0;left:0}.brand{display:flex;gap:12px;align-items:center;padding:0 9px;font-size:22px;font-weight:650;letter-spacing:-.045em}.brand-caption{display:block;font-size:7px;color:#7e9088;letter-spacing:.2em;margin-top:0}.brand-mark{width:30px;height:33px;display:grid;grid-template-columns:1fr 1fr;gap:4px;transform:rotate(-9deg)}.brand-mark i{background:var(--green);border-radius:3px}.brand-mark i:nth-child(2){background:#8eab92}.brand-mark i:nth-child(3){background:#c9d8c7}.workspace{display:flex;gap:9px;align-items:center;border:1px solid var(--border);border-radius:10px;padding:11px 9px;margin:31px 3px 24px;font-size:11px;font-weight:550}.workspace small{display:block;font-size:9px;font-weight:400;margin-top:2px}.workspace-icon{width:29px;height:29px;display:grid;place-items:center;background:var(--mint);border-radius:7px;color:var(--green)}.dot{width:6px;height:6px;border-radius:50%;background:#5e8b70;margin-left:auto}.nav-label{font-size:9px;letter-spacing:.16em;color:#8c9791;padding-left:12px;margin-bottom:11px}.nav-item{display:flex;align-items:center;width:100%;border:0;background:none;text-align:left;color:#69796f;padding:11px 12px;border-radius:8px;margin-bottom:4px;font-size:12px;font-weight:550}.nav-item:hover{background:#f6f8f5}.nav-item.active{color:var(--green);background:#eaf2eb}.nav-icon{font-size:19px;line-height:1;display:inline-block;width:30px;font-weight:400}.nav-count{margin-left:auto;background:#d9e5d9;color:#3c6248;border-radius:5px;font-size:10px;min-width:20px;text-align:center}.sidebar-bottom{margin-top:auto;padding:14px 12px 0}.small-lock{color:var(--green);font-size:9px;letter-spacing:.16em;font-weight:650;margin-bottom:8px}.sidebar-bottom p{font-size:11px;color:#74847a;line-height:1.8;margin-bottom:23px}.version{font-size:8px;color:#9da69f}.main-shell{margin-left:236px;flex:1;min-width:0}.topbar{height:73px;background:#ffffffaa;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 36px}.breadcrumbs{font-size:11px;color:#8a968e}.breadcrumbs span{margin:0 10px;color:#b3bdb5}.breadcrumbs strong{font-weight:500;color:#57695e}.topbar-right{display:flex;align-items:center;gap:17px}.avatar{width:29px;height:29px;border:1px solid #dbe3d8;background:#eaf0e6;border-radius:50%;font-size:11px;color:var(--green);display:grid;place-items:center}main{max-width:1540px;margin:auto;padding:31px 36px 0}.page-heading{display:flex;justify-content:space-between;gap:18px;align-items:center;margin-bottom:21px}.eyebrow{font-size:9px;font-weight:650;letter-spacing:.17em;color:#89978c;margin-bottom:11px}.subtitle{color:var(--muted);font-size:11px;margin:0}.heading-actions{display:flex;gap:8px;flex-shrink:0;padding-top:12px}.button{display:inline-flex;align-items:center;justify-content:center;gap:10px;border-radius:7px;border:1px solid transparent;padding:9px 14px;font-size:11px;line-height:1.6;font-weight:550;white-space:nowrap}.button.primary{background:var(--green);color:#fff}.button.primary:hover:not(:disabled){background:var(--green-hover)}.button.secondary{background:#fff;border-color:#dfe5dd;color:#4f6457}.button.secondary:hover:not(:disabled){background:#f4f7f2}.button.ghost{background:transparent;color:#456a54;padding-left:0}.button.compact{padding:6px 10px;font-size:10px}.button.full{width:100%}.pill{display:inline-flex;align-items:center;gap:5px;font-size:9px;font-weight:600;border-radius:5px;padding:3px 7px;background:#edf2e8;color:#57724e;white-space:nowrap}.pill.neutral{background:#f1f3ef;color:#74816d}.pill.warn{background:var(--orange-bg);color:var(--orange)}.pill.danger{background:var(--red-bg);color:var(--red)}.pill.green{background:var(--mint);color:var(--green)}.status-banner{background:#eff3eb;border:1px solid #e0e8d9;border-radius:8px;display:flex;align-items:center;gap:10px;padding:10px 13px;font-size:10px;color:#617454;margin-bottom:23px;line-height:1.7}.status-icon{width:15px;height:15px;flex-shrink:0;border:1px solid #99ab8b;border-radius:50%;font:10px/13px Georgia;text-align:center}.status-banner>.pill{margin-left:auto;background:#e0e8d8}.stats-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:22px}.stat{border:1px solid var(--border);border-radius:11px;padding:15px 18px;background:var(--paper)}.stat-label{font-size:10px;color:var(--muted);display:flex;justify-content:space-between;align-items:center}.stat-value{display:flex;align-items:baseline;gap:8px;margin-top:7px;font-size:30px;line-height:1.3;font-weight:500;letter-spacing:-.04em;font-variant-numeric:tabular-nums}.stat-value small{font-size:10px;letter-spacing:0;font-weight:400}.stat-caption{font-size:9px;color:#8b978d;margin-top:5px}.stat.emphasis .stat-value{color:var(--red)}.section-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 11px}.section-title h2{font-size:13px;font-weight:600;letter-spacing:.01em;margin:0}.section-title small{font-size:9px}.content-grid{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(275px,1fr);gap:18px;align-items:start}.card{background:var(--paper);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}.card-pad{padding:22px}.incident-card{border-top:3px solid #cd8664}.incident-topline{display:flex;gap:8px;align-items:center;margin-bottom:17px}.incident-topline .mono{margin-left:auto;font-size:8px}.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;overflow-wrap:anywhere}.muted{color:var(--muted)}.incident-title{font-size:21px;margin:0 0 9px;max-width:500px;line-height:1.65;letter-spacing:-.035em}.incident-description{font-size:11px;color:var(--muted);line-height:1.9;margin-bottom:20px}.path-grid{display:grid;grid-template-columns:1fr 23px 1fr 23px 1fr;gap:0;align-items:center;margin:21px 0}.path-node{min-width:0;padding:14px 10px;background:#f7f8f5;border:1px solid #e8ebe3;border-radius:9px;min-height:112px;text-align:center}.path-number{width:23px;height:23px;border:1px solid #d7dfd1;color:#66805b;display:grid;place-items:center;border-radius:6px;font-size:9px;margin:0 auto 9px;background:#fff}.path-node strong{display:block;font-size:11px;font-weight:600}.path-node small{font-size:9px;display:block;margin-top:4px}.path-arrow{text-align:center;color:#acb8a3;font-size:16px}.caution{font-size:10px;color:#956744;background:#fff7ee;border-radius:7px;padding:10px 12px;margin:16px 0}.card-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:16px;border-top:1px solid #edf0e9}.card-actions small{font-size:9px}.brief-card{background:#fdfefa}.brief-heading{display:flex;align-items:center;gap:8px;border-bottom:1px solid #e7ece1;padding-bottom:15px;margin-bottom:17px}.brief-heading h3{margin:0;font-size:13px}.brief-heading .pill{margin-left:auto;font-size:8px}.brief-mark{width:23px;height:23px;color:#527a4c;font-size:17px}.fact-block{margin:0 0 17px}.fact-label{font-size:9px;font-weight:650;color:#71915f;margin-bottom:5px;display:flex;align-items:center;gap:6px}.fact-label.warn{color:#a57950}.fact-label.neutral{color:#8c978e}.fact-block p{font-size:11px;line-height:1.85;margin:0;color:#506346}.brief-meta{border-top:1px solid #e6ece0;padding-top:12px;font-size:9px;color:#89937d;line-height:1.8}.lower-grid{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(275px,1fr);gap:18px;margin-top:22px}.finding-row{display:grid;grid-template-columns:39px 1fr auto;gap:12px;align-items:center;padding:15px 19px;border-bottom:1px solid #edf0e9;width:100%;background:none;text-align:left;border-left:0;border-right:0;border-top:0;color:var(--ink)}.finding-row:last-child{border-bottom:0}.finding-row:hover{background:#fafbf8}.finding-row.selected{background:#f2f6ef}.finding-text{min-width:0}.finding-text strong{display:block;font-size:11px;font-weight:550;line-height:1.6}.finding-text small{font-size:9px;display:block;margin-top:3px}.finding-row .row-arrow{color:#a7b19f;font-size:15px}.telemetry-item{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid #edf0e9;font-size:10px}.telemetry-item:last-of-type{border:0}.telemetry-caption{font-size:9px;line-height:1.8;color:#8e9988;margin:13px 0 0}.page-footer{display:flex;justify-content:space-between;gap:16px;font-size:8px;color:#93a08f;border-top:1px solid #e4e9df;padding:20px 0;margin-top:28px}.footer-separator{padding:0 6px;color:#b1bbaa}.table-wrap{overflow-x:auto}.table{width:100%;border-collapse:collapse;text-align:left;font-size:11px}.table th{font-size:9px;font-weight:500;color:#8a9685;padding:13px 18px;border-bottom:1px solid var(--border);background:#fbfcf8;white-space:nowrap}.table td{padding:17px 18px;border-bottom:1px solid #edf0e9;vertical-align:top}.table tbody tr:last-child td{border-bottom:0}.table td small{display:block;font-size:9px;margin-top:3px}.table .mono{font-size:10px}.empty-state{text-align:center;padding:55px 26px;background:white;border:1px dashed #ced8c8;border-radius:15px}.empty-state h2{font-size:20px}.empty-state p{font-size:12px;color:#7b8b73;max-width:520px;margin:0 auto 18px}.detail-list{padding:0;margin:12px 0 0;list-style:none}.detail-list li{font-size:11px;line-height:1.9;padding:7px 0;border-bottom:1px solid #edf0e9}.detail-list li:last-child{border:0}.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.info-grid h3{margin-bottom:10px}.info-grid p{font-size:12px;line-height:1.9;color:#6c7c65}.plan-card{padding:22px;margin-bottom:13px}.plan-card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.plan-card-head h3{margin:0}.plan-card p{font-size:11px;color:#75856c}.audit-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;gap:15px}.audit-note{font-size:11px;max-width:740px;color:#7a886f;line-height:1.8}.evidence-box{margin-top:17px;border-top:1px solid #edf0e9;padding-top:12px}.evidence-box summary{font-size:10px;color:#7e8e72;cursor:pointer}.evidence-ids{font-size:9px;line-height:2;max-height:200px;overflow:auto;white-space:pre-wrap;word-break:break-all;padding:10px;background:#f6f8f2;border-radius:6px}.toast{position:fixed;bottom:24px;right:25px;max-width:490px;padding:14px 20px;background:#203e2d;color:white;border-radius:10px;box-shadow:0 6px 30px #0002;z-index:50;font-size:12px}.toast.error{background:#8b4033}.dialog{border:1px solid var(--border);border-radius:16px;max-width:590px;width:calc(100% - 40px);max-height:90vh;padding:0;color:var(--ink);box-shadow:0 40px 100px #12321d33}.dialog::backdrop{background:#142b2066;backdrop-filter:blur(3px)}.dialog-inner{padding:29px}.dialog h2{margin-bottom:12px}.dialog p{font-size:12px;color:#697d60;line-height:1.85}.login-dialog{max-width:450px}.field-label{display:block;font-size:11px;font-weight:600;margin:17px 0 7px}input[type=password],input[type=text],textarea{width:100%;border:1px solid #cdd8c6;padding:11px;border-radius:7px;background:#fcfdfb;min-width:0;color:var(--ink);font-size:12px}textarea{resize:vertical;min-height:78px}.field-error{font-size:11px!important;color:var(--red)!important}.microcopy{font-size:10px!important;margin:12px 0 0!important}.dialog-buttons{display:flex;gap:9px;justify-content:flex-end;margin-top:23px}.ack-label{display:flex;gap:9px;align-items:flex-start;font-size:11px;color:#637758;margin-top:17px}.ack-label input{margin-top:4px;flex-shrink:0}.model-output{padding:12px;background:#f3f7ee;border-radius:7px;font-size:11px;line-height:1.9;margin-top:12px;white-space:pre-wrap;word-break:break-word}.skip-link{position:absolute;left:-9999px;top:10px;z-index:100;background:#fff;padding:10px}.skip-link:focus{left:10px}[hidden]{display:none!important}
+@media(min-width:1550px){.incident-title{font-size:25px}.stat{padding:18px 22px}.stat-value{font-size:35px}.path-node{padding:17px 12px}.card-pad{padding:27px}.path-node strong{font-size:12px}.path-node small{font-size:10px}.incident-description,.fact-block p{font-size:12px}}
+@media(max-width:1200px){.sidebar{width:200px;padding-left:11px;padding-right:11px}.main-shell{margin-left:200px}main{padding:25px 24px 0}.topbar{padding:0 24px}.page-heading{align-items:flex-start;flex-direction:column}.heading-actions{padding-top:0}h1{font-size:25px}.content-grid,.lower-grid{grid-template-columns:minmax(0,1.5fr) minmax(255px,1fr)}.path-node{padding:12px 5px}.card-pad{padding:18px}.incident-title{font-size:19px}.stats-grid{gap:10px}.stat{padding:13px}.stat-value{font-size:26px}}
+@media(max-width:950px){.sidebar{width:76px;padding:25px 11px}.brand{padding:0 9px}.brand>span:last-child,.workspace,.nav-label,.sidebar-bottom,.nav-count{display:none}.brand-mark{flex-shrink:0}.sidebar nav{margin-top:34px}.nav-item{font-size:0;justify-content:center;padding:12px 0}.nav-icon{font-size:23px;width:auto}.main-shell{margin-left:76px}.content-grid,.lower-grid{grid-template-columns:1fr}.brief-card .fact-block{margin-bottom:12px}.info-grid{grid-template-columns:1fr}.heading-actions{padding-top:0}}
+@media(max-width:570px){.sidebar{position:static;width:100%;height:auto;padding:15px 18px;border-right:0;border-bottom:1px solid var(--border);flex-direction:row;align-items:center;justify-content:space-between}.brand{padding:0;font-size:18px;gap:8px}.brand>span:last-child{display:block}.brand-caption{font-size:6px}.brand-mark{width:22px;height:25px;gap:3px}.sidebar nav{display:flex;margin:0;gap:4px}.nav-item{width:29px;padding:6px 0;margin:0}.nav-icon{font-size:19px}.app-shell{display:block}.main-shell{margin:0}.topbar{height:52px;padding:0 18px}main{padding:23px 18px 0}.page-heading{gap:13px}.eyebrow{font-size:8px}h1{font-size:23px}.subtitle{font-size:10px;line-height:1.8}.heading-actions{width:100%}.heading-actions .button{flex:1;font-size:10px}.status-banner{font-size:9px;align-items:flex-start}.status-banner .pill{align-self:center}.stats-grid{grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}.stat-value{font-size:29px}.stat-caption{font-size:8px}.incident-title{font-size:21px}.card-pad{padding:19px}.path-grid{grid-template-columns:1fr 16px 1fr 16px 1fr}.path-node{min-height:107px}.path-node strong{font-size:10px}.path-node small{font-size:8px}.card-actions{flex-wrap:wrap}.card-actions small{font-size:8px}.incident-topline{flex-wrap:wrap}.incident-topline .mono{font-size:7px}.page-footer{font-size:8px;flex-direction:column;gap:5px}.toast{right:18px;left:18px;bottom:16px;max-width:none}.dialog-inner{padding:23px}.audit-top{align-items:flex-start;flex-direction:column}.table td,.table th{padding:13px}.finding-row{gap:9px;padding:14px}.dialog-buttons .button{white-space:normal}.topbar-right{gap:10px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+.lang-toggle{border:1px solid #dbe3d8;background:#fff;color:#4f6457;border-radius:6px;font-size:11px;font-weight:600;padding:5px 10px;line-height:1.4}.lang-toggle:hover{background:#f4f7f2}
+</style>
+<script>window.__AI_SECURE_PREVIEW__={"version": "0.2.1", "rule_version": "2026-09-12.2", "rule_config": {"digest": "814b2f0ec0026668", "values": {"window_seconds": 300, "distinct_file_threshold": 100, "login_lookback_seconds": 1800, "sensitive_file_minimum": 1, "stale_asset_hours": 24, "cvss_priority_threshold": 7.0, "identity_conditions": "any"}, "parameters": [{"name": "window_seconds", "value": 300, "description": "大量参照を数える時間窓（秒）", "description_en": "Time window for counting bulk access (seconds)"}, {"name": "distinct_file_threshold", "value": 100, "description": "窓内で検知に必要な異なるファイル数", "description_en": "Distinct files needed within the window to detect"}, {"name": "login_lookback_seconds", "value": 1800, "description": "大量参照の直前ログインを関連付ける上限（秒）", "description_en": "Max gap to link a login before bulk access (seconds)"}, {"name": "sensitive_file_minimum", "value": 1, "description": "相関に必要な機密ラベル付きファイル数", "description_en": "Sensitive-labelled files required for correlation"}, {"name": "stale_asset_hours", "value": 24, "description": "資産情報を古いと判定する経過時間", "description_en": "Age after which asset data counts as stale"}, {"name": "cvss_priority_threshold", "value": 7.0, "description": "公開状況が不明な資産をP2に上げるCVSS下限", "description_en": "CVSS floor that raises an unknown-exposure asset to P2"}, {"name": "identity_conditions", "value": "any", "description": "特権ログインを要確認とする条件。any=非管理端末または未承認、both=両方", "description_en": "Conditions that flag a privileged login. any = unmanaged or unapproved, both = both"}]}, "snapshot_id": "S-69790466b2509f1292eabc0c", "snapshot": {"schema_version": 1, "as_of": "2026-09-12T16:00:47Z", "source_mode": "demo", "provenance": [], "assets": [{"id": "documents-01", "internet_exposed": false, "kind": "server", "observed_at": "2026-09-12T15:48:47Z", "patch_state": "applied", "privileged_path": false, "sensitive_path": true, "vulnerability": null}, {"id": "edge-vpn-01", "internet_exposed": true, "kind": "vpn", "observed_at": "2026-09-12T15:48:47Z", "patch_state": "pending", "privileged_path": true, "sensitive_path": true, "vulnerability": {"cvss": 6.5, "known_exploited": false, "reference": "DEMO-ADV-001"}}, {"id": "workstation-07", "internet_exposed": false, "kind": "endpoint", "observed_at": "2026-09-12T15:48:47Z", "patch_state": "applied", "privileged_path": false, "sensitive_path": false, "vulnerability": null}], "events_included": false, "event_counts": {"total": 148, "login": 2, "file_access": 146}}, "findings": [{"id": "F-f9bb60a07dfd43", "rule": "AS-004", "rule_version": "2026-09-12.2", "rule_config_digest": "814b2f0ec0026668", "priority": "P1", "title": "保守アカウントの侵害を疑う相関候補", "reasons": ["公開・未修正の接続機器、条件に問題がある特権ログイン、機密ファイルの大量参照が関連しています。", "同一ユーザー・同一セッションと30分以内の時系列で関連付けました。", "接続機器の脆弱性が実際に悪用されたこと、外部漏えいが起きたことは未確認です。"], "evidence_ids": ["asset:edge-vpn-01", "evt-login-review", "evt-review-000", "evt-review-001", "evt-review-002", "evt-review-003", "evt-review-004", "evt-review-005", "evt-review-006", "evt-review-007", "evt-review-008", "evt-review-009", "evt-review-010", "evt-review-011", "evt-review-012", "evt-review-013", "evt-review-014", "evt-review-015", "evt-review-016", "evt-review-017", "evt-review-018", "evt-review-019", "evt-review-020", "evt-review-021", "evt-review-022", "evt-review-023", "evt-review-024", "evt-review-025", "evt-review-026", "evt-review-027", "evt-review-028", "evt-review-029", "evt-review-030", "evt-review-031", "evt-review-032", "evt-review-033", "evt-review-034", "evt-review-035", "evt-review-036", "evt-review-037", "evt-review-038", "evt-review-039", "evt-review-040", "evt-review-041", "evt-review-042", "evt-review-043", "evt-review-044", "evt-review-045", "evt-review-046", "evt-review-047", "evt-review-048", "evt-review-049", "evt-review-050", "evt-review-051", "evt-review-052", "evt-review-053", "evt-review-054", "evt-review-055", "evt-review-056", "evt-review-057", "evt-review-058", "evt-review-059", "evt-review-060", "evt-review-061", "evt-review-062", "evt-review-063", "evt-review-064", "evt-review-065", "evt-review-066", "evt-review-067", "evt-review-068", "evt-review-069", "evt-review-070", "evt-review-071", "evt-review-072", "evt-review-073", "evt-review-074", "evt-review-075", "evt-review-076", "evt-review-077", "evt-review-078", "evt-review-079", "evt-review-080", "evt-review-081", "evt-review-082", "evt-review-083", "evt-review-084", "evt-review-085", "evt-review-086", "evt-review-087", "evt-review-088", "evt-review-089", "evt-review-090", "evt-review-091", "evt-review-092", "evt-review-093", "evt-review-094", "evt-review-095", "evt-review-096", "evt-review-097", "evt-review-098", "evt-review-099", "evt-review-100", "evt-review-101", "evt-review-102", "evt-review-103", "evt-review-104", "evt-review-105", "evt-review-106", "evt-review-107", "evt-review-108", "evt-review-109", "evt-review-110", "evt-review-111", "evt-review-112", "evt-review-113", "evt-review-114", "evt-review-115", "evt-review-116", "evt-review-117", "evt-review-118", "evt-review-119", "evt-review-120", "evt-review-121", "evt-review-122", "evt-review-123", "evt-review-124", "evt-review-125", "evt-review-126", "evt-review-127", "evt-review-128", "evt-review-129"], "verdict": "requires_review", "kind": "correlation", "actor": "actor-cd7f0f0b20647e6dbcf8447d", "gateway_id": "edge-vpn-01", "asset_id": "documents-01", "distinct_files": 130, "sensitive_files": 42, "at": "2026-09-12T16:00:05Z", "hypothesis": true, "title_en": "Correlated case: suspected maintenance-account compromise", "reasons_en": ["An exposed, unpatched gateway, a privileged login that fails its conditions, and bulk access to sensitive files are related.", "Linked by the same user and session within 30 minutes.", "Whether the gateway vulnerability was actually exploited, and whether data left the network, is unconfirmed."]}, {"id": "F-bfb9e5d0cf7205", "rule": "AS-001", "rule_version": "2026-09-12.2", "rule_config_digest": "814b2f0ec0026668", "priority": "P1", "title": "公開機器の修正を優先", "reasons": ["修正プログラムが未適用と登録されています。", "インターネットに公開されていると登録されています。", "特権と機密情報への到達経路が台帳に登録されています。", "CVSSが7未満でも、公開範囲と到達経路の組み合わせを優先します。"], "evidence_ids": ["asset:edge-vpn-01"], "verdict": "requires_review", "asset_id": "edge-vpn-01", "kind": "exposure", "cvss": 6.5, "reference": "DEMO-ADV-001", "title_en": "Patch the exposed device first", "reasons_en": ["The patch is registered as not applied.", "Registered as exposed to the internet.", "A path to privilege and sensitive data is registered in the ledger.", "Even below CVSS 7, the exposure and reachability combination is prioritised."]}, {"id": "F-b02237651165cf", "rule": "AS-002", "rule_version": "2026-09-12.2", "rule_config_digest": "814b2f0ec0026668", "priority": "P2", "title": "特権ログインの条件を確認", "reasons": ["特権ログインに、未承認作業または非管理端末の条件が重なっています。", "不正利用と断定せず、作業申請と端末状態を確認してください。"], "evidence_ids": ["evt-login-review"], "verdict": "requires_review", "kind": "identity", "actor": "actor-cd7f0f0b20647e6dbcf8447d", "gateway_id": "edge-vpn-01", "at": "2026-09-12T15:54:47Z", "title_en": "Check the privileged-login conditions", "reasons_en": ["A privileged login combines an unapproved change or an unmanaged device.", "Not a conclusion of misuse; verify the change request and device state."]}, {"id": "F-d248845b90445e", "rule": "AS-003", "rule_version": "2026-09-12.2", "rule_config_digest": "814b2f0ec0026668", "priority": "P2", "title": "短時間の大量ファイル参照", "reasons": ["300秒以内に130個の異なるファイルへの参照を記録しました。", "このうち機密ラベル付きは42個です。", "参照ログだけでは外部への送信・漏えいを証明できません。"], "evidence_ids": ["evt-review-000", "evt-review-001", "evt-review-002", "evt-review-003", "evt-review-004", "evt-review-005", "evt-review-006", "evt-review-007", "evt-review-008", "evt-review-009", "evt-review-010", "evt-review-011", "evt-review-012", "evt-review-013", "evt-review-014", "evt-review-015", "evt-review-016", "evt-review-017", "evt-review-018", "evt-review-019", "evt-review-020", "evt-review-021", "evt-review-022", "evt-review-023", "evt-review-024", "evt-review-025", "evt-review-026", "evt-review-027", "evt-review-028", "evt-review-029", "evt-review-030", "evt-review-031", "evt-review-032", "evt-review-033", "evt-review-034", "evt-review-035", "evt-review-036", "evt-review-037", "evt-review-038", "evt-review-039", "evt-review-040", "evt-review-041", "evt-review-042", "evt-review-043", "evt-review-044", "evt-review-045", "evt-review-046", "evt-review-047", "evt-review-048", "evt-review-049", "evt-review-050", "evt-review-051", "evt-review-052", "evt-review-053", "evt-review-054", "evt-review-055", "evt-review-056", "evt-review-057", "evt-review-058", "evt-review-059", "evt-review-060", "evt-review-061", "evt-review-062", "evt-review-063", "evt-review-064", "evt-review-065", "evt-review-066", "evt-review-067", "evt-review-068", "evt-review-069", "evt-review-070", "evt-review-071", "evt-review-072", "evt-review-073", "evt-review-074", "evt-review-075", "evt-review-076", "evt-review-077", "evt-review-078", "evt-review-079", "evt-review-080", "evt-review-081", "evt-review-082", "evt-review-083", "evt-review-084", "evt-review-085", "evt-review-086", "evt-review-087", "evt-review-088", "evt-review-089", "evt-review-090", "evt-review-091", "evt-review-092", "evt-review-093", "evt-review-094", "evt-review-095", "evt-review-096", "evt-review-097", "evt-review-098", "evt-review-099", "evt-review-100", "evt-review-101", "evt-review-102", "evt-review-103", "evt-review-104", "evt-review-105", "evt-review-106", "evt-review-107", "evt-review-108", "evt-review-109", "evt-review-110", "evt-review-111", "evt-review-112", "evt-review-113", "evt-review-114", "evt-review-115", "evt-review-116", "evt-review-117", "evt-review-118", "evt-review-119", "evt-review-120", "evt-review-121", "evt-review-122", "evt-review-123", "evt-review-124", "evt-review-125", "evt-review-126", "evt-review-127", "evt-review-128", "evt-review-129"], "verdict": "requires_review", "kind": "bulk", "actor": "actor-cd7f0f0b20647e6dbcf8447d", "asset_id": "documents-01", "distinct_files": 130, "sensitive_files": 42, "at": "2026-09-12T16:00:05Z", "title_en": "Bulk file access in a short window", "reasons_en": ["Recorded 130 distinct file reads within 300 seconds.", "Of these, 42 carry a sensitive label.", "Read logs alone cannot prove exfiltration or a leak."]}], "proposals": [], "audit": {"valid": true, "count": 2, "tip": "40dcf38f2d0b3e9f3406fdd030031b7e27c4cded758780d164695d720ebffe3b", "anchor_checked": false, "anchor_valid": false, "limitation": "外部チェックポイントなしでは末尾削除を検出できません。ホストと鍵の同時侵害には耐えません。", "limitation_en": "Without an external checkpoint, tail truncation cannot be detected. It does not withstand simultaneous compromise of the host and the key."}, "audit_records": [{"seq": 2, "at": "2026-09-12T16:00:47Z", "action": "snapshot.ingested", "payload": {"assets": 3, "deduplicated_snapshot": false, "events": 148, "provenance": [], "rule_config_digest": "814b2f0ec0026668", "snapshot_id": "S-69790466b2509f1292eabc0c", "source_mode": "demo"}, "mac": "40dcf38f2d0b3e9f3406fdd030031b7e27c4cded758780d164695d720ebffe3b"}, {"seq": 1, "at": "2026-09-12T16:00:47Z", "action": "rules.configured", "payload": {"digest": "814b2f0ec0026668", "previous": null, "rule_version": "2026-09-12.2", "values": {"cvss_priority_threshold": 7.0, "distinct_file_threshold": 100, "identity_conditions": "any", "login_lookback_seconds": 1800, "sensitive_file_minimum": 1, "stale_asset_hours": 24, "window_seconds": 300}}, "mac": "02116ae643f99df71b93ab078e71addbbf6c9c515c8b9cfe2e93ee7dfe583a86"}], "coverage": {"live_connectors": 0, "expected_connectors": 3, "snapshot_only": true, "missing_sources": [], "unknown_asset_fields": 0, "unknown_login_fields": 0, "unknown_classifications": 0, "unknown_read_sizes": 0, "provenance": []}, "mode": "local-prototype", "real_actions_enabled": false, "generated_at": "2026-09-12T16:00:47Z", "llm": {"configured": false, "requested_model": null, "default_provider": "deterministic-template", "real_connection_tested": false}};</script><script>'use strict';
+// UI-shell strings only. Analysis output produced by the backend (finding text,
+// plan wording, parameter descriptions, audit notes, API errors) is data, stays
+// in its source language, and is not translated here.
+const I18N = {
+  en: {
+    'lang.other': '日本語', 'lang.aria': 'Switch language',
+    'nav.overview': 'Overview', 'nav.assets': 'Assets & exposure', 'nav.plans': 'Response plans',
+    'nav.tuning': 'Detection settings', 'nav.audit': 'Audit log', 'nav.about': 'Design & safety',
+    'brand.caption': 'EVIDENCE BEFORE ACTION', 'workspace.name': 'Local workspace',
+    'workspace.sub': 'Single admin / evaluation', 'nav.label': 'WORKSPACE',
+    'sidebar.lock': 'LOCAL FIRST', 'sidebar.tagline': 'Evidence in your hands.<br>Authority with a human.',
+    'heading.eyebrow': 'YOUR SECURITY, WITH CONTEXT.',
+    'btn.importJson': 'Import JSON', 'btn.loadDemo': 'Load demo',
+    'banner.default': 'Local snapshot analysis. No continuous monitoring or blocking of a live environment.',
+    'footer.tagline': 'Evidence before action.', 'footer.status': 'Live connectors 0 / 3 · Auto-execution OFF',
+    'login.eyebrow': 'LOCAL ACCESS', 'login.title': 'Open the workspace',
+    'login.body': 'Enter the token shown at startup. It is held only in browser memory.',
+    'login.label': 'Access token', 'login.button': 'Connect',
+    'login.microcopy': 'This is not a login to any external account or cloud.', 'skip': 'Skip to content',
+    'dataMode.preview': 'Read-only preview', 'dataMode.demo': 'Synthetic data',
+    'dataMode.imported': 'Manual input', 'dataMode.none': 'Not connected',
+    'banner.preview': 'Read-only preview on synthetic logs. Actions run in the local app from the repo.',
+    'banner.demo': 'Evaluation on synthetic logs. Not real GSS logs. No continuous monitoring or blocking of a live environment.',
+    'banner.imported': 'Manual snapshot analysis. Verify log authenticity and current state separately. No continuous monitoring or blocking of a live environment.',
+    'provider.configured': 'Local LLM configured / connection unverified', 'provider.rule': 'Rule detection / no LLM',
+    'audit.broken': 'The audit log is inconsistent. Stop response actions and check the stored data.',
+    'headings.overview': ['The reason to act, on one screen.', 'Connect exposure, privilege and data access to decide the next move.'],
+    'headings.assets': ['Past the score, the real risk.', 'Exposure, privilege, reachability to sensitive data. Unconfirmed fields are never treated as safe.'],
+    'headings.plans': ['What changes. What stops.', 'Review the evidence and business impact; a human approves. This version is simulation-only.'],
+    'headings.tuning': ['Set thresholds by measuring normal business first.', 'The bulk-access threshold and privileged-login conditions are configurable. Changes are written to the audit log.'],
+    'headings.audit': ['Keep the trail of decisions and approvals.', 'A keyed hash chain verifies record integrity. Keep an external checkpoint separately.'],
+    'headings.about': ['What to delegate to AI. What not to.', 'Small responsibilities joined by explicit contracts. Detection, explanation and authority are separated.'],
+    'empty.start': 'START WITH EVIDENCE', 'empty.tryDemo': 'Try it with synthetic data',
+    'empty.noData.title': 'No data to analyse yet.', 'empty.noData.text': 'Start with safe synthetic data and walk from evidence through to approving a response plan. No external service required.',
+    'audit.action.snapshot.ingested': 'Snapshot ingested', 'audit.action.plan.proposed': 'Response plan created',
+    'audit.action.plan.approved': 'Admin approved simulation', 'audit.action.plan.simulated': 'Simulation complete (no real action)',
+    'audit.action.finding.explained': 'Explanation generated', 'audit.action.report.exported': 'Report exported',
+    'audit.action.rules.configured': 'Detection settings recorded',
+    'err.previewOnly': 'Read-only preview. Run actions in the local app from the repo.',
+    'err.requestFailed': 'Request failed.', 'err.processFailed': 'Processing failed.',
+    'stat.p1': 'Top-priority cases', 'stat.p1.cap': 'P1 is investigation/response priority', 'unit.cases': '',
+    'stat.corr': 'Correlated cases', 'stat.corr.cap': 'Not a confirmation of compromise',
+    'stat.events': 'Analysed events', 'stat.events.cap': 'Input count, duplicate IDs removed',
+    'stat.assets': 'Assets in ledger', 'stat.assets.cap': 'No automatic connection to a live environment', 'unit.assets': '',
+    'ov.now': 'What to check now', 'ov.snapshotTime': (t) => 'Snapshot time ' + t,
+    'empty.noFind.title': 'No detections under the current rules.', 'empty.noFind.text': 'No detection does not guarantee safety. Check input scope, gaps, collection status and rule coverage.',
+    'ov.corrPill': 'Correlated case / review', 'ov.respPill': 'Response candidate / review',
+    'ov.corrTitle': 'A maintenance account, and three connected signals.',
+    'ov.corrDesc': 'An exposed gateway, a privileged login that fails its conditions, and a short burst of bulk access. Logs from the same user and session, presented as one case.',
+    'ov.step1': 'Exposed + unpatched', 'ov.step2t': 'Privileged login', 'ov.step2': 'Unmanaged device / unapproved',
+    'ov.step3t': 'Bulk file access', 'ov.step3': (n, s) => n + ' files / ' + s + ' sensitive',
+    'ov.cautionRelated': '“Related” and “breach/leak confirmed” are different. There is no evidence of exfiltration in this input.',
+    'ov.actionNoOp': 'No real action · human approval required', 'ov.reviewPlan': 'Review the response plan →',
+    'ov.evidence': (n) => 'Show evidence event IDs (' + n + ')', 'ov.evidenceMore': (n) => '\n… and ' + n + ' more (all included in the export)',
+    'ov.briefTitle': 'The basis for the decision', 'ov.briefPill': 'Rule explanation / no LLM', 'ov.briefPillLlm': 'Local LLM used',
+    'ov.factObserved': '● Confirmed from the input', 'ov.factHypo': '◐ Hypothesis',
+    'ov.factHypoCorr': 'Possible misuse of a maintenance account. Needs cross-checking against authorised work and exception approvals.',
+    'ov.factHypoSingle': 'Possibly needs priority investigation/response. Verify the actual configuration and work records.',
+    'ov.factUnknown': '○ Still unknown', 'ov.factUnknownText': 'Whether the vulnerability was actually exploited, whether anything left the network, and the current state of the device and account.',
+    'ov.llmBtn': 'Supplementary AI explanation', 'ov.llmGen': 'Generating…',
+    'ov.metaDetect': (v) => 'Detection: ' + v + ' / no auto-execution',
+    'ov.metaModelYes': 'Model configured. Connection and output quality need separate verification.',
+    'ov.metaModelNo': 'No local LLM configured. The explanation is built from detection rules.',
+    'ov.findings': (n) => n + ' items', 'ov.authEvent': 'auth event', 'ov.evCount': (n) => 'evidence ' + n,
+    'ov.scope': 'What is observable', 'ov.scopeInput': 'Input only',
+    'ov.assetLedger': 'Asset ledger', 'ov.authLog': 'Authentication log', 'ov.fileLog': 'File-access log',
+    'unit.count': '', 'unit.units': '',
+    'ov.telemetry1': 'Continuous connectors: 0 / 3. Behaviour absent from the input, and slow exfiltration, cannot be detected. No guarantee of normal or safe.',
+    'ov.telemetry2': (a, l, c, r) => 'Unconfirmed: asset fields ' + a + ' / auth fields ' + l + ' / sensitivity ' + c + ' / read sizes ' + r,
+    'ov.sources': (n, unv) => 'Source files (' + n + (unv ? ' / includes unverified claims' : '') + ')',
+    'ov.srcVerified': '[read in this run]', 'ov.srcUnverified': '[claimed / unverified]', 'ov.srcRows': (i, r) => 'imported ' + i + '/' + r,
+    'as.section': 'Asset inventory', 'as.sub': 'Manual snapshot / reachability is declared',
+    'as.h.asset': 'Asset', 'as.h.exposed': 'Exposed', 'as.h.path': 'Path to privilege / sensitive', 'as.h.vuln': 'Vulnerability', 'as.h.pri': 'Priority',
+    'as.unknown': 'unconfirmed', 'as.yes': 'yes', 'as.no': 'no', 'as.cvss': (v) => 'CVSS ' + v, 'as.cvssUnknown': 'unknown',
+    'as.noVuln': 'none registered', 'as.patch': (s) => 'patch: ' + s, 'as.notDetected': 'not detected',
+    'as.caution': 'No detection does not mean safe. Vulnerability reference, CVSS and known-exploited are input values; this version does not auto-check them against KEV or vendor feeds.',
+    'pl.section': 'Approval and simulation', 'pl.sub': 'No change is made to live devices or accounts',
+    'pl.emptyTitle': 'No response plans yet.', 'pl.emptyText': 'Choose “Review the response plan” from a detection on the overview to create a plan with business impact and pre-checks.',
+    'pl.back': 'Back to overview', 'pl.pending': 'Awaiting approval', 'pl.expired': 'Expired', 'pl.simulated': 'Simulated',
+    'pl.deadline': (t) => 'Deadline: ' + t + ' · no real action', 'pl.open': 'Open plan',
+    'au.chainOk': 'Internal chain consistent', 'au.chainErr': 'Integrity error', 'au.export': 'Export verification report ↓',
+    'au.records': (n) => n + ' records / last 100 shown', 'au.h.record': 'Record', 'au.h.action': 'Action', 'au.h.basis': 'Basis / execution',
+    'au.noChange': 'No real change was made', 'au.integrityTarget': 'integrity-check target',
+    'au.note': 'The local admin has access to both the database and the key. This version is not an independent audit vault, nor a product that guarantees evidence preservation or legal compliance.',
+    'tu.current': 'Current detection settings', 'tu.hash': (h) => 'Config hash ' + h,
+    'tu.h.name': 'Item', 'tu.h.value': 'Value', 'tu.h.meaning': 'Meaning',
+    'tu.caution': 'The defaults are a starting point confirmed on bundled synthetic data. They are not appropriate values until re-measured on your own normal business logs.',
+    'tu.measure': 'Decide by measuring normal business first', 'tu.cli': 'Run from the CLI',
+    'tu.step1t': 'Generate synthetic normal traffic', 'tu.step2t': 'Count detections and false positives', 'tu.step3t': 'Run with the thresholds you chose',
+    'tu.note': 'Evaluation results are on synthetic data, not a real-world false-positive rate. A higher threshold means fewer alerts but a higher chance of missing small exfiltration. Setting changes are written to the audit log at startup.',
+    'ab.01t': 'Take only the metadata needed', 'ab.01': 'Asset ledger and auth/file-access logs as JSON. Names, raw text, private keys and file contents are not accepted. User, session and file identifiers are pseudonymised with keyed hashes — not anonymisation.',
+    'ab.02t': 'Detection is reproducible rules', 'ab.02': 'Exposure, privilege and reachability to sensitive data are combined; CVSS numbers alone do not decide. Bulk access is roughly 100+ distinct files within 300 seconds. Thresholds need tuning on real production logs.',
+    'ab.03t': 'AI only assists the explanation', 'ab.03': 'Default is a non-LLM rule explanation. An optional Ollama connection sends only structured facts and verifies the reference IDs. Prose correctness is not guaranteed; the model gets no tools and no response authority.',
+    'ab.04t': 'A human decides before anything changes', 'ab.04': 'Impact, pre-checks and recovery are shown, and explicit approval is required against a 5-minute plan. This version is simulation-only. There is no code to revoke accounts, change device settings, or block traffic.',
+    'ab.05t': 'State what it can and cannot do', 'ab.05': 'Ingest, explain, plan, approve and simulate are recorded in the audit chain. Detecting tail truncation needs an external checkpoint, and it cannot protect against simultaneous compromise of the key and the host.',
+    'ab.nextt': 'Production starts from connection and operations', 'ab.next': 'Read-only connectors for real logs, SSO/RBAC, a separate-privilege executor, per-device APIs, external audit storage and false-positive evaluation on real data are not implemented. AI Secure is not a replacement for EDR, SIEM or VPN defence today.',
+    'demo.confirm': 'Switch the view to synthetic data. Past input and audit records are kept. Continue?',
+    'demo.done': 'Loaded synthetic evaluation data. No connection to a live environment.',
+    'dlg.review': 'REVIEW BEFORE ACTION', 'dlg.simOnly': 'Simulation only', 'dlg.target': (t) => 'Target: ' + t,
+    'dlg.preChecks': 'Pre-approval checks', 'dlg.recovery': 'Recovery policy in real operation',
+    'dlg.cautionSim': 'This early version is for validating response plans. Approving makes no change whatsoever to real sessions, traffic or device settings.',
+    'dlg.reasonLabel': 'Approval reason (10–500 chars)', 'dlg.reasonPlaceholder': 'Note how you verified the evidence and business impact.',
+    'dlg.confirmLabel': 'Type SIMULATE ONLY to confirm', 'dlg.ack': 'I have confirmed that no real action is taken, and reviewed the evidence, impact and recovery policy.',
+    'dlg.microReason': 'The reason text is not stored in plaintext; only a keyed hash is kept in the audit log for matching.',
+    'dlg.approve': 'Approve and simulate', 'dlg.deadline': (t) => 'Approval deadline: ' + t + '. Approval is refused if the input data changes.', 'dlg.close': 'Close',
+    'export.note': 'Contains pseudonymised identifiers. Check the destination and sharing scope.',
+    'import.tooLarge': 'JSON must be 2 MiB or smaller.',
+    'import.confirm': 'Enter only metadata from logs you are authorised to access. Do not include file contents, private keys or tokens. Import?',
+    'import.done': 'Analysed a manual snapshot. No continuous monitoring or log-authenticity verification was performed.',
+  },
+  ja: {
+    'lang.other': 'English', 'lang.aria': '言語を切り替え',
+    'nav.overview': '概要', 'nav.assets': '資産と露出', 'nav.plans': '対応計画',
+    'nav.tuning': '検知設定', 'nav.audit': '監査記録', 'nav.about': '設計と安全性',
+    'brand.caption': 'EVIDENCE BEFORE ACTION', 'workspace.name': 'Local workspace',
+    'workspace.sub': '単一管理者 / 検証環境', 'nav.label': 'WORKSPACE',
+    'sidebar.lock': 'LOCAL FIRST', 'sidebar.tagline': '判断の根拠は、手元に。<br>操作の権限は、人に。',
+    'heading.eyebrow': 'YOUR SECURITY, WITH CONTEXT.',
+    'btn.importJson': 'JSONを読み込む', 'btn.loadDemo': 'デモを読み込む',
+    'banner.default': 'ローカルのスナップショット解析です。実環境の常時監視・遮断は行いません。',
+    'footer.tagline': 'Evidence before action.', 'footer.status': '実環境接続 0 / 3 · 自動実行 OFF',
+    'login.eyebrow': 'LOCAL ACCESS', 'login.title': 'ワークスペースを開く',
+    'login.body': '起動時に表示されたトークンを入力してください。トークンはブラウザのメモリ内だけで保持します。',
+    'login.label': 'アクセストークン', 'login.button': '接続する',
+    'login.microcopy': '外部アカウントやクラウドへのログインではありません。', 'skip': '本文へ移動',
+    'dataMode.preview': '閲覧プレビュー', 'dataMode.demo': '架空データ',
+    'dataMode.imported': '手動入力', 'dataMode.none': '未接続',
+    'banner.preview': '架空ログによる閲覧用プレビューです。操作はZIP内のローカルアプリで実行できます。',
+    'banner.demo': '架空ログの検証です。GSSの実ログではありません。実環境の常時監視・遮断は行いません。',
+    'banner.imported': '手動スナップショット解析です。ログの真正性と現在の状態は別途確認してください。実環境の常時監視・遮断は行いません。',
+    'provider.configured': 'ローカルLLM設定済み / 接続未確認', 'provider.rule': 'ルール検知 / LLM未使用',
+    'audit.broken': '監査記録に不整合があります。対応操作を停止し、保存データを確認してください。',
+    'headings.overview': ['対応すべき理由を、ひとつの画面に。', '外部公開・特権・データアクセスをつないで、次の一手を判断する。'],
+    'headings.assets': ['スコアの向こうに、実際のリスクを。', '公開範囲、特権、機密情報への到達性。未確認の情報は、安全と扱いません。'],
+    'headings.plans': ['何を変えるか。何が止まるか。', '根拠と業務影響を確認し、人が承認する。初期版はシミュレーション専用です。'],
+    'headings.tuning': ['閾値は、正常な業務で測ってから決める。', '大量参照の閾値と特権ログインの条件は変更できます。変更内容は監査記録に残ります。'],
+    'headings.audit': ['判断と承認の経緯を、残す。', '鍵付きハッシュチェーンで記録の整合性を確認。外部チェックポイントは別途保管してください。'],
+    'headings.about': ['AIに任せること。任せないこと。', '小さな責務を、明示的な契約でつなぐ。判断・説明・操作の権限を分離します。'],
+    'empty.start': 'START WITH EVIDENCE', 'empty.tryDemo': '架空データで体験する',
+    'empty.noData.title': 'まだ、分析するデータがありません。', 'empty.noData.text': '最初は安全な架空データで、根拠の確認から対応計画の承認までを体験できます。外部サービスへの接続は不要です。',
+    'audit.action.snapshot.ingested': 'スナップショットを読み込み', 'audit.action.plan.proposed': '対応計画を作成',
+    'audit.action.plan.approved': '管理者がシミュレーションを承認', 'audit.action.plan.simulated': 'シミュレーション完了（実操作なし）',
+    'audit.action.finding.explained': '根拠の説明を生成', 'audit.action.report.exported': '検証レポートを書き出し',
+    'audit.action.rules.configured': '検知設定を記録',
+    'err.previewOnly': '閲覧用プレビューです。操作はZIP内のローカルアプリで実行してください。',
+    'err.requestFailed': '要求に失敗しました。', 'err.processFailed': '処理に失敗しました。',
+    'stat.p1': '最優先の対応候補', 'stat.p1.cap': 'P1は調査・対応の優先順位です', 'unit.cases': '件',
+    'stat.corr': '関連付けた事案', 'stat.corr.cap': '侵害の断定ではありません',
+    'stat.events': '解析済みイベント', 'stat.events.cap': '重複IDを除いた入力件数',
+    'stat.assets': '台帳に登録された資産', 'stat.assets.cap': '実環境へ自動接続はしていません', 'unit.assets': '台',
+    'ov.now': 'いま、確認すること', 'ov.snapshotTime': (t) => 'スナップショット時刻 ' + t,
+    'empty.noFind.title': '現在のルールでは、検知候補がありません。', 'empty.noFind.text': '未検知は安全を保証しません。入力範囲、欠損、収集状況、ルールの適用範囲を確認してください。',
+    'ov.corrPill': '相関候補 / 要確認', 'ov.respPill': '対応候補 / 要確認',
+    'ov.corrTitle': '保守アカウントに、関連する3つの兆候。',
+    'ov.corrDesc': '公開された接続機器、条件に問題がある特権ログイン、短時間の大量参照。同じユーザーとセッションに属するログを、ひとつの事案として提示します。',
+    'ov.step1': '外部公開 + 未修正', 'ov.step2t': '特権ログイン', 'ov.step2': '非管理端末 / 未承認',
+    'ov.step3t': '大量ファイル参照', 'ov.step3': (n, s) => n + '個 / 機密 ' + s + '個',
+    'ov.cautionRelated': '「関連している」と「侵害・漏えいが確定した」は別です。外部送信の証拠は、この入力にはありません。',
+    'ov.actionNoOp': '実操作なし · 人による承認が必要', 'ov.reviewPlan': '対応計画を確認する →',
+    'ov.evidence': (n) => '根拠のイベントIDを見る（' + n + '件）', 'ov.evidenceMore': (n) => '\n… 他' + n + '件（書き出しに全件含まれます）',
+    'ov.briefTitle': '判断の根拠', 'ov.briefPill': 'ルール説明 / LLM未使用', 'ov.briefPillLlm': 'ローカルLLM使用',
+    'ov.factObserved': '● 入力から確認できること', 'ov.factHypo': '◐ 仮説',
+    'ov.factHypoCorr': '保守アカウントの不正利用の可能性。正規作業・例外承認の照合が必要です。',
+    'ov.factHypoSingle': '優先的に調査・対応する必要がある可能性。実際の設定と作業記録を確認します。',
+    'ov.factUnknown': '○ まだ分からないこと', 'ov.factUnknownText': '脆弱性の実際の悪用、外部への送信、現在の機器・アカウントの状態。',
+    'ov.llmBtn': 'ローカルAIで補助説明', 'ov.llmGen': '説明を生成しています…',
+    'ov.metaDetect': (v) => '検知: ' + v + ' / 自動実行なし',
+    'ov.metaModelYes': 'モデルを設定済み。接続と出力品質は別途検証が必要です。',
+    'ov.metaModelNo': 'ローカルLLMは未設定です。説明は検知ルールから作成しています。',
+    'ov.findings': (n) => n + '件', 'ov.authEvent': '認証イベント', 'ov.evCount': (n) => '根拠 ' + n + '件',
+    'ov.scope': '観測できている範囲', 'ov.scopeInput': '入力情報のみ',
+    'ov.assetLedger': '資産台帳', 'ov.authLog': '認証ログ', 'ov.fileLog': 'ファイル参照ログ',
+    'unit.count': '件', 'unit.units': '台',
+    'ov.telemetry1': '常時監視の接続は 0 / 3。入力にない挙動や低速な持ち出しは検知できません。正常・安全の保証はしません。',
+    'ov.telemetry2': (a, l, c, r) => '未確認: 資産項目 ' + a + ' / 認証項目 ' + l + ' / 機密区分 ' + c + ' / 読み取りサイズ ' + r,
+    'ov.sources': (n, unv) => '取り込み元ファイル（' + n + '件' + (unv ? ' / 未検証の申告を含む' : '') + '）',
+    'ov.srcVerified': '[この実行で読み取り]', 'ov.srcUnverified': '[申告値 / 未検証]', 'ov.srcRows': (i, r) => '取込 ' + i + '/' + r + '行',
+    'as.section': '資産インベントリ', 'as.sub': '手動スナップショット / 到達性は登録情報',
+    'as.h.asset': '資産', 'as.h.exposed': '外部公開', 'as.h.path': '特権 / 機密への経路', 'as.h.vuln': '脆弱性', 'as.h.pri': '優先度',
+    'as.unknown': '未確認', 'as.yes': 'あり', 'as.no': 'なし', 'as.cvss': (v) => 'CVSS ' + v, 'as.cvssUnknown': '不明',
+    'as.noVuln': '登録なし', 'as.patch': (s) => 'パッチ状態: ' + s, 'as.notDetected': '未検知',
+    'as.caution': '未検知は安全を意味しません。脆弱性参照・CVSS・悪用有無は入力値であり、本版はKEVやベンダー情報へ自動照合していません。',
+    'pl.section': '承認とシミュレーション', 'pl.sub': '実環境の機器・アカウントは変更しません',
+    'pl.emptyTitle': 'まだ、対応計画はありません。', 'pl.emptyText': '概要の検知候補から「対応計画を確認する」を選ぶと、業務影響と事前確認を含む計画が作成されます。',
+    'pl.back': '概要に戻る', 'pl.pending': '承認待ち', 'pl.expired': '期限切れ', 'pl.simulated': 'シミュレーション済み',
+    'pl.deadline': (t) => '期限: ' + t + ' · 実操作なし', 'pl.open': '計画を開く',
+    'au.chainOk': '内部チェーン整合', 'au.chainErr': '整合性エラー', 'au.export': '検証レポートを書き出す ↓',
+    'au.records': (n) => n + '件 / 画面は直近100件', 'au.h.record': '記録', 'au.h.action': '操作', 'au.h.basis': '根拠 / 実行状態',
+    'au.noChange': '実際の変更は行っていません', 'au.integrityTarget': '整合性チェック対象',
+    'au.note': 'ローカル管理者はDBと鍵の両方にアクセスできます。本版は独立した監査保管庫でも、証拠保全・法令遵守を保証する製品でもありません。',
+    'tu.current': '現在の検知設定', 'tu.hash': (h) => '設定ハッシュ ' + h,
+    'tu.h.name': '項目', 'tu.h.value': '値', 'tu.h.meaning': '意味',
+    'tu.caution': '既定値は同梱の合成データで確認した出発点です。導入先の正常な業務ログで測り直すまで、適切な値とは言えません。',
+    'tu.measure': '正常業務で測ってから決める', 'tu.cli': 'CLIで実行します',
+    'tu.step1t': '正常な業務の合成データを作る', 'tu.step2t': '検知と誤検知を数える', 'tu.step3t': '決めた閾値で起動する',
+    'tu.note': '評価は合成データに対する結果です。実環境の誤検知率ではありません。閾値を上げれば確認件数は減りますが、小規模な持ち出しを見逃す可能性が上がります。設定の変更は起動時に監査記録へ残ります。',
+    'ab.01t': '必要なメタデータだけ受け取る', 'ab.01': '資産台帳と認証・ファイル参照ログをJSONで入力。氏名、原文、秘密鍵、ファイル本文は受け付けません。ユーザー・セッション・ファイル識別子は鍵付きハッシュで仮名化します。匿名化ではありません。',
+    'ab.02t': '判定は再現可能なルールで', 'ab.02': '公開範囲・特権・機密情報への到達性を組み合わせ、CVSSの数字だけでは判断しません。大量参照は300秒以内に100個以上の異なるファイルが目安です。閾値は本番の正常ログで調整が必要です。',
+    'ab.03t': 'AIは説明を補助するだけ', 'ab.03': '既定はLLMを使わないルール説明。任意のOllama接続では構造化した事実だけを送り、説明の参照IDを検証します。文章の正しさは保証せず、モデルにツールや対応権限は渡しません。',
+    'ab.04t': '変更する前に、人が判断する', 'ab.04': '影響・事前確認・復旧方針を表示し、5分間有効の計画に対して明示的な承認を求めます。v0.1はシミュレーションのみ。アカウント失効、機器設定変更、通信遮断を実行するコードはありません。',
+    'ab.05t': 'できることと限界を明示する', 'ab.05': '読み込み・説明・計画・承認・シミュレーションを監査チェーンに記録します。末尾削除の検出には外部チェックポイントが必要であり、鍵とホストを同時に侵害された場合は保護できません。',
+    'ab.nextt': '本番化は、接続と運用の検証から', 'ab.next': '実ログの読み取り専用コネクタ、SSO/RBAC、別権限の実行器、機器別API、外部監査保管、正常データを使う誤検知評価が未実装です。AI Secureは現時点でEDR・SIEM・VPN防御の代替ではありません。',
+    'demo.confirm': '表示対象を架空データへ切り替えます。過去の入力と監査記録は保存されます。続行しますか？',
+    'demo.done': '架空の検証データを読み込みました。実環境への接続はありません。',
+    'dlg.review': 'REVIEW BEFORE ACTION', 'dlg.simOnly': 'シミュレーション専用', 'dlg.target': (t) => '対象: ' + t,
+    'dlg.preChecks': '承認前の確認', 'dlg.recovery': '実運用時の復旧方針',
+    'dlg.cautionSim': 'この初期版は対応計画の検証用です。承認しても、現実のセッション・通信・機器設定には一切変更を加えません。',
+    'dlg.reasonLabel': '承認理由（10〜500文字）', 'dlg.reasonPlaceholder': '根拠と業務影響をどう確認したか記入してください。',
+    'dlg.confirmLabel': '確認のため SIMULATE ONLY と入力', 'dlg.ack': '実操作が行われないこと、および根拠・影響・復旧方針を確認しました。',
+    'dlg.microReason': '理由の平文は保存せず、照合用の鍵付きハッシュのみを監査記録に保存します。',
+    'dlg.approve': '承認してシミュレーション', 'dlg.deadline': (t) => '承認期限: ' + t + '。入力データが更新されると承認は拒否されます。', 'dlg.close': '閉じる',
+    'export.note': '仮名化された識別子を含みます。保存先・共有範囲を確認してください。',
+    'import.tooLarge': 'JSONは2 MiB以下にしてください。',
+    'import.confirm': '管理権限があるログのメタデータのみを入力してください。ファイル本文・秘密鍵・トークンなどを含めないでください。読み込みますか？',
+    'import.done': '手動スナップショットを解析しました。継続監視やログの真正性検証は行っていません。',
+  },
+};
+
+function initialLang() {
+  if (typeof window !== 'undefined' && (window.__AI_SECURE_LANG__ === 'ja' || window.__AI_SECURE_LANG__ === 'en')) return window.__AI_SECURE_LANG__;
+  try { const saved = localStorage.getItem('ai-secure-lang'); if (saved === 'ja' || saved === 'en') return saved; } catch (e) {}
+  return (navigator.language || '').toLowerCase().startsWith('ja') ? 'ja' : 'en';
+}
+let lang = initialLang();
+
+function t(key, ...args) {
+  const dict = I18N[lang] || I18N.en;
+  const v = key in dict ? dict[key] : I18N.en[key];
+  if (v === undefined) return key;
+  return typeof v === 'function' ? v(...args) : v;
+}
+
+function applyStatic(root) {
+  (root || document).querySelectorAll('[data-i18n]').forEach(node => {
+    const v = t(node.dataset.i18n);
+    if (node.dataset.i18nHtml !== undefined) node.innerHTML = v; else node.textContent = v;
+  });
+  document.documentElement.lang = lang;
+}
+
+function setLang(next) {
+  lang = (next === 'ja') ? 'ja' : 'en';
+  try { localStorage.setItem('ai-secure-lang', lang); } catch (e) {}
+}
+</script>
+
+</head>
+<body>
+<a href="#main" class="skip-link" data-i18n="skip">Skip to content</a>
+<div class="app-shell">
+  <aside class="sidebar">
+    <a class="brand" href="#overview" aria-label="AI Secure home"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span>AI Secure<span class="brand-caption" data-i18n="brand.caption">EVIDENCE BEFORE ACTION</span></span></a>
+    <div class="workspace"><span class="workspace-icon">L</span><span><span data-i18n="workspace.name">Local workspace</span><small data-i18n="workspace.sub">Single admin / evaluation</small></span><span class="dot"></span></div>
+    <p class="nav-label" data-i18n="nav.label">WORKSPACE</p>
+    <nav aria-label="Main navigation">
+      <button class="nav-item active" data-view="overview"><span class="nav-icon">◫</span><span data-i18n="nav.overview">Overview</span><span class="nav-count" id="navCount">—</span></button>
+      <button class="nav-item" data-view="assets"><span class="nav-icon">▦</span><span data-i18n="nav.assets">Assets &amp; exposure</span></button>
+      <button class="nav-item" data-view="plans"><span class="nav-icon">⇄</span><span data-i18n="nav.plans">Response plans</span></button>
+      <button class="nav-item" data-view="tuning"><span class="nav-icon">⚖</span><span data-i18n="nav.tuning">Detection settings</span></button>
+      <button class="nav-item" data-view="audit"><span class="nav-icon">≡</span><span data-i18n="nav.audit">Audit log</span></button>
+      <button class="nav-item" data-view="about"><span class="nav-icon">⌘</span><span data-i18n="nav.about">Design &amp; safety</span></button>
+    </nav>
+    <div class="sidebar-bottom"><div class="small-lock" data-i18n="sidebar.lock">LOCAL FIRST</div><p data-i18n="sidebar.tagline" data-i18n-html>Evidence in your hands.<br>Authority with a human.</p><span class="version">v0.2.1 · Development preview</span></div>
+  </aside>
+  <div class="main-shell">
+    <header class="topbar"><div class="breadcrumbs">Workspace <span>/</span> <strong id="viewLabel">Overview</strong></div><div class="topbar-right"><button class="lang-toggle" id="langToggle" aria-label="Switch language">日本語</button><span class="pill neutral" id="providerBadge">Rule detection</span><span class="avatar" title="Local single admin">L</span></div></header>
+    <main id="main" tabindex="-1">
+      <div class="page-heading"><div><p class="eyebrow" data-i18n="heading.eyebrow">YOUR SECURITY, WITH CONTEXT.</p><h1 id="pageTitle">The reason to act, on one screen.</h1><p class="subtitle" id="pageSubtitle">Connect exposure, privilege and data access to decide the next move.</p></div><div class="heading-actions"><button class="button secondary" id="importButton" data-i18n="btn.importJson">Import JSON</button><button class="button primary" id="demoButton"><span data-i18n="btn.loadDemo">Load demo</span> <span>↗</span></button></div></div>
+      <input type="file" accept="application/json,.json" id="fileInput" hidden>
+      <div id="statusBanner" class="status-banner" role="status"><span class="status-icon">i</span><span data-i18n="banner.default">Local snapshot analysis. No continuous monitoring or blocking of a live environment.</span><span class="pill" id="dataMode" data-i18n="dataMode.none">Not connected</span></div>
+      <div id="viewContent"></div>
+      <footer class="page-footer"><span>AI Secure <span class="footer-separator">/</span> <span data-i18n="footer.tagline">Evidence before action.</span></span><span data-i18n="footer.status">Live connectors 0 / 3 · Auto-execution OFF</span></footer>
+    </main>
+  </div>
+</div>
+<div id="toast" class="toast" role="status" hidden></div>
+<dialog id="loginDialog" class="dialog login-dialog" aria-labelledby="loginTitle"><div class="dialog-inner"><p class="eyebrow" data-i18n="login.eyebrow">LOCAL ACCESS</p><h2 id="loginTitle" data-i18n="login.title">Open the workspace</h2><p data-i18n="login.body">Enter the token shown at startup. It is held only in browser memory.</p><label class="field-label" for="tokenInput" data-i18n="login.label">Access token</label><input id="tokenInput" type="password" autocomplete="off" spellcheck="false"><p id="loginError" class="field-error" role="alert"></p><button id="loginButton" class="button primary full" data-i18n="login.button">Connect</button><p class="microcopy" data-i18n="login.microcopy">This is not a login to any external account or cloud.</p></div></dialog>
+<dialog id="planDialog" class="dialog" aria-labelledby="planTitle"><div class="dialog-inner" id="planDialogContent"></div></dialog>
+<div style="position:fixed;bottom:14px;left:14px;right:14px;max-width:760px;margin:0 auto;background:#16241d;color:#e8efe9;border-radius:12px;padding:12px 18px;font:13px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans JP",sans-serif;z-index:200;box-shadow:0 18px 50px #14251c44;display:flex;gap:14px;align-items:center;flex-wrap:wrap"><span><b>Read-only preview.</b> This is the real UI on synthetic data — click around all six views. Actions are disabled here; run the local app to try them.</span><a href="https://github.com/FORIFOR/AISecure/issues/new?template=tester-feedback.md" style="margin-left:auto;background:#7fc49f;color:#0d1511;border-radius:8px;padding:8px 14px;font-weight:600;text-decoration:none;white-space:nowrap">Give 2-min feedback →</a><a href="https://github.com/FORIFOR/AISecure" style="color:#9ad6b4;text-decoration:none;white-space:nowrap">GitHub ↗</a></div><script>'use strict';
+const PREVIEW = window.__AI_SECURE_PREVIEW__ || null;
+const EVIDENCE_SHOWN = 200;
+let token = '', state = null, view = 'overview', selectedId = null, currentPlan = null, toastTimer;
+const $ = (id) => document.getElementById(id);
+const VIEWS = ['overview', 'assets', 'plans', 'tuning', 'audit', 'about'];
+
+function el(tag, cls, text) { const n = document.createElement(tag); if (cls) n.className = cls; if (text !== undefined) n.textContent = String(text); return n; }
+function add(parent, ...children) { children.filter(Boolean).forEach(c => parent.append(c)); return parent; }
+function pill(text, cls='neutral') { return el('span','pill '+cls,text); }
+function button(text, cls, fn, disabled=false) { const b=el('button','button '+cls,text); b.type='button'; b.disabled=disabled; b.addEventListener('click',fn); return b; }
+function notify(message,error=false) { clearTimeout(toastTimer); const n=$('toast'); n.textContent=message; n.classList.toggle('error',error); n.hidden=false; toastTimer=setTimeout(()=>n.hidden=true,7000); }
+function date(value) { return value ? new Date(value).toLocaleString(lang==='ja'?'ja-JP':'en-GB',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}) : '—'; }
+function count(n) { return Number(n || 0).toLocaleString(lang==='ja'?'ja-JP':'en-US'); }
+function auditAction(action) { const k='audit.action.'+action; const v=t(k); return v===k?action:v; }
+// Backend objects carry Japanese plus an English "_en" companion; pick per UI language, fall back to source.
+function L(obj, field) { const v = lang==='en' ? (obj[field+'_en'] ?? obj[field]) : obj[field]; return v; }
+async function api(path,body,rawBody=false) {
+  if(PREVIEW) throw new Error(t('err.previewOnly'));
+  const response=await fetch(path,{method:body===undefined?'GET':'POST',headers:{'Authorization':'Bearer '+token,...(body===undefined?{}:{'Content-Type':'application/json'})},...(body===undefined?{}:{body:rawBody?body:JSON.stringify(body)}),credentials:'omit',cache:'no-store'});
+  const data=await response.json();
+  if(!response.ok) { if(response.status===401 && !$('loginDialog').open) $('loginDialog').showModal(); throw new Error(data.error || t('err.requestFailed')); }
+  return data;
+}
+async function run(fn) { try { await fn(); } catch(e) { notify(e.message || t('err.processFailed'),true); } }
+async function refresh() { state=PREVIEW || await api('/api/state'); render(); }
+function changeView(next) { view=next; render(); }
+function getSelected() { return state.findings.find(f=>f.id===selectedId) || state.findings[0] || null; }
+function section(title,right) { return add(el('div','section-title'),el('h2','',title),typeof right==='string'?el('small','',right):right); }
+function stat(label,value,caption,unit='',emphasis=false) { return add(el('div','stat'+(emphasis?' emphasis':'')),el('div','stat-label',label),add(el('div','stat-value'),el('span','',value),el('small','',unit)),el('div','stat-caption',caption)); }
+function empty(title,text) { return add(el('section','empty-state'),el('p','eyebrow',t('empty.start')),el('h2','',title),el('p','',text),button(t('empty.tryDemo'),'primary',()=>run(loadDemo),!!PREVIEW)); }
+function render() {
+  if(!state) return;
+  applyStatic();
+  $('viewLabel').textContent=t('nav.'+view); $('pageTitle').textContent=t('headings.'+view)[0]; $('pageSubtitle').textContent=t('headings.'+view)[1];
+  document.querySelectorAll('[data-view]').forEach(b=>{b.classList.toggle('active',b.dataset.view===view); if(b.dataset.view===view)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
+  const mode=state.snapshot?.source_mode;
+  $('dataMode').textContent=PREVIEW?t('dataMode.preview'):mode==='demo'?t('dataMode.demo'):mode==='imported'?t('dataMode.imported'):t('dataMode.none');
+  $('statusBanner').children[1].textContent=PREVIEW?t('banner.preview'):mode==='demo'?t('banner.demo'):mode==='imported'?t('banner.imported'):t('banner.default');
+  $('navCount').textContent=state.findings.filter(f=>f.priority==='P1').length;
+  $('providerBadge').textContent=state.llm?.configured?t('provider.configured'):t('provider.rule');
+  const container=$('viewContent'); container.replaceChildren();
+  if(!state.audit.valid) add(container,add(el('div','caution'),el('strong','',t('audit.broken'))));
+  if(view==='about'){renderAbout(container);return;}
+  if(view==='tuning'){renderTuning(container);return;}
+  if(!state.snapshot){add(container,empty(t('empty.noData.title'),t('empty.noData.text')));return;}
+  ({overview:renderOverview,assets:renderAssets,plans:renderPlans,audit:renderAudit})[view](container);
+}
+function renderOverview(root) {
+  const findings=state.findings, selected=getSelected(), correlations=findings.filter(f=>f.kind==='correlation');
+  add(root,add(el('div','stats-grid'),stat(t('stat.p1'),count(findings.filter(f=>f.priority==='P1').length),t('stat.p1.cap'),t('unit.cases'),true),stat(t('stat.corr'),count(correlations.length),t('stat.corr.cap'),t('unit.cases')),stat(t('stat.events'),count(state.snapshot.event_counts.total),t('stat.events.cap'),t('unit.cases')),stat(t('stat.assets'),count(state.snapshot.assets.length),t('stat.assets.cap'),t('unit.assets'))));
+  add(root,section(t('ov.now'),t('ov.snapshotTime',date(state.snapshot.as_of))));
+  if(!selected){add(root,empty(t('empty.noFind.title'),t('empty.noFind.text')));return;}
+  const grid=el('div','content-grid'), card=el('article','card incident-card'), inner=el('div','card-pad');
+  add(inner,add(el('div','incident-topline'),pill(selected.priority,selected.priority==='P1'?'danger':'warn'),pill(selected.kind==='correlation'?t('ov.corrPill'):t('ov.respPill'),'neutral'),el('span','mono muted',selected.rule+' · '+selected.id)));
+  const isCorrelation=selected.kind==='correlation';
+  add(inner,el('h2','incident-title',isCorrelation?t('ov.corrTitle'):L(selected,'title')),el('p','incident-description',isCorrelation?t('ov.corrDesc'):L(selected,'reasons').join(' ')));
+  if(isCorrelation){
+    const path=el('div','path-grid');
+    const steps=[['01',t('ov.step1'),selected.gateway_id],['02',t('ov.step2t'),t('ov.step2')],['03',t('ov.step3t'),t('ov.step3',count(selected.distinct_files),count(selected.sensitive_files))]];
+    steps.forEach((s,i)=>{if(i)add(path,el('div','path-arrow','→'));add(path,add(el('div','path-node'),el('span','path-number',s[0]),el('strong','',s[1]),el('small','',s[2])));});add(inner,path);
+  }
+  add(inner,el('div','caution',t('ov.cautionRelated')));
+  add(inner,add(el('div','card-actions'),el('small','muted',t('ov.actionNoOp')),button(t('ov.reviewPlan'),'primary',()=>run(()=>openPlan(selected)),!!PREVIEW || !state.audit.valid)));
+  const details=el('details','evidence-box');const shown=selected.evidence_ids.slice(0,EVIDENCE_SHOWN);const rest=selected.evidence_ids.length-shown.length;add(details,el('summary','',t('ov.evidence',count(selected.evidence_ids.length))),el('pre','evidence-ids',shown.join('\n')+(rest>0?t('ov.evidenceMore',count(rest)):'')));add(inner,details);add(card,inner);add(grid,card);
+  const brief=add(el('aside','card brief-card'),el('div','card-pad')); const body=brief.firstChild;
+  add(body,add(el('div','brief-heading'),el('span','brief-mark','⌁'),el('h3','',t('ov.briefTitle')),pill(t('ov.briefPill'),'green')));
+  const fact=(label,text,cls='')=>add(el('div','fact-block'),el('div','fact-label '+cls,label),el('p','',text));
+  add(body,fact(t('ov.factObserved'),L(selected,'reasons')[0]),fact(t('ov.factHypo'),isCorrelation?t('ov.factHypoCorr'):t('ov.factHypoSingle'),'warn'),fact(t('ov.factUnknown'),t('ov.factUnknownText'),'neutral'));
+  const output=el('div','model-output');output.hidden=true;output.setAttribute('role','status');
+  const llmButton=button(t('ov.llmBtn'),'secondary compact',()=>run(async()=>{
+    llmButton.disabled=true;llmButton.textContent=t('ov.llmGen');
+    try{const r=await api('/api/explain',{snapshot_id:state.snapshot_id,finding_id:selected.id,use_llm:true});output.replaceChildren(el('strong','',r.actual_provider),el('p','',r.summary),el('p','microcopy',r.note));output.hidden=false;body.querySelector('.brief-heading .pill').textContent=r.llm_used?t('ov.briefPillLlm'):t('ov.briefPill');$('providerBadge').textContent=r.actual_provider;}
+    finally{llmButton.disabled=false;llmButton.textContent=t('ov.llmBtn');}
+  }),!!PREVIEW || !state.llm?.configured);
+  add(body,add(el('div','brief-meta'),el('div','',t('ov.metaDetect',state.rule_version)),el('div','',state.llm?.configured?t('ov.metaModelYes'):t('ov.metaModelNo'))),llmButton,output);add(grid,brief);add(root,grid);
+  const lower=el('div','lower-grid'), listing=el('section','');add(listing,section(t('ov.findings',findings.length)));const list=el('div','card');
+  findings.forEach(f=>{const row=el('button','finding-row'+(selected.id===f.id?' selected':''));row.type='button';row.addEventListener('click',()=>{selectedId=f.id;render();});add(row,pill(f.priority,f.priority==='P1'?'danger':'warn'),add(el('div','finding-text'),el('strong','',L(f,'title')),el('small','',f.rule+' · '+(f.asset_id || f.gateway_id || t('ov.authEvent'))+' · '+t('ov.evCount',count(f.evidence_ids.length)))),el('span','row-arrow','↗'));add(list,row);});add(listing,list);add(lower,listing);
+  const scope=el('section','');add(scope,section(t('ov.scope'),t('ov.scopeInput')));const scopeCard=el('div','card card-pad');
+  [[t('ov.assetLedger'),state.snapshot.assets.length+t('unit.units')],[t('ov.authLog'),count(state.snapshot.event_counts.login)+t('unit.count')],[t('ov.fileLog'),count(state.snapshot.event_counts.file_access)+t('unit.count')]].forEach(([name,num])=>add(scopeCard,add(el('div','telemetry-item'),el('span','',name),pill(num,'neutral'))));
+  add(scopeCard,el('p','telemetry-caption',t('ov.telemetry1')),el('p','telemetry-caption',t('ov.telemetry2',count(state.coverage.unknown_asset_fields),count(state.coverage.unknown_login_fields),count(state.coverage.unknown_classifications),count(state.coverage.unknown_read_sizes))));
+  const sources=state.coverage.provenance||[];
+  if(sources.length){const box=el('details','evidence-box');add(box,el('summary','',t('ov.sources',count(sources.length),!sources.every(s=>s.verified))),el('pre','evidence-ids',sources.map(s=>`${s.verified?t('ov.srcVerified'):t('ov.srcUnverified')} ${s.label}  ${s.sha256.slice(0,16)}…  ${t('ov.srcRows',count(s.rows_imported),count(s.rows_read))}`).join('\n')));add(scopeCard,box);}
+  add(scope,scopeCard);add(lower,scope);add(root,lower);
+}
+function renderAssets(root){
+  add(root,section(t('as.section'),t('as.sub')));
+  const table=el('table','table');add(table,add(el('thead',''),add(el('tr',''),...[t('as.h.asset'),t('as.h.exposed'),t('as.h.path'),t('as.h.vuln'),t('as.h.pri')].map(h=>el('th','',h)))));const tbody=el('tbody','');
+  const bool=v=>v===null?t('as.unknown'):v?t('as.yes'):t('as.no');
+  state.snapshot.assets.forEach(a=>{const f=state.findings.find(f=>f.asset_id===a.id&&f.kind==='exposure');const tr=el('tr','');add(tr,add(el('td',''),el('span','mono',a.id),el('small','',a.kind+' · '+date(a.observed_at))),add(el('td',''),pill(bool(a.internet_exposed),a.internet_exposed?'warn':'neutral')),add(el('td',''),el('span','',bool(a.privileged_path)+' / '+bool(a.sensitive_path))),add(el('td',''),el('span','',a.vulnerability?t('as.cvss',a.vulnerability.cvss??t('as.cvssUnknown')):t('as.noVuln')),el('small','',a.vulnerability?.reference||t('as.patch',a.patch_state))),add(el('td',''),pill(f?.priority || t('as.notDetected'),f?.priority==='P1'?'danger':'neutral')));add(tbody,tr);});add(table,tbody);add(root,add(el('div','card table-wrap'),table),el('p','caution',t('as.caution')));
+}
+function renderPlans(root){
+  add(root,section(t('pl.section'),t('pl.sub')));
+  if(!state.proposals.length){add(root,add(el('div','empty-state'),el('h2','',t('pl.emptyTitle')),el('p','',t('pl.emptyText')),button(t('pl.back'),'secondary',()=>changeView('overview'))));return;}
+  state.proposals.forEach(p=>{const card=el('article','card plan-card');const status={pending:t('pl.pending'),expired:t('pl.expired'),simulated:t('pl.simulated')}[p.status]||p.status;add(card,add(el('div','plan-card-head'),el('h3','',L(p.plan,'title')),pill(status,p.status==='pending'?'warn':'neutral')),el('p','',L(p.plan,'impact')),el('p','mono',p.id+' / '+p.plan.target),el('small','muted',t('pl.deadline',date(p.expires_at))));
+    if(p.status==='pending')add(card,button(t('pl.open'),'secondary compact',()=>{currentPlan={proposal_id:p.id,plan:p.plan,expires_at:p.expires_at,snapshot_id:state.snapshot_id};showPlanDialog();},!!PREVIEW));add(root,card);});
+}
+function renderAudit(root){
+  add(root,add(el('div','audit-top'),add(el('div',''),pill(state.audit.valid?t('au.chainOk'):t('au.chainErr'),state.audit.valid?'green':'danger'),el('p','audit-note',L(state.audit,'limitation'))),button(t('au.export'),'secondary',()=>run(exportReport),!!PREVIEW)));
+  add(root,section(t('au.records',count(state.audit.count))));
+  const table=el('table','table');add(table,add(el('thead',''),add(el('tr',''),...[t('au.h.record'),t('au.h.action'),t('au.h.basis')].map(v=>el('th','',v)))));const body=el('tbody','');
+  state.audit_records.forEach(r=>add(body,add(el('tr',''),add(el('td',''),el('span','mono','#'+r.seq),el('small','',date(r.at))),add(el('td',''),el('span','',auditAction(r.action)),el('small','mono',r.action)),add(el('td',''),el('span','mono',r.payload.finding_id||r.payload.proposal_id||r.payload.snapshot_id||'—'),el('small','',r.payload.executed===false?t('au.noChange'):r.payload.actual_provider||t('au.integrityTarget'))))));add(table,body);add(root,add(el('div','card table-wrap'),table),el('p','audit-note',t('au.note')));
+}
+function renderTuning(root){
+  const config=state.rule_config;
+  add(root,section(t('tu.current'),t('tu.hash',config.digest)));
+  const table=el('table','table');add(table,add(el('thead',''),add(el('tr',''),...[t('tu.h.name'),t('tu.h.value'),t('tu.h.meaning')].map(h=>el('th','',h)))));const body=el('tbody','');
+  config.parameters.forEach(p=>add(body,add(el('tr',''),add(el('td',''),el('span','mono',p.name)),add(el('td',''),el('strong','',String(p.value))),add(el('td',''),el('span','',L(p,'description'))))));
+  add(table,body);add(root,add(el('div','card table-wrap'),table));
+  add(root,el('p','caution',t('tu.caution')));
+  add(root,section(t('tu.measure'),t('tu.cli')));
+  const steps=[['01 / BASELINE',t('tu.step1t'),'python3 -m aisecure baseline --days 5 --users 40 --out normal.json\npython3 -m aisecure baseline --days 5 --users 40 --attack --out incident.json'],
+               ['02 / EVALUATE',t('tu.step2t'),'python3 -m aisecure evaluate normal.json incident.json --sweep --out report.md'],
+               ['03 / APPLY',t('tu.step3t'),'python3 -m aisecure --rules rules.json serve']];
+  const grid=el('div','info-grid');steps.forEach(([label,title,code])=>{const card=add(el('article','card card-pad'),el('p','eyebrow',label),el('h3','',title));add(card,el('pre','evidence-ids',code));add(grid,card);});add(root,grid);
+  add(root,el('p','audit-note',t('tu.note')));
+}
+function renderAbout(root){
+  const items=[['01 / COLLECT',t('ab.01t'),t('ab.01')],['02 / DETECT',t('ab.02t'),t('ab.02')],['03 / EXPLAIN',t('ab.03t'),t('ab.03')],['04 / RESPOND',t('ab.04t'),t('ab.04')],['05 / AUDIT',t('ab.05t'),t('ab.05')],['NEXT / PRODUCTION',t('ab.nextt'),t('ab.next')]];
+  const grid=el('div','info-grid');items.forEach(([label,title,text])=>add(grid,add(el('article','card card-pad'),el('p','eyebrow',label),el('h3','',title),el('p','',text))));add(root,grid);
+}
+async function loadDemo(){
+  if(state?.snapshot && !window.confirm(t('demo.confirm')))return;
+  await api('/api/demo',{confirm:'LOAD SYNTHETIC DATA'});selectedId=null;await refresh();notify(t('demo.done'));
+}
+async function openPlan(finding){const result=await api('/api/plan',{snapshot_id:state.snapshot_id,finding_id:finding.id});currentPlan={...result,snapshot_id:state.snapshot_id};await refresh();showPlanDialog();}
+function showPlanDialog(){
+  const p=currentPlan, d=$('planDialogContent');d.replaceChildren();
+  add(d,el('p','eyebrow',t('dlg.review')),add(el('div','plan-card-head'),el('h2','',L(p.plan,'title')),pill(t('dlg.simOnly'),'warn')));d.querySelector('h2').id='planTitle';
+  add(d,el('p','',L(p.plan,'impact')),el('p','mono',t('dlg.target',p.plan.target)));
+  add(d,el('h3','',t('dlg.preChecks')));const checks=el('ul','detail-list');L(p.plan,'prechecks').forEach(x=>add(checks,el('li','',x)));add(d,checks,el('h3','field-label',t('dlg.recovery')),el('p','',L(p.plan,'recovery')),el('p','caution',t('dlg.cautionSim')));
+  const reasonLabel=el('label','field-label',t('dlg.reasonLabel'));reasonLabel.htmlFor='approvalReason';const reason=el('textarea','');reason.id='approvalReason';reason.maxLength=500;reason.placeholder=t('dlg.reasonPlaceholder');
+  const confirmLabel=el('label','field-label',t('dlg.confirmLabel'));confirmLabel.htmlFor='approvalConfirm';const confirmation=el('input','');confirmation.type='text';confirmation.id='approvalConfirm';confirmation.autocomplete='off';confirmation.spellcheck=false;
+  const ack=el('input','');ack.type='checkbox';ack.id='approvalAck';const ackLabel=el('label','ack-label');ackLabel.htmlFor=ack.id;add(ackLabel,ack,el('span','',t('dlg.ack')));
+  add(d,reasonLabel,reason,el('p','microcopy',t('dlg.microReason')),confirmLabel,confirmation,ackLabel);
+  const approve=button(t('dlg.approve'),'primary',()=>run(async()=>{approve.disabled=true;try{const r=await api('/api/approve',{proposal_id:p.proposal_id,snapshot_id:p.snapshot_id,confirmation:confirmation.value,reason:reason.value});$('planDialog').close();await refresh();notify(r.message);}finally{approve.disabled=false;}}),true);
+  const validate=()=>approve.disabled=!!PREVIEW||!ack.checked||confirmation.value!=='SIMULATE ONLY'||reason.value.trim().length<10;
+  [reason,confirmation,ack].forEach(n=>n.addEventListener('input',validate));
+  add(d,el('p','microcopy',t('dlg.deadline',date(p.expires_at))),add(el('div','dialog-buttons'),button(t('dlg.close'),'secondary',()=>$('planDialog').close()),approve));$('planDialog').showModal();
+}
+async function exportReport(){const data=await api('/api/export');const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=el('a','');a.href=url;a.download='ai-secure-report.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);await refresh();notify(t('export.note'));}
+async function login(){token=$('tokenInput').value.trim();try{await refresh();$('loginDialog').close();$('tokenInput').value='';$('loginError').textContent='';}catch(e){$('loginError').textContent=e.message;}}
+function toggleLang(){setLang(lang==='ja'?'en':'ja');const b=$('langToggle');if(b)b.textContent=t('lang.other');if(state)render();else applyStatic();}
+document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>changeView(b.dataset.view)));
+document.querySelector('.brand').addEventListener('click',e=>{e.preventDefault();changeView('overview');});
+$('demoButton').addEventListener('click',()=>run(loadDemo));$('importButton').addEventListener('click',()=>$('fileInput').click());
+if($('langToggle')){$('langToggle').textContent=t('lang.other');$('langToggle').addEventListener('click',toggleLang);}
+$('fileInput').addEventListener('change',()=>run(async()=>{const file=$('fileInput').files[0];if(!file)return;try{if(file.size>2*1024*1024)throw new Error(t('import.tooLarge'));if(!window.confirm(t('import.confirm')))return;const raw=await file.text();await api('/api/ingest',raw,true);selectedId=null;await refresh();notify(t('import.done'));}finally{$('fileInput').value='';}}));
+$('loginButton').addEventListener('click',login);$('tokenInput').addEventListener('keydown',e=>{if(e.key==='Enter')login();});$('loginDialog').addEventListener('cancel',e=>e.preventDefault());
+applyStatic();
+(async()=>{if(PREVIEW){$('demoButton').disabled=true;$('importButton').disabled=true;await refresh();return;}const params=new URLSearchParams(location.hash.slice(1));token=params.get('token')||'';if(location.hash)history.replaceState(null,'',location.pathname);if(!token){$('loginDialog').showModal();return;}try{await refresh();}catch(e){$('loginDialog').showModal();$('loginError').textContent=e.message;}})();
+</script></body>
+</html>
