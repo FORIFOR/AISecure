@@ -12,14 +12,14 @@ from . import rules as rule_config
 
 def _write(path: Path | None, text: str, label: str):
     if path is None:
-        print(text)
+        print(text, end="" if text.endswith("\n") else "\n")
         return
-    path.write_text(text, encoding="utf-8")
+    path.write_text(text if text.endswith("\n") else text + "\n", encoding="utf-8")
     print(f"{label}: {path}", file=sys.stderr)
 
 
 def _dump(value) -> str:
-    return json.dumps(value, ensure_ascii=False, indent=2)
+    return json.dumps(value, ensure_ascii=False, indent=2) + "\n"
 
 
 def _load_rules(path: Path | None):
@@ -138,7 +138,7 @@ def _run_evaluate(args, config):
 def main():
     args = build_parser().parse_args()
     if args.command == "sample":
-        print(_dump(sample()))
+        _write(None, _dump(sample()), "")
         return
     if os.name != "nt":
         os.umask(0o077)
@@ -189,7 +189,7 @@ def main():
             store.ingest(read_json(args.input.read_bytes(), MAX_SCENARIO_BYTES),
                          max_events=IMPORT_MAX_EVENTS, max_assets=IMPORT_MAX_ASSETS)
             state = store.state()
-            print(_dump({k: state[k] for k in ("snapshot_id", "rule_config", "findings", "coverage", "audit")}))
+            _write(None, _dump({k: state[k] for k in ("snapshot_id", "rule_config", "findings", "coverage", "audit")}), "")
         elif args.command == "checkpoint":
             audit = store.verify_audit()
             if not audit["valid"]:
@@ -198,7 +198,7 @@ def main():
         elif args.command == "verify-audit":
             anchor = read_json(args.anchor.read_bytes()) if args.anchor else None
             result = store.verify_audit(anchor)
-            print(_dump(result))
+            _write(None, _dump(result), "")
             if not result["valid"]:
                 sys.exit(2)
     finally:
