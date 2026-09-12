@@ -1,0 +1,19 @@
+1
+00:00:00,000 --> 00:00:03,000
+Evidence before action.
+
+2
+00:00:03,000 --> 00:00:08,042
+One case, not fifty alerts.
+
+3
+00:00:08,042 --> 00:00:13,083
+Evidence before action.
+
+4
+00:00:13,083 --> 00:00:18,125
+Runs on your machine. Zero dependencies.
+
+5
+00:00:18,125 --> 00:00:21,125
+Make room for AI Secure.

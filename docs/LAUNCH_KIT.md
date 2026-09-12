@@ -1,5 +1,60 @@
 # テスター募集 投稿キット（コピペ用）
 
+> **更新（2026-09-13）**: Launchloom で AISecure の実UIから launch film を生成しました
+> （`docs/media/launch-kit/aisecure-film.mp4` / 縦型 `…-vertical.mp4` / 一式 `aisecure-launch-kit.zip`）。
+> 投稿に添付すると説得力が上がります。動画は投稿・公開しません（あなたが貼るまで手元のまま）。
+
+---
+
+## 0. いま、このニュースに接続する（最重要・時事フック）
+
+2026-09-11、デジタル庁が Government Solution Service（GSS）への不正アクセスを公表しました
+（出典: https://www.digital.go.jp/news/2026-0911-01 ）。公表内容の要点:
+
+- 約 **24.6万件** の個人情報が漏えいのおそれ（職員 約18.9万・事業者 約5.7万）
+- **VPNの脆弱性**を突かれて 2026-07-09 に侵入、2026-06-25 に**不審なファイルアクセス**を検知、
+  当該アカウントを停止し外部通信を遮断
+- マイナンバー・口座情報・年金番号は含まれず
+
+この事案の“形” — **外部に露出した境界機器（VPN）→ 侵入 → 不審な大量ファイルアクセス** — は、
+AI Secure が「1件の証拠つきの経路」として可視化しようとしているものそのものです。
+
+**投稿での正直な言い方（厳守）**: 「AI Secure ならこの侵害を防げた」とは**言わない**。
+言えるのは「この“形”を一枚の画面に出すことを狙った試作がある。合成データで試せる／壊してほしい」まで。
+断定・実績の誇張・防止の主張はしない。
+
+### X（日本語・時事版）
+
+> 2026-09-11、デジタル庁がGSSへの不正アクセスを公表（約24.6万件のおそれ）。
+> VPNの脆弱性から侵入 → 不審な大量ファイルアクセスを検知、という“形”でした。
+>
+> この「露出した境界機器 → 大量ファイル閲覧」を、CVSS順のアラートの山ではなく
+> 1件の“証拠つきの経路”として出すことを狙った試作を作っています。合成データ・依存ゼロ・ローカル完結。
+>
+> ブラウザで試す（インストール不要）: https://forifor.github.io/AISecure/try.html
+> 壊してくれる人を探しています（取り込めない実ログ形式／正常業務なのに誤検知になる例）。実ログ・秘密は貼らないでください。
+> https://github.com/FORIFOR/AISecure
+>
+> ※この試作が同事案を防げたという主張ではありません。狙っているのは“形”を早く可視化することです。
+
+### Hacker News（Show HN・時事版・英語）
+
+**Title:** Show HN: AI Secure – turn "exposed VPN → bulk file read" into one evidence-backed case
+
+**Body:**
+Japan's Digital Agency disclosed on 2026-09-11 that its Government Solution Service was breached via a VPN vulnerability, with suspicious bulk file access before the account was cut (~246k records potentially exposed). That shape — an exposed perimeter device, then bulk reads — is exactly what a stack of CVSS-sorted alerts tends to bury.
+
+AI Secure is a small, zero-dependency (Python stdlib only), local-first prototype that correlates an exposed unpatched device, a privileged login through it, and bulk file access from that session into a single evidence-backed case. Runs offline, all demo data is synthetic, every response action is gated behind an explicit approval, and I ship an honest "is this production-secure?" checklist that marks real-log validation, pen test and third-party review as NOT done.
+
+To be clear: I'm not claiming this would have stopped that breach. I'm claiming the *shape* is worth making visible early, and I want people to break the prototype.
+
+Try in-browser (synthetic data, no install): https://forifor.github.io/AISecure/try.html
+Code: https://github.com/FORIFOR/AISecure
+
+What I'd love: (1) a real log-export format that won't import, (2) normal activity that false-positives.
+
+---
+
 各チャネルにそのまま貼れる投稿文です。すべて**合成データのプロトタイプ**である旨を明記し、誇張を避けています。リンク: リポジトリ https://github.com/FORIFOR/AISecure ／ ブラウザ試用 https://forifor.github.io/AISecure/try.html
 
 ---
