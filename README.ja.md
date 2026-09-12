@@ -4,7 +4,7 @@
 
 [English README](README.md) ・ [サイト（日本語）](https://forifor.github.io/AISecure/index.ja.html) ・ [Site (EN)](https://forifor.github.io/AISecure/) ・ [閾値の決め方](docs/TUNING.md) ・ [セキュリティ検証](docs/SECURITY_REVIEW.md)
 
-![デモ](docs/media/demo.gif)
+![AI Secure デモ](docs/media/screendemo.gif)
 
 > 画面は英語・日本語に完全対応（右上で切替）。検知内容・計画・パラメータ説明も言語が切り替わります。
 

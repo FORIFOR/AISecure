@@ -13,7 +13,7 @@ A local-first triage prototype that links an internet-facing unpatched gateway, 
 
 [日本語 README](README.ja.md) · [How to tune it](docs/TUNING.md) · [Log connectors](docs/CONNECTORS.md) · [Security review](docs/SECURITY_REVIEW.md)
 
-![AI Secure demo](docs/media/demo.gif)
+![AI Secure — the triage screen, with its evidence](docs/media/screendemo.gif)
 
 </div>
 
