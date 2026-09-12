@@ -34,6 +34,14 @@ def state() -> dict:
     return result
 
 
+def _safe_embed(obj) -> str:
+    """JSON safe to inline inside an HTML <script>: escape sequences that could
+    break out of the script or the JS string (</script>, comments, U+2028/9)."""
+    return (json.dumps(obj, ensure_ascii=False)
+            .replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
+            .replace("\u2028", "\\u2028").replace("\u2029", "\\u2029"))
+
+
 def page(view: str, snapshot: dict | None = None) -> str:
     """Inline the real HTML/CSS/JS with a read-only state, scripts after the body."""
     html = (ROOT / "web/index.html").read_text(encoding="utf-8")
@@ -41,7 +49,7 @@ def page(view: str, snapshot: dict | None = None) -> str:
     i18n = (ROOT / "web/i18n.js").read_text(encoding="utf-8")
     js = (ROOT / "web/app.js").read_text(encoding="utf-8")
     boot = (f"window.__AI_SECURE_LANG__='en';"
-            f"window.__AI_SECURE_PREVIEW__={json.dumps(snapshot or state(), ensure_ascii=False)};"
+            f"window.__AI_SECURE_PREVIEW__={_safe_embed(snapshot or state())};"
             f"window.__AI_SECURE_VIEW__={json.dumps(view)};")
     # app.js renders asynchronously; wait for it before switching view.
     after = ("(function w(n){const v=window.__AI_SECURE_VIEW__;"
