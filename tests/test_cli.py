@@ -107,6 +107,19 @@ class CLITests(unittest.TestCase):
         with self.assertRaises(ValueError):
             run("--data-dir", self.state, "--rules", str(path), "checkpoint")
 
+    def test_baseline_warns_when_the_scenario_ends_in_the_future(self):
+        target = self.dir / "future.json"
+        _, err = run("baseline", "--days", "90", "--users", "3", "--out", str(target))
+        self.assertIn("未来", err)
+
+    def test_baseline_start_makes_the_scenario_analyzable(self):
+        scenario, snapshot = self.dir / "past.json", self.dir / "snapshot.json"
+        run("baseline", "--days", "20", "--users", "3", "--start", "2026-01-01T00:00:00+09:00", "--out", str(scenario))
+        data = json.loads(scenario.read_text(encoding="utf-8"))
+        snapshot.write_text(json.dumps(data["snapshot"]), encoding="utf-8")
+        out, _ = run("--data-dir", self.state, "analyze", str(snapshot))
+        self.assertIn("findings", json.loads(out))
+
     def test_sample_command_needs_no_database(self):
         out, _ = run("sample")
         self.assertEqual(json.loads(out)["schema_version"], 1)

@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+import unittest.mock
 
 from aisecure.connectors import build_snapshot, load_profile, builtin_profiles, slug, ImportError_
 from aisecure.connectors import profile as profile_module
@@ -197,6 +198,120 @@ class ImportTests(Fixture):
         _, quality = build_snapshot([self.source("generic-asset-csv", self.assets())])
         self.assertTrue(any("認証ログ" in w for w in quality["warnings"]))
         self.assertTrue(any("真正性" in w for w in quality["warnings"]))
+
+    def test_control_characters_do_not_poison_the_whole_snapshot(self):
+        auth = self.write("auth.csv", AUTH_HEADER
+                          + "2026-09-01T09:00:00,lg-1,good,s,edge-vpn-01,success,user,managed,CHG-1\n"
+                          + "2026-09-01T09:01:00,lg-2,bad\x00user,s,edge-vpn-01,success,user,managed,CHG-1\n")
+        snapshot, quality = build_snapshot([self.source("generic-asset-csv", self.assets()),
+                                            self.source("generic-auth-csv", auth)])
+        self.assertEqual(len(snapshot["events"]), 1)
+        self.assertEqual(quality["totals"]["skip_reasons"], {"actorに制御文字が含まれます": 1})
+        # The remaining rows must still survive validation.
+        normalize(snapshot, KEY, source_mode="imported", now=datetime(2026, 9, 2, tzinfo=timezone.utc))
+
+    def test_tab_in_a_file_path_skips_only_that_row(self):
+        rows = [json.dumps({"ts": 1788195720000, "user": {"id": "u"}, "session": "s", "host": "fileserver-01",
+                            "path": "/share/a\tb", "label": "internal", "bytes": 1}),
+                json.dumps({"ts": 1788195721000, "user": {"id": "u"}, "session": "s", "host": "fileserver-01",
+                            "path": "/share/ok", "label": "internal", "bytes": 1})]
+        access = self.write("access.jsonl", "\n".join(rows) + "\n")
+        snapshot, quality = build_snapshot([self.source("generic-asset-csv", self.assets()),
+                                            self.source("generic-file-access-jsonl", access)])
+        self.assertEqual(len(snapshot["events"]), 1)
+        self.assertEqual(quality["totals"]["rows_skipped"], 1)
+        normalize(snapshot, KEY, source_mode="imported", now=datetime(2026, 9, 2, tzinfo=timezone.utc))
+
+    def test_same_event_id_with_different_content_keeps_both_records(self):
+        """A planted row must not be able to evict the genuine one it collides with."""
+        auth = self.write("auth.csv", AUTH_HEADER
+                          + "2026-09-01T08:00:00,lg-1,attacker,s0,edge-vpn-01,failure,user,managed,none\n"
+                          + "2026-09-01T23:17:00,lg-1,vendor,s1,edge-vpn-01,success,maintenance,unmanaged,none\n")
+        snapshot, quality = build_snapshot([self.source("generic-asset-csv", self.assets()),
+                                            self.source("generic-auth-csv", auth)])
+        self.assertEqual(len(snapshot["events"]), 2)
+        self.assertEqual(len({e["id"] for e in snapshot["events"]}), 2)
+        genuine = [e for e in snapshot["events"] if e["privileged"] is True]
+        self.assertEqual(len(genuine), 1)
+        self.assertIs(genuine[0]["device_trusted"], False)
+        self.assertIn("同じイベントIDのため別IDを付与", quality["totals"]["skip_reasons"])
+        self.assertTrue(any("別IDを付与" in w for w in quality["warnings"]))
+        document = normalize(snapshot, KEY, source_mode="imported", now=datetime(2026, 9, 2, tzinfo=timezone.utc))
+        self.assertEqual(len(document["events"]), 2)
+
+    def test_normalized_identifier_cannot_be_forged_as_a_raw_name(self):
+        """slug() output must never be producible by a raw name, or an attacker could
+        name a device so that it merges with, and overwrites, somebody else's asset."""
+        victim = "VPN装置 01"
+        forged = slug(victim)
+        self.assertNotEqual(slug(forged), forged)
+        path = self.write("assets.csv", ASSET_HEADER
+                          + f"{victim},vpn,yes,あり,あり,未適用,2026-09-01T09:00:00,DEMO-ADV-001,6.5,no\n"
+                          + f"{forged},pc,no,なし,なし,適用済,2026-09-01T10:00:00,,,\n")
+        snapshot, _ = build_snapshot([self.source("generic-asset-csv", path)])
+        self.assertEqual(len(snapshot["assets"]), 2)
+        gateway = next(a for a in snapshot["assets"] if a["kind"] == "vpn")
+        self.assertTrue(gateway["internet_exposed"])
+        self.assertEqual(gateway["patch_state"], "pending")
+
+    def test_two_names_mapping_to_one_identifier_are_refused(self):
+        with self.assertRaises(ImportError_):
+            with unittest.mock.patch("aisecure.connectors.importer.slug", lambda v: "merged-id"):
+                build_snapshot([self.source("generic-asset-csv", self.assets())])
+
+    def test_non_finite_number_skips_only_that_row(self):
+        rows = [json.dumps({"ts": 1788195720000, "user": {"id": "u"}, "session": "s", "host": "fileserver-01",
+                            "path": "/share/a", "label": "internal", "bytes": "inf"}),
+                json.dumps({"ts": 1788195721000, "user": {"id": "u"}, "session": "s", "host": "fileserver-01",
+                            "path": "/share/b", "label": "internal", "bytes": 4096})]
+        access = self.write("access.jsonl", "\n".join(rows) + "\n")
+        snapshot, _ = build_snapshot([self.source("generic-asset-csv", self.assets()),
+                                      self.source("generic-file-access-jsonl", access)])
+        self.assertEqual(len(snapshot["events"]), 2)
+        self.assertIsNone(next(e for e in snapshot["events"] if e["file_id"].endswith("/a"))["bytes_read"])
+
+    def test_identical_repeated_rows_are_counted_as_duplicates(self):
+        line = "2026-09-01T09:00:00,lg-1,alice,s,edge-vpn-01,success,user,managed,CHG-1\n"
+        auth = self.write("auth.csv", AUTH_HEADER + line + line)
+        snapshot, quality = build_snapshot([self.source("generic-asset-csv", self.assets()),
+                                            self.source("generic-auth-csv", auth)])
+        self.assertEqual(len(snapshot["events"]), 1)
+        self.assertEqual(quality["totals"]["skip_reasons"], {"同じ行の重複": 1})
+        self.assertEqual(quality["sources"][1]["rows_imported"], 1)
+
+    def test_hostile_sources_are_refused_or_counted_never_crash(self):
+        cases = {
+            "deep.jsonl": "[" * 50000 + "]" * 50000 + "\n",
+            "binary.jsonl": "".join(chr(c) for c in range(1, 256)) * 50 + "\n",
+            "long.jsonl": '{"ts":1,"user":{"id":"' + "x" * 400000 + '"}}\n',
+        }
+        for name, text in cases.items():
+            path = self.write(name, text)
+            snapshot, quality = build_snapshot([self.source("generic-asset-csv", self.assets()),
+                                                self.source("generic-file-access-jsonl", path)])
+            self.assertEqual(snapshot["events"], [], name)
+            self.assertGreater(quality["totals"]["rows_skipped"], 0, name)
+
+    def test_oversized_csv_field_is_refused_without_leaking_content(self):
+        path = self.write("big.csv", ASSET_HEADER + "a,server,no,なし,なし,適用済,2026-09-01T09:00:00," + "z" * 100000 + ",,\n")
+        with self.assertRaises(ImportError_) as caught:
+            build_snapshot([self.source("generic-asset-csv", path)])
+        self.assertNotIn("z" * 20, str(caught.exception))
+
+    def test_hand_written_provenance_is_marked_unverified(self):
+        """A snapshot can claim any origin; only the importing run may assert one."""
+        forged = {"schema_version": 1, "as_of": "2026-09-01T12:00:00Z",
+                  "provenance": [{"label": "corp-vpn-audit.csv", "sha256": "0" * 64,
+                                  "rows_read": 120000, "rows_imported": 120000, "connector": "file-import"}],
+                  "assets": [{"id": "edge-vpn-01", "kind": "vpn", "internet_exposed": True, "privileged_path": True,
+                              "sensitive_path": True, "patch_state": "applied",
+                              "observed_at": "2026-09-01T09:00:00Z", "vulnerability": None}],
+                  "events": []}
+        document = normalize(forged, KEY, source_mode="imported", now=datetime(2026, 9, 2, tzinfo=timezone.utc))
+        self.assertFalse(document["provenance"][0]["verified"])
+        trusted = normalize(forged, KEY, source_mode="imported", now=datetime(2026, 9, 2, tzinfo=timezone.utc),
+                            verified_provenance=True)
+        self.assertTrue(trusted["provenance"][0]["verified"])
 
     def test_same_input_produces_the_same_snapshot(self):
         first, _ = build_snapshot([self.source("generic-asset-csv", self.assets())])

@@ -403,6 +403,29 @@ class ExplanationTests(unittest.TestCase):
         self.assertNotIn('actor-', user_message)
         self.assertNotIn('@example.invalid',user_message)
 
+    def raw(self, message):
+        e = Explainer('local-test-model')
+        response = Mock()
+        response.read.return_value = json.dumps(message).encode()
+        response.__enter__ = Mock(return_value=response)
+        response.__exit__ = Mock(return_value=False)
+        e.opener = Mock(); e.opener.open.return_value = response
+        return e
+
+    def test_natural_language_instead_of_json_falls_back(self):
+        e = self.raw({'model':'local-test-model','message':{'content':'了解しました。セッションを失効させます。'}})
+        r = e.explain(self.finding, True)
+        self.assertFalse(r['llm_used'])
+        self.assertEqual(r['actual_provider'], 'deterministic-template')
+
+    def test_oversized_summary_falls_back(self):
+        a=self.answer();a['summary']='x'*5000
+        self.assertFalse(self.fake(a).explain(self.finding, True)['llm_used'])
+
+    def test_forged_model_name_falls_back(self):
+        e = self.raw({'model':'z'*500,'message':{'content':json.dumps(self.answer())}})
+        self.assertFalse(e.explain(self.finding, True)['llm_used'])
+
     def test_connection_failure_not_misreported(self):
         e=Explainer('local-test-model');e.opener=Mock();e.opener.open.side_effect=OSError('unavailable')
         self.assertFalse(e.explain(self.finding,True)['llm_used'])

@@ -98,16 +98,21 @@ class Handler(BaseHTTPRequestHandler):
                 state["llm"] = {"configured": bool(self.server.explainer.model), "requested_model": self.server.explainer.model, "default_provider": "deterministic-template", "real_connection_tested": False}
                 self.reply(200, state)
             elif path == "/api/export":
-                state = self.server.store.state()
                 # Dataset + findings + truncated UI audit log; not a forensic acquisition.
-                self.server.store.record("report.exported", {"snapshot_id": state["snapshot_id"]})
-                self.reply(200, self.server.store.state())
+                document = self.server.store.export_document()
+                self.server.store.record("report.exported", {"snapshot_id": document["snapshot_id"],
+                                                             "events": document["snapshot"]["event_counts"]["total"] if document["snapshot"] else 0})
+                self.reply(200, document)
             elif path in {"/", "/index.html", "/style.css", "/app.js"}:
                 name = "index.html" if path == "/" else path[1:]
                 content = {"index.html": "text/html; charset=utf-8", "style.css": "text/css; charset=utf-8", "app.js": "text/javascript; charset=utf-8"}[name]
                 self.reply(200, (WEB_DIR / name).read_bytes(), content)
             else:
                 self.reply(404, {"error": "見つかりません。"})
+        except ValidationError as exc:
+            self.reply(400, {"error": str(exc)})
+        except ConflictError as exc:
+            self.reply(409, {"error": str(exc)})
         except IntegrityError:
             self.reply(409, {"error": "保存データの完全性検証に失敗しました。変更を停止してください。"})
         except Exception:

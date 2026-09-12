@@ -91,13 +91,39 @@ class HTTPTests(unittest.TestCase):
         status,_,_=self.request('/api/demo',{'confirm':'LOAD SYNTHETIC DATA'})
         self.assertEqual(status,200)
         _,body,_=self.request('/api/state');s=json.loads(body)
-        self.assertEqual(len(s['snapshot']['events']),148)
+        self.assertEqual(s['snapshot']['event_counts']['total'],148)
+        self.assertNotIn('events',s['snapshot'])
         fid=s['findings'][0]['id'];sid=s['snapshot_id']
         status,body,_=self.request('/api/plan',{'snapshot_id':sid,'finding_id':fid})
         self.assertEqual(status,200);p=json.loads(body)
         status,body,_=self.request('/api/approve',{'proposal_id':p['proposal_id'],'snapshot_id':sid,'confirmation':'SIMULATE ONLY','reason':'対象の根拠と業務への影響を確認しました。'})
         self.assertEqual(status,200);self.assertFalse(json.loads(body)['executed'])
         _,body,_=self.request('/api/state');self.assertTrue(json.loads(body)['audit']['valid'])
+
+    def test_state_omits_the_event_list(self):
+        self.request('/api/demo',{'confirm':'LOAD SYNTHETIC DATA'})
+        snapshot=json.loads(self.request('/api/state')[1])['snapshot']
+        self.assertFalse(snapshot['events_included'])
+        self.assertNotIn('events',snapshot)
+        self.assertEqual(snapshot['event_counts']['login'],2)
+
+    def test_export_includes_the_event_list(self):
+        self.request('/api/demo',{'confirm':'LOAD SYNTHETIC DATA'})
+        snapshot=json.loads(self.request('/api/export')[1])['snapshot']
+        self.assertTrue(snapshot['events_included'])
+        self.assertEqual(len(snapshot['events']),148)
+
+    def test_submitted_provenance_is_never_marked_verified(self):
+        snapshot={'schema_version':1,'as_of':'2026-09-01T12:00:00Z',
+                  'provenance':[{'label':'corp-audit.csv','sha256':'0'*64,'rows_read':120000,
+                                 'rows_imported':120000,'connector':'file-import'}],
+                  'assets':[{'id':'edge-vpn-01','kind':'vpn','internet_exposed':True,'privileged_path':True,
+                             'sensitive_path':True,'patch_state':'applied',
+                             'observed_at':'2026-09-01T09:00:00Z','vulnerability':None}],'events':[]}
+        self.assertEqual(self.request('/api/ingest',snapshot)[0],200)
+        sources=json.loads(self.request('/api/state')[1])['snapshot']['provenance']
+        self.assertEqual(len(sources),1)
+        self.assertFalse(sources[0]['verified'])
 
     def test_export_retains_simulation_label(self):
         status,body,_=self.request('/api/export')

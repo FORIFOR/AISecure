@@ -1,5 +1,6 @@
 'use strict';
 const PREVIEW = window.__AI_SECURE_PREVIEW__ || null;
+const EVIDENCE_SHOWN = 200;
 let token = '', state = null, view = 'overview', selectedId = null, currentPlan = null, toastTimer;
 const $ = (id) => document.getElementById(id);
 const VIEW_LABELS = {overview:'概要',assets:'資産と露出',plans:'対応計画',tuning:'検知設定',audit:'監査記録',about:'設計と安全性'};
@@ -45,7 +46,7 @@ function render() {
 }
 function renderOverview(root) {
   const findings=state.findings, selected=getSelected(), correlations=findings.filter(f=>f.kind==='correlation');
-  add(root,add(el('div','stats-grid'),stat('最優先の対応候補',count(findings.filter(f=>f.priority==='P1').length),'P1は調査・対応の優先順位です','件',true),stat('関連付けた事案',count(correlations.length),'侵害の断定ではありません','件'),stat('解析済みイベント',count(state.snapshot.events.length),'重複IDを除いた入力件数','件'),stat('台帳に登録された資産',count(state.snapshot.assets.length),'実環境へ自動接続はしていません','台')));
+  add(root,add(el('div','stats-grid'),stat('最優先の対応候補',count(findings.filter(f=>f.priority==='P1').length),'P1は調査・対応の優先順位です','件',true),stat('関連付けた事案',count(correlations.length),'侵害の断定ではありません','件'),stat('解析済みイベント',count(state.snapshot.event_counts.total),'重複IDを除いた入力件数','件'),stat('台帳に登録された資産',count(state.snapshot.assets.length),'実環境へ自動接続はしていません','台')));
   add(root,section('いま、確認すること','スナップショット時刻 '+date(state.snapshot.as_of)));
   if(!selected){add(root,empty('現在のルールでは、検知候補がありません。','未検知は安全を保証しません。入力範囲、欠損、収集状況、ルールの適用範囲を確認してください。'));return;}
   const grid=el('div','content-grid'), card=el('article','card incident-card'), inner=el('div','card-pad');
@@ -59,7 +60,7 @@ function renderOverview(root) {
   }
   add(inner,el('div','caution','「関連している」と「侵害・漏えいが確定した」は別です。外部送信の証拠は、この入力にはありません。'));
   add(inner,add(el('div','card-actions'),el('small','muted','実操作なし · 人による承認が必要'),button('対応計画を確認する →','primary',()=>run(()=>openPlan(selected)),!!PREVIEW || !state.audit.valid)));
-  const details=el('details','evidence-box');add(details,el('summary','',`根拠のイベントIDを見る（${count(selected.evidence_ids.length)}件）`),el('pre','evidence-ids',selected.evidence_ids.join('\n')));add(inner,details);add(card,inner);add(grid,card);
+  const details=el('details','evidence-box');const shown=selected.evidence_ids.slice(0,EVIDENCE_SHOWN);const rest=selected.evidence_ids.length-shown.length;add(details,el('summary','',`根拠のイベントIDを見る（${count(selected.evidence_ids.length)}件）`),el('pre','evidence-ids',shown.join('\n')+(rest>0?`\n… 他${count(rest)}件（書き出しに全件含まれます）`:'')));add(inner,details);add(card,inner);add(grid,card);
   const brief=add(el('aside','card brief-card'),el('div','card-pad')); const body=brief.firstChild;
   add(body,add(el('div','brief-heading'),el('span','brief-mark','⌁'),el('h3','','判断の根拠'),pill('ルール説明 / LLM未使用','green')));
   const fact=(label,text,cls='')=>add(el('div','fact-block'),el('div','fact-label '+cls,label),el('p','',text));
@@ -74,10 +75,10 @@ function renderOverview(root) {
   const lower=el('div','lower-grid'), listing=el('section','');add(listing,section('検知と対応候補',`${findings.length}件`));const list=el('div','card');
   findings.forEach(f=>{const row=el('button','finding-row'+(selected.id===f.id?' selected':''));row.type='button';row.addEventListener('click',()=>{selectedId=f.id;render();});add(row,pill(f.priority,f.priority==='P1'?'danger':'warn'),add(el('div','finding-text'),el('strong','',f.title),el('small','',f.rule+' · '+(f.asset_id || f.gateway_id || '認証イベント')+' · 根拠 '+count(f.evidence_ids.length)+'件')),el('span','row-arrow','↗'));add(list,row);});add(listing,list);add(lower,listing);
   const scope=el('section','');add(scope,section('観測できている範囲','入力情報のみ'));const scopeCard=el('div','card card-pad');
-  [['資産台帳',state.snapshot.assets.length+'台'],['認証ログ',state.snapshot.events.filter(e=>e.type==='login').length+'件'],['ファイル参照ログ',state.snapshot.events.filter(e=>e.type==='file_access').length+'件']].forEach(([name,num])=>add(scopeCard,add(el('div','telemetry-item'),el('span','',name),pill(num,'neutral'))));
+  [['資産台帳',state.snapshot.assets.length+'台'],['認証ログ',count(state.snapshot.event_counts.login)+'件'],['ファイル参照ログ',count(state.snapshot.event_counts.file_access)+'件']].forEach(([name,num])=>add(scopeCard,add(el('div','telemetry-item'),el('span','',name),pill(num,'neutral'))));
   add(scopeCard,el('p','telemetry-caption','常時監視の接続は 0 / 3。入力にない挙動や低速な持ち出しは検知できません。正常・安全の保証はしません。'),el('p','telemetry-caption',`未確認: 資産項目 ${count(state.coverage.unknown_asset_fields)} / 認証項目 ${count(state.coverage.unknown_login_fields)} / 機密区分 ${count(state.coverage.unknown_classifications)} / 読み取りサイズ ${count(state.coverage.unknown_read_sizes)}`));
   const sources=state.coverage.provenance||[];
-  if(sources.length){const box=el('details','evidence-box');add(box,el('summary','',`取り込み元ファイル（${count(sources.length)}件）`),el('pre','evidence-ids',sources.map(s=>`${s.label}  ${s.sha256.slice(0,16)}…  取込 ${count(s.rows_imported)}/${count(s.rows_read)}行`).join('\n')));add(scopeCard,box);}
+  if(sources.length){const box=el('details','evidence-box');add(box,el('summary','',`取り込み元ファイル（${count(sources.length)}件${sources.every(s=>s.verified)?'':' / 未検証の申告を含む'}）`),el('pre','evidence-ids',sources.map(s=>`${s.verified?'[この実行で読み取り]':'[申告値 / 未検証]'} ${s.label}  ${s.sha256.slice(0,16)}…  取込 ${count(s.rows_imported)}/${count(s.rows_read)}行`).join('\n')));add(scopeCard,box);}
   add(scope,scopeCard);add(lower,scope);add(root,lower);
 }
 function renderAssets(root){

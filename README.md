@@ -172,7 +172,7 @@ Python標準HTTPサーバーは本番用途ではありません。これは依�
 
 ## 設計と製品化
 
-詳しい内容は [製品設計書](docs/PRODUCT_SPEC.md)、[脅威モデル](SECURITY.md)、[取り込み](docs/CONNECTORS.md)、[閾値の決め方](docs/TUNING.md)、[テスト結果](docs/TEST_REPORT.md)、[変更履歴](CHANGELOG.md)、[情報源](docs/SOURCES.md) を参照してください。GitHub公開、既存Astraリポジトリの変更、クラウドデプロイはこの成果物では実施していません。
+詳しい内容は [製品設計書](docs/PRODUCT_SPEC.md)、[脅威モデル](SECURITY.md)、[セキュリティ検証](docs/SECURITY_REVIEW.md)、[取り込み](docs/CONNECTORS.md)、[閾値の決め方](docs/TUNING.md)、[テスト結果](docs/TEST_REPORT.md)、[変更履歴](CHANGELOG.md)、[情報源](docs/SOURCES.md) を参照してください。GitHub公開、既存Astraリポジトリの変更、クラウドデプロイはこの成果物では実施していません。
 
 同梱ファイルの整合性は `shasum -a 256 -c SHA256SUMS.txt`（Linuxでは `sha256sum -c`）で確認できます。これは配布物が壊れていないことの確認であり、署名による発行元証明ではありません。
 

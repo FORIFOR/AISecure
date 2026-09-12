@@ -1,4 +1,6 @@
 test_baseline_is_reproducible_from_the_command_line (test_cli.CLITests.test_baseline_is_reproducible_from_the_command_line) ... ok
+test_baseline_start_makes_the_scenario_analyzable (test_cli.CLITests.test_baseline_start_makes_the_scenario_analyzable) ... ok
+test_baseline_warns_when_the_scenario_ends_in_the_future (test_cli.CLITests.test_baseline_warns_when_the_scenario_ends_in_the_future) ... ok
 test_baseline_writes_a_valid_scenario (test_cli.CLITests.test_baseline_writes_a_valid_scenario) ... ok
 test_evaluate_can_save_recommended_thresholds (test_cli.CLITests.test_evaluate_can_save_recommended_thresholds) ... ok
 test_evaluate_reports_detections_and_false_positives (test_cli.CLITests.test_evaluate_reports_detections_and_false_positives) ... ok
@@ -10,20 +12,33 @@ test_profiles_are_listed (test_cli.CLITests.test_profiles_are_listed) ... ok
 test_rules_file_changes_the_active_configuration (test_cli.CLITests.test_rules_file_changes_the_active_configuration) ... ok
 test_sample_command_needs_no_database (test_cli.CLITests.test_sample_command_needs_no_database) ... ok
 test_asset_seen_only_in_logs_is_recorded_as_unknown (test_connectors.ImportTests.test_asset_seen_only_in_logs_is_recorded_as_unknown) ... ok
+test_control_characters_do_not_poison_the_whole_snapshot (test_connectors.ImportTests.test_control_characters_do_not_poison_the_whole_snapshot) ... ok
 test_declared_timezone_is_converted_to_utc (test_connectors.ImportTests.test_declared_timezone_is_converted_to_utc) ... ok
 test_end_to_end_import_detects_the_correlation (test_connectors.ImportTests.test_end_to_end_import_detects_the_correlation) ... ok
 test_file_path_is_kept_only_as_a_pseudonymous_identifier (test_connectors.ImportTests.test_file_path_is_kept_only_as_a_pseudonymous_identifier) ... ok
+test_hand_written_provenance_is_marked_unverified (test_connectors.ImportTests.test_hand_written_provenance_is_marked_unverified)
+A snapshot can claim any origin; only the importing run may assert one. ... ok
+test_hostile_sources_are_refused_or_counted_never_crash (test_connectors.ImportTests.test_hostile_sources_are_refused_or_counted_never_crash) ... ok
+test_identical_repeated_rows_are_counted_as_duplicates (test_connectors.ImportTests.test_identical_repeated_rows_are_counted_as_duplicates) ... ok
 test_import_without_an_inventory_is_refused (test_connectors.ImportTests.test_import_without_an_inventory_is_refused) ... ok
 test_malformed_json_lines_are_counted_not_fatal (test_connectors.ImportTests.test_malformed_json_lines_are_counted_not_fatal) ... ok
 test_missing_sources_are_reported_as_warnings (test_connectors.ImportTests.test_missing_sources_are_reported_as_warnings) ... ok
+test_non_finite_number_skips_only_that_row (test_connectors.ImportTests.test_non_finite_number_skips_only_that_row) ... ok
+test_normalized_identifier_cannot_be_forged_as_a_raw_name (test_connectors.ImportTests.test_normalized_identifier_cannot_be_forged_as_a_raw_name)
+slug() output must never be producible by a raw name, or an attacker could ... ok
+test_oversized_csv_field_is_refused_without_leaking_content (test_connectors.ImportTests.test_oversized_csv_field_is_refused_without_leaking_content) ... ok
 test_oversized_source_refused (test_connectors.ImportTests.test_oversized_source_refused) ... ok
 test_repeated_identical_rows_collapse_to_one_event (test_connectors.ImportTests.test_repeated_identical_rows_collapse_to_one_event) ... ok
 test_row_limit_is_enforced (test_connectors.ImportTests.test_row_limit_is_enforced) ... ok
 test_row_without_a_timezone_is_skipped_not_guessed (test_connectors.ImportTests.test_row_without_a_timezone_is_skipped_not_guessed) ... ok
+test_same_event_id_with_different_content_keeps_both_records (test_connectors.ImportTests.test_same_event_id_with_different_content_keeps_both_records)
+A planted row must not be able to evict the genuine one it collides with. ... ok
 test_same_input_produces_the_same_snapshot (test_connectors.ImportTests.test_same_input_produces_the_same_snapshot) ... ok
 test_skip_policy_drops_events_for_unknown_assets (test_connectors.ImportTests.test_skip_policy_drops_events_for_unknown_assets) ... ok
 test_sources_are_hashed_for_provenance (test_connectors.ImportTests.test_sources_are_hashed_for_provenance) ... ok
 test_symlinked_source_refused (test_connectors.ImportTests.test_symlinked_source_refused) ... ok
+test_tab_in_a_file_path_skips_only_that_row (test_connectors.ImportTests.test_tab_in_a_file_path_skips_only_that_row) ... ok
+test_two_names_mapping_to_one_identifier_are_refused (test_connectors.ImportTests.test_two_names_mapping_to_one_identifier_are_refused) ... ok
 test_unmapped_columns_never_reach_the_snapshot (test_connectors.ImportTests.test_unmapped_columns_never_reach_the_snapshot) ... ok
 test_unreadable_value_becomes_unknown_not_safe (test_connectors.ImportTests.test_unreadable_value_becomes_unknown_not_safe) ... ok
 test_builtin_profiles_load (test_connectors.ProfileTests.test_builtin_profiles_load) ... ok
@@ -76,8 +91,11 @@ test_cloud_model_rejected (test_core.ExplanationTests.test_cloud_model_rejected)
 test_connection_failure_not_misreported (test_core.ExplanationTests.test_connection_failure_not_misreported) ... ok
 test_default_truthful_attribution (test_core.ExplanationTests.test_default_truthful_attribution) ... ok
 test_forged_evidence_falls_back (test_core.ExplanationTests.test_forged_evidence_falls_back) ... ok
+test_forged_model_name_falls_back (test_core.ExplanationTests.test_forged_model_name_falls_back) ... ok
 test_mock_valid_llm_response (test_core.ExplanationTests.test_mock_valid_llm_response) ... ok
+test_natural_language_instead_of_json_falls_back (test_core.ExplanationTests.test_natural_language_instead_of_json_falls_back) ... ok
 test_only_loopback_metadata_sent (test_core.ExplanationTests.test_only_loopback_metadata_sent) ... ok
+test_oversized_summary_falls_back (test_core.ExplanationTests.test_oversized_summary_falls_back) ... ok
 test_tools_rejected (test_core.ExplanationTests.test_tools_rejected) ... ok
 test_unconfigured_model_fallback (test_core.ExplanationTests.test_unconfigured_model_fallback) ... ok
 test_approval_required (test_core.StoreTests.test_approval_required) ... ok
@@ -132,6 +150,7 @@ ok
 test_demo_confirmation_required (test_http.HTTPTests.test_demo_confirmation_required) ... /opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 400: 'Bad Request'>
   _warnings.warn(self.warn_message, ResourceWarning)
 ok
+test_export_includes_the_event_list (test_http.HTTPTests.test_export_includes_the_event_list) ... ok
 test_export_retains_simulation_label (test_http.HTTPTests.test_export_retains_simulation_label) ... ok
 test_full_simulated_workflow (test_http.HTTPTests.test_full_simulated_workflow) ... ok
 test_path_traversal_not_served (test_http.HTTPTests.test_path_traversal_not_served) ... /opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 404: 'Not Found'>
@@ -141,7 +160,9 @@ test_query_tokens_rejected (test_http.HTTPTests.test_query_tokens_rejected) ... 
 test_secret_file_not_served (test_http.HTTPTests.test_secret_file_not_served) ... ok
 test_security_headers_and_no_cors (test_http.HTTPTests.test_security_headers_and_no_cors) ... ok
 test_state_exposes_the_active_detection_config (test_http.HTTPTests.test_state_exposes_the_active_detection_config) ... ok
+test_state_omits_the_event_list (test_http.HTTPTests.test_state_omits_the_event_list) ... ok
 test_state_reports_unknown_read_sizes (test_http.HTTPTests.test_state_reports_unknown_read_sizes) ... ok
+test_submitted_provenance_is_never_marked_verified (test_http.HTTPTests.test_submitted_provenance_is_never_marked_verified) ... ok
 test_unicode_token_rejected_without_server_crash (test_http.HTTPTests.test_unicode_token_rejected_without_server_crash) ... ok
 test_wrong_host (test_http.HTTPTests.test_wrong_host) ... ok
 test_wrong_origin (test_http.HTTPTests.test_wrong_origin) ... ok
@@ -168,6 +189,6 @@ test_raising_threshold_drops_bulk_and_correlation (test_rules.TunedDetectionTest
 test_sensitive_minimum_can_require_more_labels (test_rules.TunedDetectionTests.test_sensitive_minimum_can_require_more_labels) ... ok
 
 ----------------------------------------------------------------------
-Ran 158 tests in 1.745s
+Ran 176 tests in 2.815s
 
 OK

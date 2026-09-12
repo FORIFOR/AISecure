@@ -20,6 +20,8 @@ from .policy import plan_for, SimulationAdapter
 from .rules import RuleConfig, DEFAULT as DEFAULT_RULES, describe
 
 ZERO = "0" * 64
+# An explicit export still has to fit in a browser tab.
+MAX_EXPORT_EVENTS = 200_000
 
 
 class ConflictError(ValueError):
@@ -134,8 +136,12 @@ class Store:
             return {"valid": valid, "count": len(rows), "tip": previous, "anchor_checked": anchor is not None, "anchor_valid": anchored,
                     "limitation": "外部チェックポイントなしでは末尾削除を検出できません。ホストと鍵の同時侵害には耐えません。"}
 
-    def ingest(self, raw: dict, source_mode: str = "imported", now=None, max_events: int = MAX_EVENTS, max_assets: int = MAX_ASSETS) -> str:
-        document = normalize(raw, self.identity_key, source_mode=source_mode, now=now, max_events=max_events, max_assets=max_assets)
+    def ingest(self, raw: dict, source_mode: str = "imported", now=None, max_events: int = MAX_EVENTS,
+               max_assets: int = MAX_ASSETS, verified_provenance: bool = False) -> str:
+        """`verified_provenance` is only ever set by the importer in the same run
+        that read the files; it can never be claimed by the submitted data."""
+        document = normalize(raw, self.identity_key, source_mode=source_mode, now=now, max_events=max_events,
+                             max_assets=max_assets, verified_provenance=verified_provenance)
         body = canonical(document)
         sid = "S-" + hashlib.sha256(body.encode()).hexdigest()[:24]
         mac = hmac.new(self.audit_key, body.encode(), hashlib.sha256).hexdigest()
@@ -160,6 +166,31 @@ class Store:
                 raise IntegrityError("スナップショットの完全性検証に失敗しました。")
             return row["id"], json.loads(row["body"])
 
+    @staticmethod
+    def summarize(document: dict) -> dict:
+        """What the UI needs. The event list is not part of the always-on payload:
+        an imported snapshot can hold millions of events."""
+        events = document["events"]
+        return {"schema_version": document["schema_version"], "as_of": document["as_of"],
+                "source_mode": document["source_mode"], "provenance": document["provenance"],
+                "assets": document["assets"], "events_included": False,
+                "event_counts": {"total": len(events),
+                                 "login": sum(e["type"] == "login" for e in events),
+                                 "file_access": sum(e["type"] == "file_access" for e in events)}}
+
+    def export_document(self, max_events: int = MAX_EXPORT_EVENTS) -> dict:
+        """The full dataset, for an explicit export only."""
+        with self.lock:
+            state = self.state()
+            sid, document = self.snapshot()
+            if sid != state["snapshot_id"]:
+                raise ConflictError("書き出し中に入力が更新されました。やり直してください。")
+            if document is not None:
+                if len(document["events"]) > max_events:
+                    raise ValidationError(f"イベントが{max_events:,}件を超えるため画面からは書き出せません。CLIを使用してください。")
+                state["snapshot"] = {**self.summarize(document), "events": document["events"], "events_included": True}
+            return state
+
     def state(self) -> dict:
         with self.lock:
             sid, doc = self.snapshot()
@@ -171,8 +202,8 @@ class Store:
                     status = "expired" if row["status"] == "pending" and parse_time(row["expires_at"]) < utcnow() else row["status"]
                     proposals.append({"id": row["id"], "finding_id": row["finding_id"], "plan": json.loads(row["body"]), "created_at": row["created_at"], "expires_at": row["expires_at"], "status": status})
             records = [{"seq": r["seq"], "at": r["at"], "action": r["action"], "payload": json.loads(r["payload"]), "mac": r["mac"]} for r in self.db.execute("SELECT * FROM audit ORDER BY seq DESC LIMIT 100")]
-            return {"version": "0.2.0", "rule_version": RULE_VERSION,
-                    "rule_config": {"digest": self.config.digest, "values": self.config.as_dict(), "parameters": describe(self.config)}, "snapshot_id": sid, "snapshot": doc, "findings": findings, "proposals": proposals, "audit": audit, "audit_records": records, "coverage": coverage(doc) if doc else {"live_connectors": 0, "expected_connectors": 3, "snapshot_only": True, "missing_sources": ["資産台帳", "認証ログ", "ファイル参照ログ"]}, "mode": "local-prototype", "real_actions_enabled": False, "generated_at": iso(utcnow())}
+            return {"version": "0.2.1", "rule_version": RULE_VERSION,
+                    "rule_config": {"digest": self.config.digest, "values": self.config.as_dict(), "parameters": describe(self.config)}, "snapshot_id": sid, "snapshot": self.summarize(doc) if doc else None, "findings": findings, "proposals": proposals, "audit": audit, "audit_records": records, "coverage": coverage(doc) if doc else {"live_connectors": 0, "expected_connectors": 3, "snapshot_only": True, "missing_sources": ["資産台帳", "認証ログ", "ファイル参照ログ"]}, "mode": "local-prototype", "real_actions_enabled": False, "generated_at": iso(utcnow())}
 
     def get_finding(self, sid: str, fid: str) -> dict:
         current, document = self.snapshot()

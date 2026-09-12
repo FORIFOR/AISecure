@@ -84,6 +84,7 @@ def build_parser() -> argparse.ArgumentParser:
     baseline.add_argument("--users", type=int, default=24)
     baseline.add_argument("--attack", action="store_true", help="Include one labeled incident")
     baseline.add_argument("--unpatched-gateway", action="store_true", help="Leave the gateway unpatched without an incident")
+    baseline.add_argument("--start", help="Scenario start, ISO 8601 with a timezone (default 2026-09-01T00:00:00+09:00)")
     baseline.add_argument("--out", type=Path)
 
     evaluate = sub.add_parser("evaluate", help="Measure detections and false positives on labeled scenarios")
@@ -110,10 +111,16 @@ def _run_import(args, config):
     if args.ingest:
         store = Store(args.data_dir, config)
         try:
-            sid = store.ingest(snapshot, "imported", max_events=IMPORT_MAX_EVENTS, max_assets=IMPORT_MAX_ASSETS)
+            # Only this path read and hashed the files itself.
+            sid = store.ingest(snapshot, "imported", max_events=IMPORT_MAX_EVENTS,
+                               max_assets=IMPORT_MAX_ASSETS, verified_provenance=True)
         finally:
             store.close()
         print(f"取り込み済みスナップショット: {sid}", file=sys.stderr)
+    # The intermediate snapshot still holds raw identifiers: pseudonymization happens
+    # when the data is stored, not when it is read.
+    print("警告: 書き出すスナップショットには仮名化前のユーザー名・セッションID・ファイルパスが含まれます。"
+          "保存先と共有範囲を確認してください。", file=sys.stderr)
     _write(args.out, _dump(snapshot), "スナップショット")
 
 
@@ -154,8 +161,14 @@ def main():
         return
     if args.command == "baseline":
         from .baseline import scenario
-        _write(args.out, _dump(scenario(args.name, seed=args.seed, days=args.days, users=args.users,
-                                        attack=args.attack, unpatched_gateway=args.unpatched_gateway)), "シナリオ")
+        from .schema import parse_time, utcnow
+        data = scenario(args.name, seed=args.seed, days=args.days, users=args.users, attack=args.attack,
+                        unpatched_gateway=args.unpatched_gateway,
+                        start=parse_time(args.start) if args.start else None)
+        if parse_time(data["snapshot"]["as_of"]) > utcnow():
+            print("警告: このシナリオの終了時刻は未来です。評価（evaluate）には使えますが、"
+                  "analyze や import --ingest では拒否されます。--start で開始日を指定してください。", file=sys.stderr)
+        _write(args.out, _dump(data), "シナリオ")
         return
     if args.command == "evaluate":
         _run_evaluate(args, config)
@@ -170,7 +183,7 @@ def main():
             if args.demo and store.snapshot()[0] is None:
                 store.ingest(sample(), "demo")
             server = LocalServer(store, args.port, args.ollama_model)
-            print("AI Secure v0.2 — LOCAL PROTOTYPE / 実環境への対応操作は無効", flush=True)
+            print("AI Secure v0.2.1 — LOCAL PROTOTYPE / 実環境への対応操作は無効", flush=True)
             print("表示はスナップショット解析です。常時監視・VPN保護は行いません。", flush=True)
             print(f"検知設定: {config.digest}" + ("（既定値）" if args.rules is None else f"（{args.rules}）"), flush=True)
             print(f"Open: {server.origin}/#token={server.token}", flush=True)

@@ -14,6 +14,7 @@ import csv
 from datetime import datetime, timedelta, timezone
 import hashlib
 import json
+import math
 from pathlib import Path
 from typing import Any, Iterator
 
@@ -26,7 +27,11 @@ MAX_ROWS = 2_000_000
 MAX_COLUMNS = 200
 MAX_FIELD_BYTES = 8192
 MAX_LINE_BYTES = 256 * 1024
-SLUG_KEEP = set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_.:-")
+# ":" is deliberately excluded from what a raw name may keep, so it can mark a
+# generated identifier. A value containing ":" can therefore never pass through
+# unchanged, which keeps generated identifiers disjoint from raw ones.
+SLUG_KEEP = set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_.-")
+SLUG_MARK = ":"
 ASSET_TARGETS = ("internet_exposed", "privileged_path", "sensitive_path")
 
 
@@ -37,17 +42,20 @@ class ImportError_(ValidationError):
 def slug(value: str) -> str:
     """Map a free-form device or share name onto the identifier rules.
 
-    A changed name keeps a hash of the original appended, so two different
-    sources never silently merge into one asset.
+    A name that already satisfies the rules is kept as it is. Anything else gets
+    a hash of the original after a ":" marker. Because ":" never survives
+    cleaning, a generated identifier can never be produced by a raw name, so an
+    attacker cannot pick a device name that collides with the normalized form of
+    somebody else's device.
     """
     cleaned = "".join(c if c in SLUG_KEEP else "-" for c in value).strip("-")
     if cleaned and ID.fullmatch(cleaned) and cleaned == value:
         return value
-    digest = hashlib.sha256(value.encode()).hexdigest()[:8]
+    digest = hashlib.sha256(value.encode()).hexdigest()[:16]
     head = (cleaned[:60].strip("-") or "asset")
     if not head[0].isalnum():
         head = "x" + head
-    return f"{head}-{digest}"
+    return f"{head}{SLUG_MARK}{digest}"
 
 
 def _dotted(record: dict, field: str) -> Any:
@@ -121,6 +129,17 @@ def _timestamp(spec: dict, raw: Any) -> datetime | None:
     return moment.astimezone(timezone.utc)
 
 
+def _finite(text: str | None) -> float | None:
+    """inf / nan / 1e400 are not measurements; they must not abort an import."""
+    if text is None:
+        return None
+    try:
+        value = float(text)
+    except (ValueError, OverflowError):
+        return None
+    return value if math.isfinite(value) else None
+
+
 def _value(spec: dict, record: dict, dotted: bool) -> Any:
     if "const" in spec:
         return spec["const"]
@@ -138,19 +157,12 @@ def _value(spec: dict, record: dict, dotted: bool) -> Any:
             text = spec["map"].get(text)
         result = text
     elif kind == "int":
-        text = _text(raw)
-        try:
-            result = None if text is None else int(float(text))
-        except ValueError:
-            result = None
+        result = _finite(_text(raw))
+        result = None if result is None else int(result)
         if result is not None and not 0 <= result <= 10**12:
             result = None
     else:  # number
-        text = _text(raw)
-        try:
-            result = None if text is None else float(text)
-        except ValueError:
-            result = None
+        result = _finite(_text(raw))
         if result is not None and not 0 <= result <= 10:
             result = None
     return spec.get("default") if result is None and "default" in spec else result
@@ -216,7 +228,8 @@ def _check(path: Path, max_bytes: int) -> None:
         raise ImportError_(f"ソースは{max_bytes // (1024 * 1024)} MiB以下にしてください: {path.name}")
 
 
-def read_source(path: Path, spec: dict, *, max_rows: int = MAX_ROWS, max_bytes: int = MAX_SOURCE_BYTES) -> tuple[list[dict], dict]:
+def read_source(path: Path, spec: dict, *, max_rows: int = MAX_ROWS, max_bytes: int = MAX_SOURCE_BYTES,
+                identifiers: dict[str, str] | None = None) -> tuple[list[dict], dict]:
     """Read one file into partially-mapped records plus a quality report."""
     path = Path(path)
     _check(path, max_bytes)
@@ -250,12 +263,26 @@ def read_source(path: Path, spec: dict, *, max_rows: int = MAX_ROWS, max_bytes: 
                 mapped = slug(text)
                 if mapped != text:
                     quality["normalized_identifiers"] += 1
+                if identifiers is not None:
+                    original = identifiers.setdefault(mapped, text)
+                    if original != text:
+                        # Two different real names would become one asset. Merging
+                        # them would hide one asset's exposure behind the other's.
+                        raise ImportError_(f"識別子が衝突しました: {original!r} と {text!r} が同じIDになります。"
+                                           "元の名称を確認してください。")
                 value = mapped
             elif field_spec["kind"] == "time":
                 value = iso(value)
-            elif field_spec["kind"] == "opaque" and not 1 <= len(str(value)) <= 256:
-                skip = f"{name}の長さが不正です"
-                break
+            elif field_spec["kind"] == "opaque":
+                # Match what normalize() accepts, so one bad row cannot make the
+                # whole snapshot unusable later.
+                text = str(value)
+                if not 1 <= len(text) <= 256:
+                    skip = f"{name}の長さが不正です"
+                    break
+                if any(ord(c) < 32 for c in text):
+                    skip = f"{name}に制御文字が含まれます"
+                    break
             elif field_spec["kind"] == "enum" and value not in profiles.ENUMS[name]:
                 skip = f"{name}の値が未対応です"
                 break
@@ -297,8 +324,10 @@ def build_snapshot(sources: list[tuple[Path, dict]], *, as_of: datetime | None =
     assets: dict[str, dict] = {}
     events: list[dict] = []
     reports: list[dict] = []
+    seen_events: dict[str, str] = {}
+    identifiers: dict[str, str] = {}
     for path, spec in sources:
-        records, quality = read_source(path, spec, max_rows=max_rows, max_bytes=max_bytes)
+        records, quality = read_source(path, spec, max_rows=max_rows, max_bytes=max_bytes, identifiers=identifiers)
         reports.append(quality)
         for record in records:
             if spec["record"] == "asset":
@@ -308,8 +337,31 @@ def build_snapshot(sources: list[tuple[Path, dict]], *, as_of: datetime | None =
                 # overwrite a newer one just because they were read later.
                 if previous is None or asset["observed_at"] >= previous["observed_at"]:
                     assets[asset["id"]] = asset
+                continue
+            event = {"type": spec["record"], **record}
+            body = canonical(event)
+            previous_body = seen_events.get(event["id"])
+            if previous_body is None:
+                seen_events[event["id"]] = body
+                events.append(event)
+            elif previous_body == body:
+                # A re-sent identical row is a duplicate, not new evidence.
+                quality["rows_imported"] -= 1
+                quality["rows_skipped"] += 1
+                quality["skip_reasons"]["同じ行の重複"] = quality["skip_reasons"].get("同じ行の重複", 0) + 1
             else:
-                events.append({"type": spec["record"], **record})
+                # The same ID carrying different content is a collector problem.
+                # Neither record is dropped: one of them may be the evidence that
+                # matters, and a planted row must not be able to evict a real one.
+                event["id"] = f"{event['id'][:40]}{SLUG_MARK}" + hashlib.sha256(body.encode()).hexdigest()[:16]
+                if event["id"] in seen_events:
+                    quality["rows_imported"] -= 1
+                    quality["rows_skipped"] += 1
+                    quality["skip_reasons"]["重複した再付与ID"] = quality["skip_reasons"].get("重複した再付与ID", 0) + 1
+                else:
+                    seen_events[event["id"]] = canonical(event)
+                    events.append(event)
+                    quality["skip_reasons"]["同じイベントIDのため別IDを付与"] = quality["skip_reasons"].get("同じイベントIDのため別IDを付与", 0) + 1
 
     referenced = {e["gateway_id"] if e["type"] == "login" else e["asset_id"] for e in events}
     shadow = sorted(referenced - set(assets))
@@ -357,6 +409,10 @@ def _warnings(reports: list[dict], shadow: list[str], snapshot: dict, stamp: dat
         out.append(f"台帳にない資産を{len(shadow)}件、ログから検出しました。公開状況・パッチ状態は不明のまま扱います。")
     skipped = sum(r["rows_skipped"] for r in reports)
     read = sum(r["rows_read"] for r in reports) or 1
+    conflicts = sum(r["skip_reasons"].get("同じイベントIDのため別IDを付与", 0) for r in reports)
+    if conflicts:
+        out.append(f"同じイベントIDで内容が異なる行が{conflicts}行ありました。証跡を失わないよう別IDを付与しています。"
+                   "収集元のID付与を確認してください。")
     if skipped / read > 0.05:
         out.append(f"読み飛ばした行が{skipped}行（{skipped / read:.1%}）あります。マッピングと時刻書式を確認してください。")
     if snapshot["events"]:

@@ -87,8 +87,14 @@ def number(value: Any, low: float, high: float) -> float:
     return float(value)
 
 
-def provenance(value: Any) -> list[dict]:
-    """Where a snapshot came from. Labels are basenames only; no paths, no contents."""
+def provenance(value: Any, verified: bool = False) -> list[dict]:
+    """Where a snapshot came from. Labels are basenames only; no paths, no contents.
+
+    `verified` is set by the caller, never by the data: only the importer, in the
+    run that actually read and hashed the files, may claim a verified origin. A
+    hand-written snapshot can assert anything, so it is marked unverified and the
+    UI and audit record say so.
+    """
     if value is None:
         return []
     if not isinstance(value, list) or len(value) > MAX_PROVENANCE:
@@ -107,7 +113,7 @@ def provenance(value: Any) -> list[dict]:
         if connector is not None:
             identifier(connector)
         out.append({"label": item["label"], "sha256": item["sha256"], "rows_read": item["rows_read"],
-                    "rows_imported": item["rows_imported"], "connector": connector})
+                    "rows_imported": item["rows_imported"], "connector": connector, "verified": verified})
     return sorted(out, key=lambda p: (p["label"], p["sha256"]))
 
 
@@ -128,7 +134,8 @@ def read_json(raw: bytes, max_bytes: int = MAX_BYTES) -> Any:
 
 
 def normalize(raw: Any, key: bytes, *, source_mode: str, now: datetime | None = None,
-              max_events: int = MAX_EVENTS, max_assets: int = MAX_ASSETS) -> dict:
+              max_events: int = MAX_EVENTS, max_assets: int = MAX_ASSETS,
+              verified_provenance: bool = False) -> dict:
     """The server sets source_mode; callers cannot claim imported events are verified."""
     now = now or utcnow()
     object_keys(raw, {"schema_version", "as_of", "assets", "events"}, {"provenance"})
@@ -143,7 +150,7 @@ def normalize(raw: Any, key: bytes, *, source_mode: str, now: datetime | None = 
         raise ValidationError(f"資産数は1〜{max_assets:,}件にしてください。")
     if not isinstance(raw["events"], list) or len(raw["events"]) > max_events:
         raise ValidationError(f"イベント数は{max_events:,}件以下にしてください。")
-    sources = provenance(raw.get("provenance"))
+    sources = provenance(raw.get("provenance"), verified_provenance)
 
     assets, seen_assets = [], set()
     for item in raw["assets"]:
