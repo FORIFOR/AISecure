@@ -13,6 +13,10 @@
 <meta property="og:image:width" content="2560">
 <meta property="og:image:height" content="1280">
 <meta name="twitter:image" content="https://forifor.github.io/AISecure/media/social-card.png">
+<meta property="og:video" content="https://forifor.github.io/AISecure/media/intro.mp4">
+<meta property="og:video:type" content="video/mp4">
+<meta property="og:video:width" content="1920">
+<meta property="og:video:height" content="1080">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='14' height='14' x='1' y='1' rx='3' fill='%23175b48'/><rect width='14' height='14' x='17' y='1' rx='3' fill='%238eab92'/><rect width='14' height='14' x='1' y='17' rx='3' fill='%23c9d8c7'/><rect width='14' height='14' x='17' y='17' rx='3' fill='%23175b48'/></svg>">
 <script type="application/ld+json">
@@ -120,6 +124,7 @@ code{font-family:var(--mono);font-size:.92em;background:var(--mint);padding:2px 
 .shots{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:28px}
 @media(max-width:860px){.shots{grid-template-columns:1fr}}
 .shot{border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--paper)}
+.shot video{display:block;width:100%}
 .shot figcaption{font-size:13px;color:var(--faint);padding:12px 16px;border-top:1px solid var(--line)}
 
 footer{border-top:1px solid var(--line);padding:44px 0 64px;font-size:14px;color:var(--faint)}
@@ -155,8 +160,9 @@ footer a{color:var(--muted)}
       <a class="btn primary" href="https://github.com/FORIFOR/AISecure">Star on GitHub</a>
       <a class="btn ghost" href="#start">Run it in 30 seconds</a>
     </div>
-    <div class="badges"><span>MIT</span><span>Python 3.11+</span><span>0 runtime deps</span><span>176 tests</span><span>127.0.0.1 only</span></div>
-    <div class="media"><video src="media/demo.mp4" poster="screenshots/overview.png" autoplay muted loop playsinline preload="metadata"></video></div>
+    <div class="badges"><span>MIT</span><span>Python 3.11+</span><span>0 runtime deps</span><span>178 tests</span><span>127.0.0.1 only</span></div>
+    <div class="media"><video src="media/intro.mp4" poster="media/intro-poster.png" controls autoplay muted loop playsinline preload="metadata"></video></div>
+    <p class="note" style="text-align:center">A 35-second intro. Unmute for the music, or <a href="media/intro-narrated.mp4">watch the narrated version</a>.</p>
   </div>
 </section>
 
@@ -244,6 +250,9 @@ python3 -m aisecure evaluate normal.json incident.json --sweep --out report.md</
   <div class="wrap">
     <p class="eyebrow">The interface</p>
     <h2>One screen, with the reasoning left in.</h2>
+    <figure class="shot" style="margin-top:28px">
+      <video src="media/demo.mp4" poster="screenshots/overview.png" controls muted loop playsinline preload="none"></video>
+      <figcaption>A short walkthrough — import real logs, then measure what a threshold costs.</figcaption></figure>
     <div class="shots">
       <figure class="shot"><img src="screenshots/overview.png" alt="Triage screen showing a correlated case with its evidence" loading="lazy">
         <figcaption>Triage — the correlated case, its three signals, and what is still unknown.</figcaption></figure>
