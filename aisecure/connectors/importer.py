@@ -195,7 +195,9 @@ def _rows(path: Path, spec: dict, quality: dict) -> Iterator[dict]:
                         continue
                     try:
                         record = json.loads(line)
-                    except ValueError:
+                    except (ValueError, RecursionError):
+                        # Deeply nested input raises RecursionError on some Python
+                        # versions and ValueError on others. One line, one skip.
                         quality["skip_reasons"]["JSONとして読み取れません"] += 1
                         yield {}
                         continue
