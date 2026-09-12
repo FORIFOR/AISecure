@@ -14,9 +14,10 @@ from pathlib import Path
 import secrets
 import sqlite3
 import threading
-from .schema import canonical, normalize, utcnow, iso, parse_time, ValidationError
+from .schema import canonical, normalize, utcnow, iso, parse_time, ValidationError, MAX_EVENTS, MAX_ASSETS
 from .engine import analyze, coverage, RULE_VERSION
 from .policy import plan_for, SimulationAdapter
+from .rules import RuleConfig, DEFAULT as DEFAULT_RULES, describe
 
 ZERO = "0" * 64
 
@@ -30,7 +31,8 @@ class IntegrityError(RuntimeError):
 
 
 class Store:
-    def __init__(self, directory: str | Path):
+    def __init__(self, directory: str | Path, config: RuleConfig | None = None):
+        self.config = config or DEFAULT_RULES
         self.directory = Path(directory).expanduser()
         self.directory.mkdir(parents=True, exist_ok=True, mode=0o700)
         if os.name != "nt":
@@ -77,6 +79,15 @@ class Store:
             db_path.chmod(0o600)
         if not self.verify_audit()["valid"]:
             raise IntegrityError("監査チェーンの検証に失敗しました。書き込みを停止します。")
+        self._record_rule_config()
+
+    def _record_rule_config(self):
+        """A threshold change alters what is detected, so it is entered as evidence."""
+        last = self.db.execute("SELECT payload FROM audit WHERE action='rules.configured' ORDER BY seq DESC LIMIT 1").fetchone()
+        if last and json.loads(last["payload"])["digest"] == self.config.digest:
+            return
+        self.record("rules.configured", {"digest": self.config.digest, "values": self.config.as_dict(),
+                                         "rule_version": RULE_VERSION, "previous": json.loads(last["payload"])["digest"] if last else None})
 
     def close(self):
         self.db.close()
@@ -123,8 +134,8 @@ class Store:
             return {"valid": valid, "count": len(rows), "tip": previous, "anchor_checked": anchor is not None, "anchor_valid": anchored,
                     "limitation": "外部チェックポイントなしでは末尾削除を検出できません。ホストと鍵の同時侵害には耐えません。"}
 
-    def ingest(self, raw: dict, source_mode: str = "imported", now=None) -> str:
-        document = normalize(raw, self.identity_key, source_mode=source_mode, now=now)
+    def ingest(self, raw: dict, source_mode: str = "imported", now=None, max_events: int = MAX_EVENTS, max_assets: int = MAX_ASSETS) -> str:
+        document = normalize(raw, self.identity_key, source_mode=source_mode, now=now, max_events=max_events, max_assets=max_assets)
         body = canonical(document)
         sid = "S-" + hashlib.sha256(body.encode()).hexdigest()[:24]
         mac = hmac.new(self.audit_key, body.encode(), hashlib.sha256).hexdigest()
@@ -134,7 +145,8 @@ class Store:
                 raise IntegrityError("同一IDのスナップショットが不整合です。")
             self.db.execute("INSERT OR IGNORE INTO snapshots VALUES (?,?,?,?)", (sid, iso(utcnow()), body, mac))
             self.db.execute("INSERT INTO current_snapshot VALUES(1,?) ON CONFLICT(singleton) DO UPDATE SET id=excluded.id", (sid,))
-            self._audit("snapshot.ingested", {"snapshot_id": sid, "source_mode": source_mode, "events": len(document["events"]), "assets": len(document["assets"]), "deduplicated_snapshot": old is not None})
+            self._audit("snapshot.ingested", {"snapshot_id": sid, "source_mode": source_mode, "events": len(document["events"]), "assets": len(document["assets"]), "deduplicated_snapshot": old is not None,
+                                                 "provenance": document["provenance"], "rule_config_digest": self.config.digest})
         return sid
 
     def snapshot(self) -> tuple[str | None, dict | None]:
@@ -152,20 +164,21 @@ class Store:
         with self.lock:
             sid, doc = self.snapshot()
             audit = self.verify_audit()
-            findings = analyze(doc) if doc else []
+            findings = analyze(doc, self.config) if doc else []
             proposals = []
             if sid:
                 for row in self.db.execute("SELECT * FROM proposals WHERE snapshot_id=? ORDER BY created_at DESC", (sid,)).fetchall():
                     status = "expired" if row["status"] == "pending" and parse_time(row["expires_at"]) < utcnow() else row["status"]
                     proposals.append({"id": row["id"], "finding_id": row["finding_id"], "plan": json.loads(row["body"]), "created_at": row["created_at"], "expires_at": row["expires_at"], "status": status})
             records = [{"seq": r["seq"], "at": r["at"], "action": r["action"], "payload": json.loads(r["payload"]), "mac": r["mac"]} for r in self.db.execute("SELECT * FROM audit ORDER BY seq DESC LIMIT 100")]
-            return {"version": "0.1.0", "rule_version": RULE_VERSION, "snapshot_id": sid, "snapshot": doc, "findings": findings, "proposals": proposals, "audit": audit, "audit_records": records, "coverage": coverage(doc) if doc else {"live_connectors": 0, "expected_connectors": 3, "snapshot_only": True, "missing_sources": ["資産台帳", "認証ログ", "ファイル参照ログ"]}, "mode": "local-prototype", "real_actions_enabled": False, "generated_at": iso(utcnow())}
+            return {"version": "0.2.0", "rule_version": RULE_VERSION,
+                    "rule_config": {"digest": self.config.digest, "values": self.config.as_dict(), "parameters": describe(self.config)}, "snapshot_id": sid, "snapshot": doc, "findings": findings, "proposals": proposals, "audit": audit, "audit_records": records, "coverage": coverage(doc) if doc else {"live_connectors": 0, "expected_connectors": 3, "snapshot_only": True, "missing_sources": ["資産台帳", "認証ログ", "ファイル参照ログ"]}, "mode": "local-prototype", "real_actions_enabled": False, "generated_at": iso(utcnow())}
 
     def get_finding(self, sid: str, fid: str) -> dict:
         current, document = self.snapshot()
         if sid != current or document is None:
             raise ConflictError("入力データが更新されています。画面を再読み込みしてください。")
-        f = next((f for f in analyze(document) if f["id"] == fid), None)
+        f = next((f for f in analyze(document, self.config) if f["id"] == fid), None)
         if f is None:
             raise ValidationError("検知IDが見つかりません。")
         return f

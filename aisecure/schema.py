@@ -12,7 +12,15 @@ from typing import Any
 MAX_BYTES = 2 * 1024 * 1024
 MAX_EVENTS = 5000
 MAX_ASSETS = 200
+# Offline import and tuning read files the HTTP boundary never accepts. The wider
+# caps apply only to the CLI, and are still bounded so a malformed source cannot
+# exhaust memory.
+IMPORT_MAX_EVENTS = 2_000_000
+IMPORT_MAX_ASSETS = 20_000
 ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$")
+SHA256 = re.compile(r"^[0-9a-f]{64}$")
+LABEL = re.compile(r"^[^\x00-\x1f/\\]{1,120}$")
+MAX_PROVENANCE = 64
 
 
 class ValidationError(ValueError):
@@ -79,9 +87,33 @@ def number(value: Any, low: float, high: float) -> float:
     return float(value)
 
 
-def read_json(raw: bytes) -> Any:
-    if len(raw) > MAX_BYTES:
-        raise ValidationError("JSONは2 MiB以下にしてください。")
+def provenance(value: Any) -> list[dict]:
+    """Where a snapshot came from. Labels are basenames only; no paths, no contents."""
+    if value is None:
+        return []
+    if not isinstance(value, list) or len(value) > MAX_PROVENANCE:
+        raise ValidationError(f"provenanceは{MAX_PROVENANCE}件以下のリストが必要です。")
+    out = []
+    for item in value:
+        object_keys(item, {"label", "sha256", "rows_read", "rows_imported"}, {"connector"})
+        if not isinstance(item["label"], str) or not LABEL.fullmatch(item["label"]):
+            raise ValidationError("provenanceのlabelにはパスを含めず、120文字以内の名称を指定してください。")
+        if not isinstance(item["sha256"], str) or not SHA256.fullmatch(item["sha256"]):
+            raise ValidationError("provenanceのsha256は小文字16進64桁が必要です。")
+        for field in ("rows_read", "rows_imported"):
+            if type(item[field]) is not int or not 0 <= item[field] <= 10**9:
+                raise ValidationError("provenanceの行数が不正です。")
+        connector = item.get("connector")
+        if connector is not None:
+            identifier(connector)
+        out.append({"label": item["label"], "sha256": item["sha256"], "rows_read": item["rows_read"],
+                    "rows_imported": item["rows_imported"], "connector": connector})
+    return sorted(out, key=lambda p: (p["label"], p["sha256"]))
+
+
+def read_json(raw: bytes, max_bytes: int = MAX_BYTES) -> Any:
+    if len(raw) > max_bytes:
+        raise ValidationError(f"JSONは{max_bytes // (1024 * 1024)} MiB以下にしてください。")
     def pairs(items):
         out = {}
         for k, v in items:
@@ -95,10 +127,11 @@ def read_json(raw: bytes) -> Any:
         raise ValidationError("JSONを読み込めません。重複キー・形式・容量を確認してください。") from exc
 
 
-def normalize(raw: Any, key: bytes, *, source_mode: str, now: datetime | None = None) -> dict:
+def normalize(raw: Any, key: bytes, *, source_mode: str, now: datetime | None = None,
+              max_events: int = MAX_EVENTS, max_assets: int = MAX_ASSETS) -> dict:
     """The server sets source_mode; callers cannot claim imported events are verified."""
     now = now or utcnow()
-    object_keys(raw, {"schema_version", "as_of", "assets", "events"})
+    object_keys(raw, {"schema_version", "as_of", "assets", "events"}, {"provenance"})
     if type(raw["schema_version"]) is not int or raw["schema_version"] != 1:
         raise ValidationError("schema_versionは1が必要です。")
     as_of = parse_time(raw["as_of"])
@@ -106,10 +139,11 @@ def normalize(raw: Any, key: bytes, *, source_mode: str, now: datetime | None = 
         raise ValidationError("スナップショット時刻が未来すぎます。")
     if source_mode not in {"demo", "imported"}:
         raise ValidationError("入力モードが不正です。")
-    if not isinstance(raw["assets"], list) or not 1 <= len(raw["assets"]) <= MAX_ASSETS:
-        raise ValidationError("資産数は1〜200件にしてください。")
-    if not isinstance(raw["events"], list) or len(raw["events"]) > MAX_EVENTS:
-        raise ValidationError("イベント数は5,000件以下にしてください。")
+    if not isinstance(raw["assets"], list) or not 1 <= len(raw["assets"]) <= max_assets:
+        raise ValidationError(f"資産数は1〜{max_assets:,}件にしてください。")
+    if not isinstance(raw["events"], list) or len(raw["events"]) > max_events:
+        raise ValidationError(f"イベント数は{max_events:,}件以下にしてください。")
+    sources = provenance(raw.get("provenance"))
 
     assets, seen_assets = [], set()
     for item in raw["assets"]:
@@ -118,7 +152,7 @@ def normalize(raw: Any, key: bytes, *, source_mode: str, now: datetime | None = 
         if aid in seen_assets:
             raise ValidationError("資産IDが重複しています。")
         seen_assets.add(aid)
-        if not isinstance(item["kind"], str) or item["kind"] not in {"vpn", "server", "saas", "endpoint"} or not isinstance(item["patch_state"], str) or item["patch_state"] not in {"pending", "applied", "unknown", "not_applicable"}:
+        if not isinstance(item["kind"], str) or item["kind"] not in {"vpn", "server", "saas", "endpoint", "unknown"} or not isinstance(item["patch_state"], str) or item["patch_state"] not in {"pending", "applied", "unknown", "not_applicable"}:
             raise ValidationError("資産種別またはパッチ状態が不正です。")
         observed = parse_time(item["observed_at"])
         if observed > as_of + timedelta(minutes=5):
@@ -127,8 +161,6 @@ def normalize(raw: Any, key: bytes, *, source_mode: str, now: datetime | None = 
         if vuln is not None:
             object_keys(vuln, {"reference", "cvss", "known_exploited"})
             vuln = {"reference": identifier(vuln["reference"]), "cvss": None if vuln["cvss"] is None else number(vuln["cvss"], 0, 10), "known_exploited": nullable_bool(vuln["known_exploited"])}
-        if item["patch_state"] == "pending" and vuln is None:
-            raise ValidationError("パッチ待ちの資産には脆弱性参照が必要です。")
         assets.append({"id": aid, "kind": item["kind"], "patch_state": item["patch_state"], "observed_at": iso(observed), "vulnerability": vuln,
                        **{k: nullable_bool(item[k]) for k in ("internet_exposed", "privileged_path", "sensitive_path")}})
 
@@ -151,9 +183,11 @@ def normalize(raw: Any, key: bytes, *, source_mode: str, now: datetime | None = 
             identifier(item["asset_id"])
             if item["asset_id"] not in seen_assets:
                 raise ValidationError("ファイルの保存先が資産台帳にありません。")
-            if type(item["bytes_read"]) is not int:
-                raise ValidationError("bytes_readには整数が必要です。")
-            number(item["bytes_read"], 0, 10**12)
+            # Unknown size stays unknown: real file-access logs often omit it.
+            if item["bytes_read"] is not None:
+                if type(item["bytes_read"]) is not int:
+                    raise ValidationError("bytes_readには整数またはnullが必要です。")
+                number(item["bytes_read"], 0, 10**12)
             fields = {"asset_id": item["asset_id"], "file_id": pseudonym(item["file_id"], key, "file"), "sensitive": nullable_bool(item["sensitive"]), "bytes_read": item["bytes_read"]}
         else:
             raise ValidationError("未対応のイベント種別です。")
@@ -167,4 +201,4 @@ def normalize(raw: Any, key: bytes, *, source_mode: str, now: datetime | None = 
             continue
         seen[event["id"]] = event
         events.append(event)
-    return {"schema_version": 1, "as_of": iso(as_of), "source_mode": source_mode, "assets": sorted(assets, key=lambda a: a["id"]), "events": sorted(events, key=lambda e: (e["at"], e["id"]))}
+    return {"schema_version": 1, "as_of": iso(as_of), "source_mode": source_mode, "provenance": sources, "assets": sorted(assets, key=lambda a: a["id"]), "events": sorted(events, key=lambda e: (e["at"], e["id"]))}

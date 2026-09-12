@@ -1,0 +1,209 @@
+from __future__ import annotations
+from datetime import datetime, timezone
+import json
+from pathlib import Path
+import tempfile
+import unittest
+
+from aisecure.connectors import build_snapshot, load_profile, builtin_profiles, slug, ImportError_
+from aisecure.connectors import profile as profile_module
+from aisecure.engine import analyze
+from aisecure.schema import normalize, ValidationError
+
+KEY = b'y' * 32
+ASSET_HEADER = "asset_id,type,exposed,admin_path,sensitive_path,patch,observed_at,advisory,cvss,kev\n"
+AUTH_HEADER = "timestamp,event_id,user,session_id,gateway,result,account_type,device_state,change_ticket\n"
+
+
+class Fixture(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.dir = Path(self.temp.name)
+
+    def write(self, name: str, text: str) -> Path:
+        path = self.dir / name
+        path.write_text(text, encoding="utf-8")
+        return path
+
+    def assets(self, rows: str = "") -> Path:
+        default = "edge-vpn-01,vpn,yes,あり,あり,未適用,2026-09-01T09:00:00,DEMO-ADV-001,6.5,no\nfileserver-01,fileserver,no,なし,あり,適用済,2026-09-01T09:00:00,,,\n"
+        return self.write("assets.csv", ASSET_HEADER + (rows or default))
+
+    def source(self, name: str, path: Path):
+        return (path, load_profile(name))
+
+
+class ProfileTests(Fixture):
+    def test_builtin_profiles_load(self):
+        self.assertEqual(set(builtin_profiles()), {"generic-asset-csv", "generic-auth-csv", "generic-file-access-jsonl"})
+        for name in builtin_profiles():
+            self.assertEqual(load_profile(name)["profile_version"], 1)
+
+    def test_profile_cannot_map_a_target_outside_the_allowlist(self):
+        with self.assertRaises(ValidationError):
+            profile_module.load({"profile_version": 1, "name": "bad", "format": "csv", "record": "login",
+                                 "map": {"at": {"field": "t"}, "actor": {"field": "u"}, "session": {"field": "s"},
+                                         "gateway_id": {"field": "g"}, "success": {"field": "r"},
+                                         "file_contents": {"field": "body"}}})
+
+    def test_required_targets_must_be_mapped(self):
+        with self.assertRaises(ValidationError):
+            profile_module.load({"profile_version": 1, "name": "bad", "format": "csv", "record": "file_access",
+                                 "map": {"at": {"field": "t"}}})
+
+    def test_unknown_profile_keys_rejected(self):
+        raw = json.loads((builtin_profiles()["generic-auth-csv"]).read_text(encoding="utf-8"))
+        raw["execute"] = "rm -rf /"
+        with self.assertRaises(ValidationError):
+            profile_module.load(raw)
+
+    def test_missing_profile_names_the_builtins(self):
+        with self.assertRaises(ValidationError) as caught:
+            load_profile("does-not-exist")
+        self.assertIn("generic-auth-csv", str(caught.exception))
+
+    def test_slug_keeps_valid_names_and_separates_different_ones(self):
+        self.assertEqual(slug("edge-vpn-01"), "edge-vpn-01")
+        self.assertNotEqual(slug("社内 ファイルサーバ"), slug("社内 ファイルサーバ 2"))
+        self.assertTrue(slug("//: ").isascii())
+
+
+class ImportTests(Fixture):
+    def test_end_to_end_import_detects_the_correlation(self):
+        rows = ["2026-09-01T22:00:00,lg-1,vendor@example.invalid,sess-1,edge-vpn-01,success,maintenance,unmanaged,none\n"]
+        auth = self.write("auth.csv", AUTH_HEADER + "".join(rows))
+        lines = []
+        for i in range(130):
+            lines.append(json.dumps({"ts": int(datetime(2026, 9, 1, 13, 5, i % 60, tzinfo=timezone.utc).timestamp() * 1000) + i * 2000,
+                                     "user": {"id": "vendor@example.invalid"}, "session": "sess-1",
+                                     "host": "fileserver-01", "path": f"/share/personnel/{i}", "label": "confidential", "bytes": 2048}))
+        access = self.write("access.jsonl", "\n".join(lines) + "\n")
+        snapshot, quality = build_snapshot([self.source("generic-asset-csv", self.assets()),
+                                            self.source("generic-auth-csv", auth),
+                                            self.source("generic-file-access-jsonl", access)])
+        document = normalize(snapshot, KEY, source_mode="imported", now=datetime(2026, 9, 2, tzinfo=timezone.utc))
+        self.assertEqual({f["rule"] for f in analyze(document)}, {"AS-001", "AS-002", "AS-003", "AS-004"})
+        self.assertEqual(quality["totals"]["rows_imported"], 133)
+
+    def test_sources_are_hashed_for_provenance(self):
+        snapshot, quality = build_snapshot([self.source("generic-asset-csv", self.assets())])
+        self.assertEqual(len(snapshot["provenance"]), 1)
+        self.assertEqual(snapshot["provenance"][0]["label"], "assets.csv")
+        self.assertRegex(snapshot["provenance"][0]["sha256"], r"^[0-9a-f]{64}$")
+        self.assertEqual(quality["sources"][0]["rows_imported"], 2)
+
+    def test_unmapped_columns_never_reach_the_snapshot(self):
+        path = self.write("assets.csv", ASSET_HEADER.rstrip("\n") + ",password,secret_note\n"
+                          "edge-vpn-01,vpn,yes,あり,あり,未適用,2026-09-01T09:00:00,DEMO-ADV-001,6.5,no,hunter2,機密メモ\n")
+        snapshot, _ = build_snapshot([self.source("generic-asset-csv", path)])
+        self.assertNotIn("hunter2", json.dumps(snapshot, ensure_ascii=False))
+        self.assertNotIn("機密メモ", json.dumps(snapshot, ensure_ascii=False))
+
+    def test_unreadable_value_becomes_unknown_not_safe(self):
+        path = self.write("assets.csv", ASSET_HEADER + "edge-vpn-01,vpn,たぶん,,,未適用,2026-09-01T09:00:00,DEMO-ADV-001,6.5,\n")
+        snapshot, quality = build_snapshot([self.source("generic-asset-csv", path)])
+        asset = snapshot["assets"][0]
+        self.assertIsNone(asset["internet_exposed"])
+        self.assertIsNone(asset["privileged_path"])
+        self.assertEqual(quality["totals"]["unknown_values"]["internet_exposed"], 1)
+
+    def test_row_without_a_timezone_is_skipped_not_guessed(self):
+        spec = load_profile("generic-auth-csv")
+        spec["map"]["at"]["timezone"] = None
+        auth = self.write("auth.csv", AUTH_HEADER + "2026-09-01T22:00:00,lg-1,u,s,edge-vpn-01,success,user,managed,CHG-1\n")
+        snapshot, quality = build_snapshot([self.source("generic-asset-csv", self.assets()), (auth, spec)])
+        self.assertEqual(snapshot["events"], [])
+        self.assertEqual(quality["totals"]["skip_reasons"], {"atを読み取れません": 1})
+
+    def test_declared_timezone_is_converted_to_utc(self):
+        auth = self.write("auth.csv", AUTH_HEADER + "2026-09-01T09:00:00,lg-1,u,s,edge-vpn-01,success,user,managed,CHG-1\n")
+        snapshot, _ = build_snapshot([self.source("generic-asset-csv", self.assets()), self.source("generic-auth-csv", auth)])
+        self.assertEqual(snapshot["events"][0]["at"], "2026-09-01T00:00:00Z")
+
+    def test_asset_seen_only_in_logs_is_recorded_as_unknown(self):
+        auth = self.write("auth.csv", AUTH_HEADER + "2026-09-01T09:00:00,lg-1,u,s,shadow-gateway,success,user,managed,CHG-1\n")
+        snapshot, quality = build_snapshot([self.source("generic-asset-csv", self.assets()), self.source("generic-auth-csv", auth)])
+        shadow = next(a for a in snapshot["assets"] if a["id"] == "shadow-gateway")
+        self.assertEqual((shadow["patch_state"], shadow["kind"]), ("unknown", "unknown"))
+        self.assertIsNone(shadow["internet_exposed"])
+        self.assertEqual(quality["shadow_assets"], ["shadow-gateway"])
+        document = normalize(snapshot, KEY, source_mode="imported", now=datetime(2026, 9, 2, tzinfo=timezone.utc))
+        self.assertIn("AS-005", {f["rule"] for f in analyze(document)})
+
+    def test_skip_policy_drops_events_for_unknown_assets(self):
+        auth = self.write("auth.csv", AUTH_HEADER + "2026-09-01T09:00:00,lg-1,u,s,shadow-gateway,success,user,managed,CHG-1\n")
+        snapshot, _ = build_snapshot([self.source("generic-asset-csv", self.assets()), self.source("generic-auth-csv", auth)],
+                                     unknown_assets="skip")
+        self.assertEqual(snapshot["events"], [])
+        self.assertNotIn("shadow-gateway", [a["id"] for a in snapshot["assets"]])
+
+    def test_repeated_identical_rows_collapse_to_one_event(self):
+        spec = load_profile("generic-auth-csv")
+        del spec["map"]["id"]  # no event id in the source: identity is derived from content
+        spec["map"]["id"] = {"target": "id", "kind": "id", "derive": "content"}
+        line = "2026-09-01T09:00:00,ignored,u,s,edge-vpn-01,success,user,managed,CHG-1\n"
+        auth = self.write("auth.csv", AUTH_HEADER + line + line)
+        snapshot, _ = build_snapshot([self.source("generic-asset-csv", self.assets()), (auth, spec)])
+        document = normalize(snapshot, KEY, source_mode="imported", now=datetime(2026, 9, 2, tzinfo=timezone.utc))
+        self.assertEqual(len(document["events"]), 1)
+
+    def test_malformed_json_lines_are_counted_not_fatal(self):
+        access = self.write("access.jsonl", "{not json}\n[]\n" + json.dumps(
+            {"ts": 1788195720000, "user": {"id": "u"}, "session": "s", "host": "fileserver-01",
+             "path": "/share/a", "label": "internal", "bytes": 1}) + "\n")
+        snapshot, quality = build_snapshot([self.source("generic-asset-csv", self.assets()),
+                                            self.source("generic-file-access-jsonl", access)])
+        self.assertEqual(len(snapshot["events"]), 1)
+        self.assertEqual(quality["totals"]["rows_skipped"], 2)
+
+    def test_file_path_is_kept_only_as_a_pseudonymous_identifier(self):
+        access = self.write("access.jsonl", json.dumps(
+            {"ts": 1788195720000, "user": {"id": "tanaka@example.invalid"}, "session": "s",
+             "host": "fileserver-01", "path": "/share/人事/給与2026.xlsx", "label": "機密", "bytes": 1}) + "\n")
+        snapshot, _ = build_snapshot([self.source("generic-asset-csv", self.assets()),
+                                      self.source("generic-file-access-jsonl", access)])
+        self.assertTrue(snapshot["events"][0]["sensitive"])
+        document = normalize(snapshot, KEY, source_mode="imported", now=datetime(2026, 9, 2, tzinfo=timezone.utc))
+        stored = json.dumps(document, ensure_ascii=False)
+        self.assertNotIn("給与2026", stored)
+        self.assertNotIn("tanaka", stored)
+
+    def test_symlinked_source_refused(self):
+        target = self.assets()
+        link = self.dir / "link.csv"
+        try:
+            link.symlink_to(target)
+        except (OSError, NotImplementedError):
+            self.skipTest("symlinks unavailable")
+        with self.assertRaises(ImportError_):
+            build_snapshot([self.source("generic-asset-csv", link)])
+
+    def test_row_limit_is_enforced(self):
+        rows = "".join(f"asset-{i},server,no,なし,なし,適用済,2026-09-01T09:00:00,,,\n" for i in range(10))
+        with self.assertRaises(ImportError_):
+            build_snapshot([self.source("generic-asset-csv", self.write("many.csv", ASSET_HEADER + rows))], max_rows=5)
+
+    def test_oversized_source_refused(self):
+        with self.assertRaises(ImportError_):
+            build_snapshot([self.source("generic-asset-csv", self.assets())], max_bytes=10)
+
+    def test_import_without_an_inventory_is_refused(self):
+        auth = self.write("auth.csv", AUTH_HEADER + "2026-09-01T09:00:00,lg-1,u,s,edge-vpn-01,success,user,managed,CHG-1\n")
+        with self.assertRaises(ImportError_):
+            build_snapshot([self.source("generic-auth-csv", auth)], unknown_assets="skip")
+
+    def test_missing_sources_are_reported_as_warnings(self):
+        _, quality = build_snapshot([self.source("generic-asset-csv", self.assets())])
+        self.assertTrue(any("認証ログ" in w for w in quality["warnings"]))
+        self.assertTrue(any("真正性" in w for w in quality["warnings"]))
+
+    def test_same_input_produces_the_same_snapshot(self):
+        first, _ = build_snapshot([self.source("generic-asset-csv", self.assets())])
+        second, _ = build_snapshot([self.source("generic-asset-csv", self.assets())])
+        self.assertEqual(first["assets"], second["assets"])
+        self.assertEqual(first["events"], second["events"])
+
+
+if __name__ == '__main__':
+    unittest.main()

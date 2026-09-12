@@ -1,0 +1,10 @@
+timestamp,event_id,user,session_id,gateway,result,account_type,device_state,change_ticket
+2026-09-01T02:00:00,lg-000829,svc-backup@example.invalid,backup-0,edge-vpn-01,success,maintenance,managed,CHG-0000
+2026-09-01T09:27:00,lg-000780,staff-005@example.invalid,s-0-5-033241,edge-vpn-01,success,user,managed,CHG-0001
+2026-09-01T09:32:00,lg-000001,staff-000@example.invalid,s-0-0-997574,edge-vpn-01,success,user,managed,CHG-0002
+2026-09-01T09:42:00,lg-000702,staff-002@example.invalid,s-0-2-332445,edge-vpn-01,success,user,managed,CHG-0003
+2026-09-01T09:45:00,lg-000719,staff-003@example.invalid,s-0-3-461223,edge-vpn-01,success,user,managed,CHG-0004
+2026-09-01T09:54:00,lg-000770,staff-004@example.invalid,s-0-4-187145,edge-vpn-01,success,user,managed,CHG-0005
+2026-09-01T10:26:00,lg-000671,staff-001@example.invalid,s-0-1-373753,edge-vpn-01,success,user,managed,CHG-0006
+2026-09-01T20:00:00,lg-001691,vendor-maintenance@example.invalid,vendor-0,edge-vpn-01,success,maintenance,unmanaged,CHG-0007
+2026-09-01T23:17:00,lg-001714,vendor-maintenance@example.invalid,incident-session,edge-vpn-01,success,maintenance,unmanaged,none

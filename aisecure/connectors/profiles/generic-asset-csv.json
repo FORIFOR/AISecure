@@ -1,0 +1,19 @@
+{
+  "profile_version": 1,
+  "name": "generic-asset-csv",
+  "description": "資産台帳CSV。公開状況・特権/機密への到達性・パッチ状態・脆弱性参照を読み取ります。空欄は「不明」として扱い、安全とは解釈しません。",
+  "format": "csv",
+  "record": "asset",
+  "map": {
+    "id": {"field": "asset_id"},
+    "kind": {"field": "type", "map": {"vpn": "vpn", "firewall": "vpn", "server": "server", "fileserver": "server", "saas": "saas", "endpoint": "endpoint", "pc": "endpoint"}, "default": "unknown"},
+    "observed_at": {"field": "observed_at", "time": "iso8601", "timezone": "+09:00"},
+    "patch_state": {"field": "patch", "map": {"pending": "pending", "未適用": "pending", "applied": "applied", "適用済": "applied", "n/a": "not_applicable", "対象外": "not_applicable"}, "default": "unknown"},
+    "internet_exposed": {"field": "exposed", "true": ["yes", "true", "1", "公開"], "false": ["no", "false", "0", "非公開"]},
+    "privileged_path": {"field": "admin_path", "true": ["yes", "true", "1", "あり"], "false": ["no", "false", "0", "なし"]},
+    "sensitive_path": {"field": "sensitive_path", "true": ["yes", "true", "1", "あり"], "false": ["no", "false", "0", "なし"]},
+    "vulnerability_reference": {"field": "advisory"},
+    "vulnerability_cvss": {"field": "cvss"},
+    "vulnerability_known_exploited": {"field": "kev", "true": ["yes", "true", "1"], "false": ["no", "false", "0"]}
+  }
+}

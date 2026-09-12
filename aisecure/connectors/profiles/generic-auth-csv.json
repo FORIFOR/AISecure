@@ -1,0 +1,18 @@
+{
+  "profile_version": 1,
+  "name": "generic-auth-csv",
+  "description": "VPN・IdPの認証ログCSV。特権、端末管理状態、作業承認の有無を三値（あり/なし/不明）で読み取ります。",
+  "format": "csv",
+  "record": "login",
+  "map": {
+    "id": {"field": "event_id"},
+    "at": {"field": "timestamp", "time": "iso8601", "timezone": "+09:00"},
+    "actor": {"field": "user"},
+    "session": {"field": "session_id"},
+    "gateway_id": {"field": "gateway"},
+    "success": {"field": "result", "true": ["success", "accept", "成功"], "false": ["failure", "reject", "denied", "失敗"]},
+    "privileged": {"field": "account_type", "true": ["admin", "root", "maintenance", "保守"], "false": ["user", "standard", "一般"]},
+    "device_trusted": {"field": "device_state", "true": ["managed", "compliant", "管理端末"], "false": ["unmanaged", "noncompliant", "非管理端末"]},
+    "approved": {"field": "change_ticket", "true_contains": ["CHG-", "WORK-"], "false": ["none", "なし", "-"]}
+  }
+}

@@ -1,0 +1,5 @@
+asset_id,type,exposed,admin_path,sensitive_path,patch,observed_at,advisory,cvss,kev
+edge-vpn-01,vpn,yes,あり,あり,未適用,2026-09-02T09:00:00,DEMO-ADV-001,6.5,no
+fileserver-01,fileserver,no,なし,あり,適用済,2026-09-02T09:00:00,,,
+fileserver-02,fileserver,no,なし,あり,適用済,2026-09-02T09:00:00,,,
+backup-01,fileserver,no,あり,あり,適用済,2026-09-02T09:00:00,,,

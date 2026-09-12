@@ -2,8 +2,8 @@
 const PREVIEW = window.__AI_SECURE_PREVIEW__ || null;
 let token = '', state = null, view = 'overview', selectedId = null, currentPlan = null, toastTimer;
 const $ = (id) => document.getElementById(id);
-const VIEW_LABELS = {overview:'概要',assets:'資産と露出',plans:'対応計画',audit:'監査記録',about:'設計と安全性'};
-const HEADINGS = {overview:['対応すべき理由を、ひとつの画面に。','外部公開・特権・データアクセスをつないで、次の一手を判断する。'],assets:['スコアの向こうに、実際のリスクを。','公開範囲、特権、機密情報への到達性。未確認の情報は、安全と扱いません。'],plans:['何を変えるか。何が止まるか。','根拠と業務影響を確認し、人が承認する。初期版はシミュレーション専用です。'],audit:['判断と承認の経緯を、残す。','鍵付きハッシュチェーンで記録の整合性を確認。外部チェックポイントは別途保管してください。'],about:['AIに任せること。任せないこと。','小さな責務を、明示的な契約でつなぐ。判断・説明・操作の権限を分離します。']};
+const VIEW_LABELS = {overview:'概要',assets:'資産と露出',plans:'対応計画',tuning:'検知設定',audit:'監査記録',about:'設計と安全性'};
+const HEADINGS = {overview:['対応すべき理由を、ひとつの画面に。','外部公開・特権・データアクセスをつないで、次の一手を判断する。'],assets:['スコアの向こうに、実際のリスクを。','公開範囲、特権、機密情報への到達性。未確認の情報は、安全と扱いません。'],plans:['何を変えるか。何が止まるか。','根拠と業務影響を確認し、人が承認する。初期版はシミュレーション専用です。'],tuning:['閾値は、正常な業務で測ってから決める。','大量参照の閾値と特権ログインの条件は変更できます。変更内容は監査記録に残ります。'],audit:['判断と承認の経緯を、残す。','鍵付きハッシュチェーンで記録の整合性を確認。外部チェックポイントは別途保管してください。'],about:['AIに任せること。任せないこと。','小さな責務を、明示的な契約でつなぐ。判断・説明・操作の権限を分離します。']};
 
 function el(tag, cls, text) { const n = document.createElement(tag); if (cls) n.className = cls; if (text !== undefined) n.textContent = String(text); return n; }
 function add(parent, ...children) { children.filter(Boolean).forEach(c => parent.append(c)); return parent; }
@@ -12,7 +12,7 @@ function button(text, cls, fn, disabled=false) { const b=el('button','button '+c
 function notify(message,error=false) { clearTimeout(toastTimer); const n=$('toast'); n.textContent=message; n.classList.toggle('error',error); n.hidden=false; toastTimer=setTimeout(()=>n.hidden=true,7000); }
 function date(value) { return value ? new Date(value).toLocaleString('ja-JP',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}) : '—'; }
 function count(n) { return Number(n || 0).toLocaleString('ja-JP'); }
-function auditAction(action) { return ({'snapshot.ingested':'スナップショットを読み込み','plan.proposed':'対応計画を作成','plan.approved':'管理者がシミュレーションを承認','plan.simulated':'シミュレーション完了（実操作なし）','finding.explained':'根拠の説明を生成','report.exported':'検証レポートを書き出し'})[action] || action; }
+function auditAction(action) { return ({'snapshot.ingested':'スナップショットを読み込み','plan.proposed':'対応計画を作成','plan.approved':'管理者がシミュレーションを承認','plan.simulated':'シミュレーション完了（実操作なし）','finding.explained':'根拠の説明を生成','report.exported':'検証レポートを書き出し','rules.configured':'検知設定を記録'})[action] || action; }
 async function api(path,body,rawBody=false) {
   if(PREVIEW) throw new Error('閲覧用プレビューです。操作はZIP内のローカルアプリで実行してください。');
   const response=await fetch(path,{method:body===undefined?'GET':'POST',headers:{'Authorization':'Bearer '+token,...(body===undefined?{}:{'Content-Type':'application/json'})},...(body===undefined?{}:{body:rawBody?body:JSON.stringify(body)}),credentials:'omit',cache:'no-store'});
@@ -39,6 +39,7 @@ function render() {
   const container=$('viewContent'); container.replaceChildren();
   if(!state.audit.valid) add(container,add(el('div','caution'),el('strong','','監査記録に不整合があります。対応操作を停止し、保存データを確認してください。')));
   if(view==='about'){renderAbout(container);return;}
+  if(view==='tuning'){renderTuning(container);return;}
   if(!state.snapshot){add(container,empty('まだ、分析するデータがありません。','最初は安全な架空データで、根拠の確認から対応計画の承認までを体験できます。外部サービスへの接続は不要です。'));return;}
   ({overview:renderOverview,assets:renderAssets,plans:renderPlans,audit:renderAudit})[view](container);
 }
@@ -74,7 +75,10 @@ function renderOverview(root) {
   findings.forEach(f=>{const row=el('button','finding-row'+(selected.id===f.id?' selected':''));row.type='button';row.addEventListener('click',()=>{selectedId=f.id;render();});add(row,pill(f.priority,f.priority==='P1'?'danger':'warn'),add(el('div','finding-text'),el('strong','',f.title),el('small','',f.rule+' · '+(f.asset_id || f.gateway_id || '認証イベント')+' · 根拠 '+count(f.evidence_ids.length)+'件')),el('span','row-arrow','↗'));add(list,row);});add(listing,list);add(lower,listing);
   const scope=el('section','');add(scope,section('観測できている範囲','入力情報のみ'));const scopeCard=el('div','card card-pad');
   [['資産台帳',state.snapshot.assets.length+'台'],['認証ログ',state.snapshot.events.filter(e=>e.type==='login').length+'件'],['ファイル参照ログ',state.snapshot.events.filter(e=>e.type==='file_access').length+'件']].forEach(([name,num])=>add(scopeCard,add(el('div','telemetry-item'),el('span','',name),pill(num,'neutral'))));
-  add(scopeCard,el('p','telemetry-caption','常時監視の接続は 0 / 3。入力にない挙動や低速な持ち出しは検知できません。正常・安全の保証はしません。'),el('p','telemetry-caption',`未確認: 資産項目 ${count(state.coverage.unknown_asset_fields)} / 認証項目 ${count(state.coverage.unknown_login_fields)} / 機密区分 ${count(state.coverage.unknown_classifications)}`));add(scope,scopeCard);add(lower,scope);add(root,lower);
+  add(scopeCard,el('p','telemetry-caption','常時監視の接続は 0 / 3。入力にない挙動や低速な持ち出しは検知できません。正常・安全の保証はしません。'),el('p','telemetry-caption',`未確認: 資産項目 ${count(state.coverage.unknown_asset_fields)} / 認証項目 ${count(state.coverage.unknown_login_fields)} / 機密区分 ${count(state.coverage.unknown_classifications)} / 読み取りサイズ ${count(state.coverage.unknown_read_sizes)}`));
+  const sources=state.coverage.provenance||[];
+  if(sources.length){const box=el('details','evidence-box');add(box,el('summary','',`取り込み元ファイル（${count(sources.length)}件）`),el('pre','evidence-ids',sources.map(s=>`${s.label}  ${s.sha256.slice(0,16)}…  取込 ${count(s.rows_imported)}/${count(s.rows_read)}行`).join('\n')));add(scopeCard,box);}
+  add(scope,scopeCard);add(lower,scope);add(root,lower);
 }
 function renderAssets(root){
   add(root,section('資産インベントリ','手動スナップショット / 到達性は登録情報'));
@@ -93,6 +97,20 @@ function renderAudit(root){
   add(root,section('操作記録',count(state.audit.count)+'件 / 画面は直近100件'));
   const table=el('table','table');add(table,add(el('thead',''),add(el('tr',''),...['記録','操作','根拠 / 実行状態'].map(v=>el('th','',v)))));const body=el('tbody','');
   state.audit_records.forEach(r=>add(body,add(el('tr',''),add(el('td',''),el('span','mono','#'+r.seq),el('small','',date(r.at))),add(el('td',''),el('span','',auditAction(r.action)),el('small','mono',r.action)),add(el('td',''),el('span','mono',r.payload.finding_id||r.payload.proposal_id||r.payload.snapshot_id||'—'),el('small','',r.payload.executed===false?'実際の変更は行っていません':r.payload.actual_provider||'整合性チェック対象')))));add(table,body);add(root,add(el('div','card table-wrap'),table),el('p','audit-note','ローカル管理者はDBと鍵の両方にアクセスできます。本版は独立した監査保管庫でも、証拠保全・法令遵守を保証する製品でもありません。'));
+}
+function renderTuning(root){
+  const config=state.rule_config;
+  add(root,section('現在の検知設定','設定ハッシュ '+config.digest));
+  const table=el('table','table');add(table,add(el('thead',''),add(el('tr',''),...['項目','値','意味'].map(t=>el('th','',t)))));const body=el('tbody','');
+  config.parameters.forEach(p=>add(body,add(el('tr',''),add(el('td',''),el('span','mono',p.name)),add(el('td',''),el('strong','',String(p.value))),add(el('td',''),el('span','',p.description)))));
+  add(table,body);add(root,add(el('div','card table-wrap'),table));
+  add(root,el('p','caution','既定値は同梱の合成データで確認した出発点です。導入先の正常な業務ログで測り直すまで、適切な値とは言えません。'));
+  add(root,section('正常業務で測ってから決める','CLIで実行します'));
+  const steps=[['01 / BASELINE','正常な業務の合成データを作る','python3 -m aisecure baseline --days 5 --users 40 --out normal.json\npython3 -m aisecure baseline --days 5 --users 40 --attack --out incident.json'],
+               ['02 / EVALUATE','検知と誤検知を数える','python3 -m aisecure evaluate normal.json incident.json --sweep --out report.md'],
+               ['03 / APPLY','決めた閾値で起動する','python3 -m aisecure --rules rules.json serve']];
+  const grid=el('div','info-grid');steps.forEach(([label,title,code])=>{const card=add(el('article','card card-pad'),el('p','eyebrow',label),el('h3','',title));add(card,el('pre','evidence-ids',code));add(grid,card);});add(root,grid);
+  add(root,el('p','audit-note','評価は合成データに対する結果です。実環境の誤検知率ではありません。閾値を上げれば確認件数は減りますが、小規模な持ち出しを見逃す可能性が上がります。設定の変更は起動時に監査記録へ残ります。'));
 }
 function renderAbout(root){
   const items=[['01 / COLLECT','必要なメタデータだけ受け取る','資産台帳と認証・ファイル参照ログをJSONで入力。氏名、原文、秘密鍵、ファイル本文は受け付けません。ユーザー・セッション・ファイル識別子は鍵付きハッシュで仮名化します。匿名化ではありません。'],['02 / DETECT','判定は再現可能なルールで','公開範囲・特権・機密情報への到達性を組み合わせ、CVSSの数字だけでは判断しません。大量参照は300秒以内に100個以上の異なるファイルが目安です。閾値は本番の正常ログで調整が必要です。'],['03 / EXPLAIN','AIは説明を補助するだけ','既定はLLMを使わないルール説明。任意のOllama接続では構造化した事実だけを送り、説明の参照IDを検証します。文章の正しさは保証せず、モデルにツールや対応権限は渡しません。'],['04 / RESPOND','変更する前に、人が判断する','影響・事前確認・復旧方針を表示し、5分間有効の計画に対して明示的な承認を求めます。v0.1はシミュレーションのみ。アカウント失効、機器設定変更、通信遮断を実行するコードはありません。'],['05 / AUDIT','できることと限界を明示する','読み込み・説明・計画・承認・シミュレーションを監査チェーンに記録します。末尾削除の検出には外部チェックポイントが必要であり、鍵とホストを同時に侵害された場合は保護できません。'],['NEXT / PRODUCTION','本番化は、接続と運用の検証から','実ログの読み取り専用コネクタ、SSO/RBAC、別権限の実行器、機器別API、外部監査保管、正常データを使う誤検知評価が未実装です。AI Secureは現時点でEDR・SIEM・VPN防御の代替ではありません。']];

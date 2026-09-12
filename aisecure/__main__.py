@@ -4,32 +4,164 @@ import json
 import os
 from pathlib import Path
 import sys
-from .schema import read_json
+from .schema import read_json, IMPORT_MAX_ASSETS, IMPORT_MAX_EVENTS, ValidationError
 from .store import Store
 from .demo import sample
+from . import rules as rule_config
 
 
-def main():
-    parser = argparse.ArgumentParser(description="AI Secure — loopback-only security analysis prototype")
+def _write(path: Path | None, text: str, label: str):
+    if path is None:
+        print(text)
+        return
+    path.write_text(text, encoding="utf-8")
+    print(f"{label}: {path}", file=sys.stderr)
+
+
+def _dump(value) -> str:
+    return json.dumps(value, ensure_ascii=False, indent=2)
+
+
+def _load_rules(path: Path | None):
+    if path is None:
+        return rule_config.DEFAULT
+    return rule_config.from_mapping(read_json(path.read_bytes()))
+
+
+def _sources(pairs: list[str]):
+    from .connectors import load_profile
+    out = []
+    for pair in pairs:
+        if "=" not in pair:
+            raise ValidationError(f"--source は プロファイル=ファイル の形式で指定してください: {pair}")
+        name, _, target = pair.partition("=")
+        out.append((Path(target).expanduser(), load_profile(name)))
+    return out
+
+
+MAX_SCENARIO_BYTES = 512 * 1024 * 1024
+
+
+def _scenarios(paths: list[Path]) -> list[dict]:
+    """Scenario files are much larger than an API payload, but still parsed strictly."""
+    return [read_json(path.read_bytes(), MAX_SCENARIO_BYTES) for path in paths]
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(prog="aisecure", description="AI Secure — loopback-only security analysis prototype")
     parser.add_argument("--data-dir", default=str(Path.home() / ".ai-secure-demo"), help="Local state; do not place in a shared or cloud-synced folder")
+    parser.add_argument("--rules", type=Path, default=None, help="Detection threshold overrides (JSON). Recorded in the audit chain.")
     sub = parser.add_subparsers(dest="command", required=True)
+
     serve = sub.add_parser("serve", help="Start local development UI")
     serve.add_argument("--port", type=int, default=8765)
     serve.add_argument("--demo", action="store_true", help="Load synthetic metadata only when the database is empty")
     serve.add_argument("--ollama-model", default=None, help="Optional already-installed local model; cloud models rejected")
+
     analyze = sub.add_parser("analyze", help="Import a normalized JSON snapshot and print findings")
     analyze.add_argument("input", type=Path)
-    demo = sub.add_parser("sample", help="Write synthetic input JSON to stdout; does not open a database")
+
+    sub.add_parser("sample", help="Write synthetic input JSON to stdout; does not open a database")
     verify = sub.add_parser("verify-audit", help="Verify local HMAC audit chain")
     verify.add_argument("--anchor", type=Path, help="Independently retained {count,tip} checkpoint")
     sub.add_parser("checkpoint", help="Print audit checkpoint for independent retention")
-    args = parser.parse_args()
+
+    sub.add_parser("profiles", help="List built-in read-only log mapping profiles")
+    importer = sub.add_parser("import", help="Read real log files into a snapshot (read-only; nothing is written back)")
+    importer.add_argument("--source", action="append", required=True, metavar="PROFILE=PATH",
+                          help="Repeatable. PROFILE is a built-in name or a path to a mapping profile.")
+    importer.add_argument("--out", type=Path, help="Write the snapshot JSON here instead of stdout")
+    importer.add_argument("--quality", type=Path, help="Write the import quality report here")
+    importer.add_argument("--unknown-assets", choices=["record", "skip"], default="record",
+                          help="record: keep assets seen only in logs as unknown (default). skip: drop their events.")
+    importer.add_argument("--max-rows", type=int, default=None, help="Row limit per source")
+    importer.add_argument("--ingest", action="store_true", help="Also load the result into the local database")
+
+    baseline = sub.add_parser("baseline", help="Generate labeled synthetic normal traffic for tuning")
+    baseline.add_argument("--name", default="baseline")
+    baseline.add_argument("--seed", type=int, default=1)
+    baseline.add_argument("--days", type=int, default=3)
+    baseline.add_argument("--users", type=int, default=24)
+    baseline.add_argument("--attack", action="store_true", help="Include one labeled incident")
+    baseline.add_argument("--unpatched-gateway", action="store_true", help="Leave the gateway unpatched without an incident")
+    baseline.add_argument("--out", type=Path)
+
+    evaluate = sub.add_parser("evaluate", help="Measure detections and false positives on labeled scenarios")
+    evaluate.add_argument("scenarios", nargs="+", type=Path)
+    evaluate.add_argument("--sweep", action="store_true", help="Also grid-search the bulk-access threshold and window")
+    evaluate.add_argument("--format", choices=["markdown", "json"], default="markdown")
+    evaluate.add_argument("--out", type=Path)
+    evaluate.add_argument("--save-rules", type=Path, help="Write the recommended thresholds as a rules file (--sweep only)")
+    return parser
+
+
+def _run_import(args, config):
+    from .connectors import build_snapshot, MAX_ROWS
+    sources = _sources(args.source)
+    snapshot, quality = build_snapshot(sources, unknown_assets=args.unknown_assets,
+                                       max_rows=args.max_rows or MAX_ROWS)
+    if args.quality:
+        args.quality.write_text(_dump(quality), encoding="utf-8")
+    for warning in quality["warnings"]:
+        print(f"警告: {warning}", file=sys.stderr)
+    totals = quality["totals"]
+    print(f"読み込み {totals['rows_read']:,} 行 / 取り込み {totals['rows_imported']:,} 行 / "
+          f"読み飛ばし {totals['rows_skipped']:,} 行 / 資産 {totals['assets']} / イベント {totals['events']:,}", file=sys.stderr)
+    if args.ingest:
+        store = Store(args.data_dir, config)
+        try:
+            sid = store.ingest(snapshot, "imported", max_events=IMPORT_MAX_EVENTS, max_assets=IMPORT_MAX_ASSETS)
+        finally:
+            store.close()
+        print(f"取り込み済みスナップショット: {sid}", file=sys.stderr)
+    _write(args.out, _dump(snapshot), "スナップショット")
+
+
+def _run_evaluate(args, config):
+    from .baseline import load_scenario
+    from .evaluate import evaluate as run_evaluate, markdown, prepare, sweep as run_sweep
+    scenarios = [load_scenario(raw) for raw in _scenarios(args.scenarios)]
+    prepared = [prepare(s) for s in scenarios]
+    report = run_evaluate(prepared, config)
+    sweep_report = run_sweep(scenarios, config) if args.sweep else None
+    if args.save_rules:
+        if not sweep_report or not sweep_report["recommended"]:
+            raise ValidationError("--save-rules には --sweep と、検知漏れのない推奨設定が必要です。")
+        recommended = config.replace(distinct_file_threshold=sweep_report["recommended"]["distinct_file_threshold"],
+                                     window_seconds=sweep_report["recommended"]["window_seconds"])
+        args.save_rules.write_text(_dump(recommended.as_dict()), encoding="utf-8")
+        print(f"推奨設定: {args.save_rules}", file=sys.stderr)
+    text = markdown(report, sweep_report) if args.format == "markdown" else _dump({"evaluation": report, "sweep": sweep_report})
+    _write(args.out, text, "レポート")
+
+
+def main():
+    args = build_parser().parse_args()
     if args.command == "sample":
-        print(json.dumps(sample(), ensure_ascii=False, indent=2))
+        print(_dump(sample()))
         return
     if os.name != "nt":
         os.umask(0o077)
-    store = Store(args.data_dir)
+    config = _load_rules(args.rules)
+    if args.command == "profiles":
+        from .connectors import builtin_profiles, load_profile
+        for name in builtin_profiles():
+            spec = load_profile(name)
+            print(f"{name}\n  形式: {spec['format']} / 種別: {spec['record']}\n  {spec['description']}\n")
+        return
+    if args.command == "import":
+        _run_import(args, config)
+        return
+    if args.command == "baseline":
+        from .baseline import scenario
+        _write(args.out, _dump(scenario(args.name, seed=args.seed, days=args.days, users=args.users,
+                                        attack=args.attack, unpatched_gateway=args.unpatched_gateway)), "シナリオ")
+        return
+    if args.command == "evaluate":
+        _run_evaluate(args, config)
+        return
+
+    store = Store(args.data_dir, config)
     try:
         if args.command == "serve":
             from .server import LocalServer
@@ -38,8 +170,9 @@ def main():
             if args.demo and store.snapshot()[0] is None:
                 store.ingest(sample(), "demo")
             server = LocalServer(store, args.port, args.ollama_model)
-            print("AI Secure v0.1 — LOCAL PROTOTYPE / 実環境への対応操作は無効", flush=True)
+            print("AI Secure v0.2 — LOCAL PROTOTYPE / 実環境への対応操作は無効", flush=True)
             print("表示はスナップショット解析です。常時監視・VPN保護は行いません。", flush=True)
+            print(f"検知設定: {config.digest}" + ("（既定値）" if args.rules is None else f"（{args.rules}）"), flush=True)
             print(f"Open: {server.origin}/#token={server.token}", flush=True)
             print(f"API token: {server.token}", flush=True)
             if args.ollama_model:
@@ -51,11 +184,12 @@ def main():
             finally:
                 server.server_close()
         elif args.command == "analyze":
-            with args.input.open("rb") as f:
-                raw = f.read(2 * 1024 * 1024 + 1)
-            store.ingest(read_json(raw))
+            # The CLI reads files the operator already has; the HTTP boundary keeps
+            # its much smaller limits.
+            store.ingest(read_json(args.input.read_bytes(), MAX_SCENARIO_BYTES),
+                         max_events=IMPORT_MAX_EVENTS, max_assets=IMPORT_MAX_ASSETS)
             state = store.state()
-            print(json.dumps({k: state[k] for k in ("snapshot_id", "findings", "coverage", "audit")}, ensure_ascii=False, indent=2))
+            print(_dump({k: state[k] for k in ("snapshot_id", "rule_config", "findings", "coverage", "audit")}))
         elif args.command == "checkpoint":
             audit = store.verify_audit()
             if not audit["valid"]:
@@ -64,7 +198,7 @@ def main():
         elif args.command == "verify-audit":
             anchor = read_json(args.anchor.read_bytes()) if args.anchor else None
             result = store.verify_audit(anchor)
-            print(json.dumps(result, ensure_ascii=False, indent=2))
+            print(_dump(result))
             if not result["valid"]:
                 sys.exit(2)
     finally:

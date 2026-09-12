@@ -1,0 +1,16 @@
+{
+  "profile_version": 1,
+  "name": "generic-file-access-jsonl",
+  "description": "ファイルサーバー監査ログのJSON Lines。パスは機密判定とファイル識別子の導出だけに使い、原文パスはスナップショットに残りません（保存前に鍵付きハッシュで仮名化します）。",
+  "format": "jsonl",
+  "record": "file_access",
+  "map": {
+    "at": {"field": "ts", "time": "epoch_millis"},
+    "actor": {"field": "user.id"},
+    "session": {"field": "session"},
+    "asset_id": {"field": "host"},
+    "file_id": {"field": "path"},
+    "sensitive": {"field": "label", "true": ["confidential", "restricted", "機密"], "false": ["public", "internal", "公開"]},
+    "bytes_read": {"field": "bytes"}
+  }
+}

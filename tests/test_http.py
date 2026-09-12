@@ -34,6 +34,19 @@ class HTTPTests(unittest.TestCase):
             with urllib.request.urlopen(req,timeout=3) as r: return r.status,r.read(),r.headers
         except urllib.error.HTTPError as e: return e.code,e.read(),e.headers
 
+    def test_state_exposes_the_active_detection_config(self):
+        status,body,_=self.request('/api/state')
+        config=json.loads(body)['rule_config']
+        self.assertEqual(status,200)
+        self.assertEqual(config['values'],self.store.config.as_dict())
+        self.assertTrue(all(p['description'] for p in config['parameters']))
+
+    def test_state_reports_unknown_read_sizes(self):
+        self.request('/api/demo',{'confirm':'LOAD SYNTHETIC DATA'})
+        coverage=json.loads(self.request('/api/state')[1])['coverage']
+        self.assertIn('unknown_read_sizes',coverage)
+        self.assertEqual(coverage['provenance'],[])
+
     def test_api_requires_auth(self):
         self.assertEqual(self.request('/api/state',auth=False)[0],401)
 

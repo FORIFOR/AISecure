@@ -8,3 +8,5 @@ __pycache__/
 *.key
 .local-data/
 node_modules/
+/scenarios/
+*.scenario.json
