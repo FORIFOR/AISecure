@@ -108,6 +108,8 @@ Detection, explanation, and the authority to act are separate modules with expli
 |---|---|
 | ![overview](docs/screenshots/overview.png) | ![tuning](docs/screenshots/tuning.png) |
 
+The UI shell is bilingual (English default, `日本語` toggle in the top bar). Analysis output produced by the backend — finding text, plan wording, parameter descriptions — is currently Japanese only; translating it is tracked as future work.
+
 ## Status
 
 **v0.2.1 — a local prototype, honestly labelled.** Useful today for studying detection logic, rehearsing a triage workflow, and measuring what a threshold costs before you deploy one. Not a production security control.

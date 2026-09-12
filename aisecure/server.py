@@ -103,9 +103,9 @@ class Handler(BaseHTTPRequestHandler):
                 self.server.store.record("report.exported", {"snapshot_id": document["snapshot_id"],
                                                              "events": document["snapshot"]["event_counts"]["total"] if document["snapshot"] else 0})
                 self.reply(200, document)
-            elif path in {"/", "/index.html", "/style.css", "/app.js"}:
+            elif path in {"/", "/index.html", "/style.css", "/app.js", "/i18n.js"}:
                 name = "index.html" if path == "/" else path[1:]
-                content = {"index.html": "text/html; charset=utf-8", "style.css": "text/css; charset=utf-8", "app.js": "text/javascript; charset=utf-8"}[name]
+                content = {"index.html": "text/html; charset=utf-8", "style.css": "text/css; charset=utf-8", "app.js": "text/javascript; charset=utf-8", "i18n.js": "text/javascript; charset=utf-8"}[name]
                 self.reply(200, (WEB_DIR / name).read_bytes(), content)
             else:
                 self.reply(404, {"error": "見つかりません。"})

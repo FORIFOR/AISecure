@@ -68,6 +68,8 @@ const navItems = ['overview','assets','plans','tuning','audit','about'].map(v =>
 const brand = new El('a');
 
 global.window = { __AI_SECURE_PREVIEW__: JSON.parse(STATE), confirm: () => false };
+globalThis.navigator ??= { language: 'en-US' };
+global.localStorage = { getItem: () => null, setItem: () => {} };
 global.location = { hash: '', pathname: '/' };
 global.history = { replaceState() {} };
 global.URLSearchParams = class { constructor() {} get() { return ''; } };
@@ -76,25 +78,34 @@ global.document = {
   createElement: (t) => new El(t),
   getElementById: (id) => ids[id] || new El('div'),
   querySelectorAll: (sel) => sel.includes('data-view') ? navItems : [],
-  querySelector: (sel) => sel === '.brand' ? brand : new El('div'),
+  querySelector: (sel) => sel === '.brand' ? brand : (sel === '#langToggle' ? null : new El('div')),
   body: new El('body'),
+  documentElement: new El('html'),
 };
 global.fetch = async () => { throw new Error('no network in this check'); };
 
+const i18n = fs.readFileSync(ROOT + 'web/i18n.js', 'utf8');
 const src = fs.readFileSync(ROOT + 'web/app.js', 'utf8');
-const mod = new Function(src + '\nreturn {render, changeView, get view(){return view}};');
+const mod = new Function(i18n + '\n' + src + '\nreturn {render, changeView, get view(){return view}, setLang, get lang(){return lang}};');
 const app = mod();
 
 const problems = [];
-for (const v of ['overview','assets','plans','tuning','audit','about']) {
-  try {
-    app.changeView(v);
-    const text = ids.viewContent.innerText;
-    if (!text.trim()) problems.push(`${v}: empty output`);
-    if (v === 'tuning') for (const needle of ['distinct_file_threshold','identity_conditions','aisecure evaluate','設定ハッシュ'])
-      if (!text.includes(needle)) problems.push(`tuning: missing "${needle}"`);
-    if (v === 'overview' && !text.includes('保守アカウント')) problems.push('overview: correlation card missing');
-  } catch (e) { problems.push(`${v}: ${e.message}`); }
+const expect = { en: { tuning: 'Config hash', overview: 'maintenance account' },
+                 ja: { tuning: '設定ハッシュ', overview: '保守アカウント' } };
+for (const L of ['en', 'ja']) {
+  app.setLang(L);
+  for (const v of ['overview','assets','plans','tuning','audit','about']) {
+    try {
+      app.changeView(v);
+      const text = ids.viewContent.innerText;
+      if (!text.trim()) problems.push(`${L}/${v}: empty output`);
+      if (v === 'tuning') {
+        for (const needle of ['distinct_file_threshold','identity_conditions','aisecure evaluate', expect[L].tuning])
+          if (!text.includes(needle)) problems.push(`${L}/tuning: missing "${needle}"`);
+      }
+      if (v === 'overview' && !text.includes(expect[L].overview)) problems.push(`${L}/overview: correlation card missing`);
+    } catch (e) { problems.push(`${L}/${v}: ${e.message}`); }
+  }
 }
-console.log(problems.length ? 'PROBLEMS:\n' + problems.join('\n') : 'OK: 6画面すべてが実行時エラーなく描画されました');
+console.log(problems.length ? 'PROBLEMS:\n' + problems.join('\n') : 'OK: 6 views x 2 languages rendered without a runtime error');
 process.exit(problems.length ? 1 : 0);

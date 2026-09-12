@@ -38,8 +38,10 @@ def page(view: str, snapshot: dict | None = None) -> str:
     """Inline the real HTML/CSS/JS with a read-only state, scripts after the body."""
     html = (ROOT / "web/index.html").read_text(encoding="utf-8")
     css = (ROOT / "web/style.css").read_text(encoding="utf-8")
+    i18n = (ROOT / "web/i18n.js").read_text(encoding="utf-8")
     js = (ROOT / "web/app.js").read_text(encoding="utf-8")
-    boot = (f"window.__AI_SECURE_PREVIEW__={json.dumps(snapshot or state(), ensure_ascii=False)};"
+    boot = (f"window.__AI_SECURE_LANG__='en';"
+            f"window.__AI_SECURE_PREVIEW__={json.dumps(snapshot or state(), ensure_ascii=False)};"
             f"window.__AI_SECURE_VIEW__={json.dumps(view)};")
     # app.js renders asynchronously; wait for it before switching view.
     after = ("(function w(n){const v=window.__AI_SECURE_VIEW__;"
@@ -48,7 +50,8 @@ def page(view: str, snapshot: dict | None = None) -> str:
              "if(v&&v!=='overview'){const b=document.querySelector('[data-view=\"'+v+'\"]');if(b)b.click();}"
              "document.documentElement.setAttribute('data-ready','1');})(0);")
     return (html.replace('<link rel="stylesheet" href="/style.css">', f"<style>{css}</style>")
-                .replace('<script defer src="/app.js"></script>', f"<script>{boot}</script>")
+                .replace('<script defer src="/i18n.js"></script>', f"<script>{boot}</script><script>{i18n}</script>")
+                .replace('<script defer src="/app.js"></script>', "")
                 .replace("</body>", f"<script>{js}</script><script>{after}</script></body>"))
 
 

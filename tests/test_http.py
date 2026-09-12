@@ -71,6 +71,13 @@ class HTTPTests(unittest.TestCase):
     def test_demo_confirmation_required(self):
         self.assertEqual(self.request('/api/demo',{'confirm':'yes'})[0],400)
 
+    def test_ui_assets_served(self):
+        for path, ctype in [('/','text/html'),('/style.css','text/css'),('/app.js','text/javascript'),('/i18n.js','text/javascript')]:
+            status,body,headers=self.request(path,auth=False)
+            self.assertEqual(status,200,path)
+            self.assertIn(ctype,headers['Content-Type'],path)
+        self.assertIn(b'nav.overview',self.request('/i18n.js',auth=False)[1])
+
     def test_path_traversal_not_served(self):
         self.assertEqual(self.request('/../aisecure/store.py')[0],404)
 
