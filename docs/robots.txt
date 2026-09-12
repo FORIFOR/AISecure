@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://forifor.github.io/AISecure/sitemap.xml

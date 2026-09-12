@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+title: "AI Secure"
+message: "A local-first security triage prototype that correlates exposure, privilege and behaviour, and measures its own false-positive rate."
+type: software
+authors:
+  - family-names: Horio
+    given-names: Shuhei
+repository-code: "https://github.com/FORIFOR/AISecure"
+url: "https://forifor.github.io/AISecure/"
+license: MIT
+version: 0.2.1
+date-released: 2026-09-12
+keywords:
+  - detection-engineering
+  - incident-response
+  - false-positives
+  - security
