@@ -20,8 +20,11 @@ ROOT = Path(__file__).resolve().parent.parent
 CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 BGM = Path("/Users/shuhei/Downloads/bgm/I11 Quiet Momentum • R2.wav")
 NARRATE = "--narrate" in sys.argv
-OUT = ROOT / ("docs/media/intro-narrated.mp4" if NARRATE else "docs/media/intro.mp4")
-VOICE, VOICE_RATE = "Daniel", 168
+LANG = "ja" if "--lang" in sys.argv and sys.argv[sys.argv.index("--lang") + 1] == "ja" else "en"
+_suffix = ("-narrated" if NARRATE else "") + ("-ja" if LANG == "ja" else "")
+OUT = ROOT / f"docs/media/intro{_suffix}.mp4"
+VOICE = "Kyoko" if LANG == "ja" else "Daniel"
+VOICE_RATE = 170 if LANG == "ja" else 168
 W, H, FPS, SCALE = 1920, 1080, 30, 2
 FADE = 0.4
 VO_LEAD, VO_TAIL = 0.6, 0.9
@@ -77,50 +80,104 @@ def card(body: str) -> str:
 MARK = '<div class=mark><i></i><i></i><i></i><i></i></div>'
 
 
+def shot_of(name: str) -> str:
+    """Use the localized screenshot when it exists (e.g. overview.ja.png)."""
+    if LANG == "ja":
+        ja = ROOT / f"docs/screenshots/{name}.ja.png"
+        if ja.exists():
+            return str(ja)
+    return str(ROOT / f"docs/screenshots/{name}.png")
+
+
+def scenes_en() -> list[tuple[str, float, float, str]]:
+    return [
+        (card(f'<div class=wrap>{MARK}<div class=brandname>AI&nbsp;Secure</div>'
+              '<p class="sub" style="letter-spacing:.24em;font-size:24px;color:#7d9084;margin-top:18px">'
+              'EVIDENCE BEFORE ACTION</p></div>'), 3.6, 1.05, ""),
+        (card('<div class=wrap><div class=eyebrow>THE PROBLEM</div>'
+              '<h2>Hundreds of alerts, ranked by CVSS.<br>'
+              '<span class=dim>The one that matters is</span> <span class=hl>buried.</span></h2></div>'), 4.2, 1.06,
+         "Security teams face hundreds of alerts, ranked by a severity score. The one that matters is often buried."),
+        (card('<div class=wrap><div class=eyebrow>THE IDEA</div>'
+              '<h2>Correlate the path, not the score.</h2>'
+              '<div class=path>'
+              '<div class=node><div class=n>01</div><strong>Exposed + unpatched</strong><small>edge gateway</small></div>'
+              '<div class=arrow>→</div>'
+              '<div class=node><div class=n>02</div><strong>Privileged login</strong><small>unmanaged / unapproved</small></div>'
+              '<div class=arrow>→</div>'
+              '<div class=node><div class=n>03</div><strong>Bulk file access</strong><small>sensitive files</small></div>'
+              '</div></div>'), 5.0, 1.045,
+         "AI Secure correlates the path instead. An exposed gateway, a privileged login, and a burst of file access, as one case."),
+        (card('<div class=wrap><div class=eyebrow>WE MEASURED OUR OWN RULE</div>'
+              '<h2 style="font-size:52px">On 18.8 days of normal business traffic</h2>'
+              '<div class=stats>'
+              '<div class="stat bad"><div class=k>Bulk-access rule, alone</div>'
+              '<div class=v>102<span class=u>&nbsp;/103 false positives</span></div></div>'
+              '<div class="stat good"><div class=k>Correlated: exposure + privilege + behaviour</div>'
+              '<div class=v>0<span class=u>&nbsp;/1 false positives</span></div></div>'
+              '</div></div>'), 5.6, 1.04,
+         "We measured our own rules on nineteen days of normal traffic. The volume rule fired a hundred and two false positives. The correlation fired zero."),
+        (shot_of("overview"), 4.6, 1.10, "One reviewable case, with its evidence attached, and what is still unknown."),
+        (shot_of("tuning"), 4.0, 1.10, "And you measure the false-positive cost before you deploy a threshold."),
+        (card('<div class=wrap><div class=eyebrow>WHAT IT IS</div>'
+              '<h2>Runs on your machine. Nothing leaves it.</h2>'
+              '<div class=chips><span class=chip>Local-first</span><span class=chip>No LLM</span>'
+              '<span class=chip>0 dependencies</span><span class=chip>MIT</span>'
+              '<span class=chip>127.0.0.1 only</span></div></div>'), 4.0, 1.05,
+         "It runs entirely on your machine. No L L M, no dependencies, open source."),
+        (card(f'<div class=wrap>{MARK}<h2>Evidence before action.</h2>'
+              '<div class=url>github.com/FORIFOR/AISecure</div></div>'
+              '<div class=foot>Open source · Python 3.11+ · A local security-triage prototype</div>'), 4.4, 1.05,
+         "AI Secure. Evidence before action."),
+    ]
+
+
+def scenes_ja() -> list[tuple[str, float, float, str]]:
+    return [
+        (card(f'<div class=wrap>{MARK}<div class=brandname>AI&nbsp;Secure</div>'
+              '<p class="sub" style="letter-spacing:.24em;font-size:24px;color:#7d9084;margin-top:18px">'
+              'EVIDENCE BEFORE ACTION</p></div>'), 3.6, 1.05, ""),
+        (card('<div class=wrap><div class=eyebrow>課題</div>'
+              '<h2>数百の警告を、CVSS順に。<br>'
+              '<span class=dim>本当に重要なものは、</span><span class=hl>埋もれる。</span></h2></div>'), 4.4, 1.06,
+         "セキュリティ担当は、深刻度スコア順に並んだ数百の警告に向き合います。本当に重要なものは、しばしば埋もれてしまいます。"),
+        (card('<div class=wrap><div class=eyebrow>着想</div>'
+              '<h2>スコアではなく、経路を相関させる。</h2>'
+              '<div class=path>'
+              '<div class=node><div class=n>01</div><strong>外部公開＋未修正</strong><small>接続機器</small></div>'
+              '<div class=arrow>→</div>'
+              '<div class=node><div class=n>02</div><strong>特権ログイン</strong><small>非管理端末 / 未承認</small></div>'
+              '<div class=arrow>→</div>'
+              '<div class=node><div class=n>03</div><strong>大量ファイル参照</strong><small>機密ファイル</small></div>'
+              '</div></div>'), 5.4, 1.045,
+         "AIセキュアは、経路を相関させます。外部公開かつ未修正の接続機器、条件に問題がある特権ログイン、そして短時間の大量参照を、ひとつの事案として提示します。"),
+        (card('<div class=wrap><div class=eyebrow>自分たちのルールを測りました</div>'
+              '<h2 style="font-size:52px">正常業務 18.8日ぶんのトラフィックで</h2>'
+              '<div class=stats>'
+              '<div class="stat bad"><div class=k>大量参照ルール単体</div>'
+              '<div class=v>102<span class=u>&nbsp;/103 が誤検知</span></div></div>'
+              '<div class="stat good"><div class=k>相関：公開 ＋ 特権 ＋ 行動</div>'
+              '<div class=v>0<span class=u>&nbsp;/1 が誤検知</span></div></div>'
+              '</div></div>'), 5.8, 1.04,
+         "自分たちのルールを、正常業務 19日ぶんのトラフィックで測りました。量だけのルールは、102件の誤検知。経路の相関は、ゼロでした。"),
+        (shot_of("overview"), 4.8, 1.10, "根拠を添えた、ひとつの確認可能な事案。そして、まだ分からないことも示します。"),
+        (shot_of("tuning"), 4.2, 1.10, "閾値を導入する前に、その誤検知コストを測れます。"),
+        (card('<div class=wrap><div class=eyebrow>特長</div>'
+              '<h2>あなたの端末で動く。データは外に出ない。</h2>'
+              '<div class=chips><span class=chip>ローカル完結</span><span class=chip>LLM不要</span>'
+              '<span class=chip>依存ゼロ</span><span class=chip>MIT</span>'
+              '<span class=chip>127.0.0.1のみ</span></div></div>'), 4.2, 1.05,
+         "すべてお使いの端末で動きます。LLM不要、依存ゼロ、オープンソースです。"),
+        (card(f'<div class=wrap>{MARK}<h2>Evidence before action.</h2>'
+              '<div class=url>github.com/FORIFOR/AISecure</div></div>'
+              '<div class=foot>オープンソース · Python 3.11+ · ローカル完結のセキュリティ初動支援プロトタイプ</div>'), 4.4, 1.05,
+         "AIセキュア。判断の根拠は手元に、操作の権限は人に。"),
+    ]
+
+
 def scenes() -> list[tuple[str, float, float, str]]:
     """(html-or-image-path, base_seconds, zoom_max, narration). Numbers from docs/evaluation/."""
-    S = []
-    S.append((card(f'<div class=wrap>{MARK}<div class=brandname>AI&nbsp;Secure</div>'
-                   '<p class="sub" style="letter-spacing:.24em;font-size:24px;color:#7d9084;margin-top:18px">'
-                   'EVIDENCE BEFORE ACTION</p></div>'), 3.6, 1.05, ""))
-    S.append((card('<div class=wrap><div class=eyebrow>THE PROBLEM</div>'
-                   '<h2>Hundreds of alerts, ranked by CVSS.<br>'
-                   '<span class=dim>The one that matters is</span> <span class=hl>buried.</span></h2></div>'), 4.2, 1.06,
-              "Security teams face hundreds of alerts, ranked by a severity score. The one that matters is often buried."))
-    S.append((card('<div class=wrap><div class=eyebrow>THE IDEA</div>'
-                   '<h2>Correlate the path, not the score.</h2>'
-                   '<div class=path>'
-                   '<div class=node><div class=n>01</div><strong>Exposed + unpatched</strong><small>edge gateway</small></div>'
-                   '<div class=arrow>→</div>'
-                   '<div class=node><div class=n>02</div><strong>Privileged login</strong><small>unmanaged / unapproved</small></div>'
-                   '<div class=arrow>→</div>'
-                   '<div class=node><div class=n>03</div><strong>Bulk file access</strong><small>sensitive files</small></div>'
-                   '</div></div>'), 5.0, 1.045,
-              "AI Secure correlates the path instead. An exposed gateway, a privileged login, and a burst of file access, as one case."))
-    S.append((card('<div class=wrap><div class=eyebrow>WE MEASURED OUR OWN RULE</div>'
-                   '<h2 style="font-size:52px">On 18.8 days of normal business traffic</h2>'
-                   '<div class=stats>'
-                   '<div class="stat bad"><div class=k>Bulk-access rule, alone</div>'
-                   '<div class=v>102<span class=u>&nbsp;/103 false positives</span></div></div>'
-                   '<div class="stat good"><div class=k>Correlated: exposure + privilege + behaviour</div>'
-                   '<div class=v>0<span class=u>&nbsp;/1 false positives</span></div></div>'
-                   '</div></div>'), 5.6, 1.04,
-              "We measured our own rules on nineteen days of normal traffic. The volume rule fired a hundred and two false positives. The correlation fired zero."))
-    S.append((str(ROOT / 'docs/screenshots/overview.png'), 4.6, 1.10,
-              "One reviewable case, with its evidence attached, and what is still unknown."))
-    S.append((str(ROOT / 'docs/screenshots/tuning.png'), 4.0, 1.10,
-              "And you measure the false-positive cost before you deploy a threshold."))
-    S.append((card('<div class=wrap><div class=eyebrow>WHAT IT IS</div>'
-                   '<h2>Runs on your machine. Nothing leaves it.</h2>'
-                   '<div class=chips><span class=chip>Local-first</span><span class=chip>No LLM</span>'
-                   '<span class=chip>0 dependencies</span><span class=chip>MIT</span>'
-                   '<span class=chip>127.0.0.1 only</span></div></div>'), 4.0, 1.05,
-              "It runs entirely on your machine. No L L M, no dependencies, open source."))
-    S.append((card(f'<div class=wrap>{MARK}<h2>Evidence before action.</h2>'
-                   '<div class=url>github.com/FORIFOR/AISecure</div></div>'
-                   '<div class=foot>Open source · Python 3.11+ · A local security-triage prototype</div>'), 4.4, 1.05,
-              "AI Secure. Evidence before action."))
-    return S
+    return scenes_ja() if LANG == "ja" else scenes_en()
 
 
 def narration_wav(text: str, work: Path, i: int) -> tuple[Path, float]:
@@ -176,7 +233,8 @@ def scene_clip(frame: Path, seconds: float, zmax: float, out: Path, zoom_in: boo
     zr = (zmax - 1.0) / frames
     z = f"min(zoom+{zr:.6f},{zmax})" if zoom_in else f"if(eq(on,0),{zmax},max(zoom-{zr:.6f},1.0))"
     vf = (f"zoompan=z='{z}':d={frames}:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s={W}x{H}:fps={FPS},"
-          f"fade=t=in:st=0:d={FADE},fade=t=out:st={seconds-FADE:.3f}:d={FADE},format=yuv420p")
+          f"fade=t=in:st=0:d={FADE}:color=0xf6f7f5,fade=t=out:st={seconds-FADE:.3f}:d={FADE}:color=0xf6f7f5,"
+          f"format=yuv420p")
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-loop", "1", "-i", str(frame),
                     "-t", f"{seconds}", "-r", str(FPS), "-vf", vf,
                     "-c:v", "libx264", "-preset", "medium", "-crf", "18", str(out)], check=True)
@@ -229,7 +287,7 @@ def main() -> None:
                         "-filter_complex", f"{bgm_chain.replace('[b]', '[a]')}",
                         "-map", "0:v", "-map", "[a]", "-c:v", "copy", "-c:a", "aac", "-b:a", "192k",
                         "-shortest", "-movflags", "+faststart", str(OUT)], check=True)
-    tag = "narrated (Daniel, on-device TTS)" if NARRATE else "music only"
+    tag = f"narrated ({VOICE}, on-device TTS)" if NARRATE else "music only"
     print(f"{OUT.relative_to(ROOT)}  {OUT.stat().st_size // 1024} KiB  ~{total:.1f}s  {tag}  BGM: {BGM.name}")
 
 

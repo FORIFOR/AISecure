@@ -2,7 +2,7 @@
 
 **Evidence before action. 判断の根拠は手元に、操作の権限は人に。**
 
-[English README](README.md) ・ [サイト](https://forifor.github.io/AISecure/) ・ [閾値の決め方](docs/TUNING.md) ・ [セキュリティ検証](docs/SECURITY_REVIEW.md)
+[English README](README.md) ・ [サイト（日本語）](https://forifor.github.io/AISecure/index.ja.html) ・ [Site (EN)](https://forifor.github.io/AISecure/) ・ [閾値の決め方](docs/TUNING.md) ・ [セキュリティ検証](docs/SECURITY_REVIEW.md)
 
 ![デモ](docs/media/demo.gif)
 
