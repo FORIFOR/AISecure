@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>We measured our own detection rule: 102 of 103 alerts were false positives</title>
+<meta name="description" content="A local-first triage tool published the false-positive rate of its own bulk-file-access rule on 18.8 days of synthetic normal traffic. The volume rule fired 102/103 false positives; the correlation rule fired 0/1. Here is the method, the sweep, and the caveats.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="We measured our own detection rule: 102 of 103 alerts were false positives">
+<meta property="og:description" content="The volume rule fired 102/103 false positives; the correlation rule fired 0/1. Method, sweep table and caveats — synthetic data, honestly labelled.">
+<meta property="og:url" content="https://forifor.github.io/AISecure/writeup.html">
+<meta property="og:image" content="https://forifor.github.io/AISecure/media/social-card.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://forifor.github.io/AISecure/media/social-card.png">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='14' height='14' x='1' y='1' rx='3' fill='%23175b48'/><rect width='14' height='14' x='17' y='1' rx='3' fill='%238eab92'/><rect width='14' height='14' x='1' y='17' rx='3' fill='%23c9d8c7'/><rect width='14' height='14' x='17' y='17' rx='3' fill='%23175b48'/></svg>">
+<style>
+:root{--bg:#f6f7f5;--paper:#fff;--ink:#20352f;--muted:#5d6f65;--faint:#8b978d;--green:#175b48;--green2:#104737;--mint:#edf5ef;--line:#e3e8e2;--red:#a44136;--amber:#9c4c25;--radius:14px;--sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,"Noto Sans JP","Hiragino Kaku Gothic ProN",Meiryo,sans-serif;--mono:ui-monospace,SFMono-Regular,Menlo,"Noto Sans Mono",monospace}
+@media(prefers-color-scheme:dark){:root{--bg:#101713;--paper:#16201b;--ink:#e8efe9;--muted:#a4b4aa;--faint:#7d8f84;--green:#7fc49f;--green2:#9ad6b4;--mint:#1b2a22;--line:#24332b;--red:#f0a08f;--amber:#d9a173}}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--ink);font:17px/1.75 var(--sans);-webkit-font-smoothing:antialiased}
+.wrap{max-width:760px;margin:0 auto;padding:0 24px}
+a{color:var(--green)}
+h1{font-size:clamp(28px,4.6vw,44px);line-height:1.2;letter-spacing:-.03em;font-weight:660;margin:10px 0 16px}
+h2{font-size:clamp(22px,3vw,28px);letter-spacing:-.02em;margin:44px 0 12px}
+h3{font-size:19px;margin:28px 0 8px}
+p{margin:0 0 16px;color:var(--ink)}
+.lead{font-size:20px;color:var(--muted)}
+header.top{border-bottom:1px solid var(--line);position:sticky;top:0;background:color-mix(in srgb,var(--bg) 90%,transparent);backdrop-filter:blur(10px);z-index:5}
+header.top .wrap{display:flex;align-items:center;gap:12px;height:58px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:650;letter-spacing:-.03em;text-decoration:none;color:var(--ink)}
+.mark{display:grid;grid-template-columns:1fr 1fr;gap:3px;width:22px;height:24px;transform:rotate(-9deg)}
+.mark i{background:var(--green);border-radius:3px}.mark i:nth-child(2){background:#8eab92}.mark i:nth-child(3){background:#c9d8c7}
+header.top nav{margin-left:auto;display:flex;gap:18px;font-size:14px}
+header.top nav a{color:var(--muted);text-decoration:none}
+article{padding:40px 0 20px}
+.eyebrow{font-size:12px;letter-spacing:.18em;font-weight:700;color:var(--faint);text-transform:uppercase}
+.byline{font-size:14px;color:var(--faint);margin:0 0 28px}
+table{width:100%;border-collapse:collapse;margin:18px 0;font-size:15.5px;background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+th,td{padding:12px 14px;border-bottom:1px solid var(--line);text-align:left}
+th.n,td.n{text-align:right;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:0}
+th{font-size:12.5px;color:var(--faint);font-weight:600}
+td.big{font-size:19px;font-weight:650}.fp{color:var(--red)}.ok{color:var(--green)}
+pre{background:#16241d;color:#d7e5da;border-radius:12px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13.5px;line-height:1.85;margin:16px 0}
+code{font-family:var(--mono);font-size:.9em;background:var(--mint);color:var(--green);padding:2px 6px;border-radius:5px}
+blockquote{margin:18px 0;padding:12px 18px;border-left:3px solid var(--line);color:var(--muted);font-size:15.5px}
+.callout{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:22px 24px;margin:26px 0}
+.cta{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 0}
+.btn{display:inline-flex;align-items:center;gap:8px;border-radius:9px;padding:11px 18px;font-size:15px;font-weight:600;text-decoration:none;border:1px solid transparent;white-space:nowrap}
+.btn.primary{background:var(--green);color:#fff}@media(prefers-color-scheme:dark){.btn.primary{color:#0d1511}}
+.btn.ghost{border-color:var(--line);background:var(--paper);color:var(--ink)}
+hr{border:0;border-top:1px solid var(--line);margin:40px 0}
+footer{border-top:1px solid var(--line);padding:30px 0 60px;font-size:14px;color:var(--faint)}
+img{max-width:100%;border:1px solid var(--line);border-radius:var(--radius);display:block;margin:20px 0}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="brand" href="index.html"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>AI&nbsp;Secure</a>
+  <nav><a href="try.html">Try in browser</a><a href="https://github.com/FORIFOR/AISecure">GitHub ↗</a></nav>
+</div></header>
+
+<main class="wrap">
+<article>
+  <p class="eyebrow">Detection engineering · write-up</p>
+  <h1>We measured our own detection rule. 102 of 103 alerts were false positives.</h1>
+  <p class="byline">A note on building AI Secure, a local-first security-triage prototype · synthetic data, honestly labelled</p>
+
+  <p class="lead">Almost every detection stack ships some version of a “user read 100+ distinct files in 5 minutes” rule. Almost nobody publishes what it costs on normal traffic. We built the measurement into the tool, ran it, and here are the numbers — including the uncomfortable one.</p>
+
+  <h2>The rule everyone has</h2>
+  <p>Bulk file access is a reasonable thing to alert on. An account suddenly touching hundreds of distinct files in minutes <em>can</em> be exfiltration. So a threshold rule — <code>N distinct files within W seconds</code> — is standard.</p>
+  <p>The problem is that a nightly backup, a search-indexing service, a weekly antivirus sweep, an analyst pulling reference material, an eDiscovery hold, and a batch ETL job all look <em>exactly the same</em> to that rule. Volume is not a signal. It’s a shape that legitimate work and exfiltration share.</p>
+
+  <h2>The measurement</h2>
+  <p>We generated 18.8 days and 85,509 events of synthetic-but-realistic business activity — the noise sources above, plus approved vendor maintenance on a personal laptop — and dropped exactly one labelled incident into it: an unapproved privileged session from an unmanaged device, through an exposed, unpatched gateway, followed by a burst of reads on sensitive files. Then we scored two rules against it.</p>
+
+  <table>
+    <tr><th>Rule</th><th class="n">Alerts</th><th class="n">True positives</th><th class="n">False positives</th></tr>
+    <tr><td><b>AS-003</b> — bulk file access, on its own</td><td class="n">103</td><td class="n">1</td><td class="n big fp">102</td></tr>
+    <tr><td><b>AS-004</b> — exposed gateway <b>+</b> privileged login <b>+</b> bulk access, correlated</td><td class="n">1</td><td class="n">1</td><td class="n big ok">0</td></tr>
+  </table>
+
+  <p>The volume rule caught the incident — and buried it under 102 false positives. The correlation rule caught the same incident with <b>zero</b> false positives over the whole period, because it requires three independent things to line up: an asset that is internet-facing and unpatched, a privileged login that fails its own device/approval conditions, and the bulk access — same user, same session, within a short window.</p>
+
+  <h2>“Just raise the threshold,” you say</h2>
+  <p>We swept 21 threshold/window combinations. Every configuration that drove the volume rule’s false positives to zero <em>also</em> stopped it detecting the incident:</p>
+  <table>
+    <tr><th>Distinct files</th><th>Window (s)</th><th class="n">Detected</th><th class="n">False positives</th><th class="n">Missed</th></tr>
+    <tr><td>60</td><td>300</td><td class="n">1</td><td class="n fp">115</td><td class="n">0</td></tr>
+    <tr><td>100</td><td>300</td><td class="n">1</td><td class="n fp">102</td><td class="n">0</td></tr>
+    <tr><td>150</td><td>300</td><td class="n">0</td><td class="n">77</td><td class="n fp">missed</td></tr>
+    <tr><td>300</td><td>120</td><td class="n">0</td><td class="n ok">0</td><td class="n fp">missed</td></tr>
+    <tr><td>800</td><td>300</td><td class="n">0</td><td class="n ok">0</td><td class="n fp">missed</td></tr>
+  </table>
+  <p>There is no threshold that is both quiet and useful. The knob doesn’t separate backups from breaches, because the difference isn’t volume. <b>The difference is the path.</b></p>
+
+  <h2>Why publish the ugly number?</h2>
+  <p>Because a false-positive rate you don’t publish is a false-positive rate you’re hiding. The 102 isn’t an embarrassment to bury — it’s the whole argument. It’s <em>why</em> ranking alerts by a severity score, or by raw volume, sends analysts chasing backups while the one correlated case that matters sits in the same queue.</p>
+  <blockquote>This is synthetic data. It is not a real-world false-positive rate — it’s a rehearsal you re-run on your own logs before you trust a threshold. Add more legitimate noise sources and the volume rule gets worse; the correlation stays at zero. That asymmetry is the point.</blockquote>
+
+  <h2>Try the measurement yourself</h2>
+  <p>The whole thing is a local, dependency-free Python tool. You can reproduce the numbers above in about a minute:</p>
+<pre><span style="color:#6fae87">python3 -m aisecure baseline --days 5 --users 40 --out normal.json
+python3 -m aisecure baseline --days 5 --users 40 --attack --out incident.json
+python3 -m aisecure evaluate normal.json incident.json --sweep --out report.md</span></pre>
+  <p>Or point it at a period of your own logs where nothing happened, and see what the rule would have cost you. The importer is read-only and maps only an allowlist of fields — no file contents, no credentials.</p>
+
+  <div class="callout">
+    <h3 style="margin-top:0">We’re looking for testers</h3>
+    <p style="margin-bottom:8px">This is an early prototype and the most useful thing right now is a second pair of eyes. No security background needed — click through the real UI on synthetic data, then tell us whether the “path over score” idea lands.</p>
+    <div class="cta">
+      <a class="btn primary" href="try.html">Try in your browser →</a>
+      <a class="btn ghost" href="https://github.com/FORIFOR/AISecure/issues/new?template=tester-feedback.md">Give 2-min feedback</a>
+      <a class="btn ghost" href="https://github.com/FORIFOR/AISecure">Star on GitHub</a>
+    </div>
+  </div>
+
+  <hr>
+  <p style="font-size:15px;color:var(--muted)">AI Secure is a local-first security-triage prototype: Python 3.11+, no dependencies, no LLM in the detection path, binds to 127.0.0.1 only. It is <b>not</b> a production security control. Built after the September 2026 disclosure of unauthorised access to Japan’s Government Solution Service, where a Medium-rated, already-published vulnerability was exploited before patching and a maintenance account read a large number of files — the exact case a CVSS-ordered queue handles badly. Method and caveats: <a href="TUNING.md">docs/TUNING.md</a>. Security self-review: <a href="SECURITY_REVIEW.md">docs/SECURITY_REVIEW.md</a>.</p>
+</article>
+</main>
+
+<footer><div class="wrap">
+  AI Secure — Evidence before action. · MIT · <a href="index.html">Home</a> · <a href="index.ja.html">日本語</a> · <a href="https://github.com/FORIFOR/AISecure">GitHub</a>
+</div></footer>
+</body>
+</html>

@@ -30,7 +30,7 @@ Raising the threshold until the bulk rule goes quiet also stops it detecting the
 
 **That asymmetry is the whole product thesis.** Volume alone is not a signal. A path is.
 
-> Synthetic data. This is not a real-world false-positive rate — it is a rehearsal you re-run on your own logs. [Full method and caveats →](docs/TUNING.md)
+> Synthetic data. This is not a real-world false-positive rate — it is a rehearsal you re-run on your own logs. **[Read the write-up →](https://forifor.github.io/AISecure/writeup.html)** · [raw method & caveats](docs/TUNING.md)
 
 ## 🧪 Want to help test it? (2 minutes)
 
