@@ -142,7 +142,7 @@ def scenes_ja() -> list[tuple[str, float, float, str]]:
               '<span class=dim>本当に重要なものは、</span><span class=hl>埋もれる。</span></h2></div>'), 4.4, 1.06,
          "セキュリティ担当は、深刻度スコア順に並んだ数百の警告に向き合います。本当に重要なものは、しばしば埋もれてしまいます。"),
         (card('<div class=wrap><div class=eyebrow>着想</div>'
-              '<h2>スコアではなく、経路を相関させる。</h2>'
+              '<h2>スコアではなく、経路でつなぐ。</h2>'
               '<div class=path>'
               '<div class=node><div class=n>01</div><strong>外部公開＋未修正</strong><small>接続機器</small></div>'
               '<div class=arrow>→</div>'
@@ -150,7 +150,7 @@ def scenes_ja() -> list[tuple[str, float, float, str]]:
               '<div class=arrow>→</div>'
               '<div class=node><div class=n>03</div><strong>大量ファイル参照</strong><small>機密ファイル</small></div>'
               '</div></div>'), 5.4, 1.045,
-         "AIセキュアは、経路を相関させます。外部公開かつ未修正の接続機器、条件に問題がある特権ログイン、そして短時間の大量参照を、ひとつの事案として提示します。"),
+         "AIセキュアは、点ではなく経路でつなぎます。外部に公開されたまま未修正の機器、承認や端末の条件を満たさない特権ログイン、そして短時間の大量参照を、ひとつの事案としてまとめます。"),
         (card('<div class=wrap><div class=eyebrow>自分たちのルールを測りました</div>'
               '<h2 style="font-size:52px">正常業務 18.8日ぶんのトラフィックで</h2>'
               '<div class=stats>'
@@ -160,7 +160,7 @@ def scenes_ja() -> list[tuple[str, float, float, str]]:
               '<div class=v>0<span class=u>&nbsp;/1 が誤検知</span></div></div>'
               '</div></div>'), 5.8, 1.04,
          "自分たちのルールを、正常業務 19日ぶんのトラフィックで測りました。量だけのルールは、102件の誤検知。経路の相関は、ゼロでした。"),
-        (shot_of("overview"), 4.8, 1.10, "根拠を添えた、ひとつの確認可能な事案。そして、まだ分からないことも示します。"),
+        (shot_of("overview"), 4.8, 1.10, "根拠つきの、確認できる1件の事案。そして「まだ分からないこと」も示します。"),
         (shot_of("tuning"), 4.2, 1.10, "閾値を導入する前に、その誤検知コストを測れます。"),
         (card('<div class=wrap><div class=eyebrow>特長</div>'
               '<h2>あなたの端末で動く。データは外に出ない。</h2>'
