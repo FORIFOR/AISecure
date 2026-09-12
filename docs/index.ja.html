@@ -139,7 +139,7 @@ footer a{color:var(--muted)}
   <div class="wrap">
     <a class="brand" href="#top"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>AI&nbsp;Secure</a>
     <nav>
-      <a class="hide-sm" href="#measured">測定</a>
+      <a class="hide-sm" href="#measured">測ってみた</a>
       <a class="hide-sm" href="#start">はじめる</a>
       <a class="hide-sm" href="#limits">できないこと</a>
       <a href="index.html">English</a>
@@ -153,28 +153,28 @@ footer a{color:var(--muted)}
 <section class="hero">
   <div class="wrap">
     <p class="eyebrow">Evidence before action</p>
-    <h1>CVSS順に並べるのを、やめる。<br>経路を相関させる。</h1>
-    <p class="lead">AI Secure は、外部公開かつ未修正の接続機器、条件に問題がある特権ログイン、機密ファイルの大量参照を、
-      <b>根拠を添えたひとつの確認可能な事案</b>にまとめます。
-      すべてお使いの端末で動き、LLM は不要。そして、自分たちのルールの誤検知コストを公開しています。</p>
+    <h1>アラートをCVSS順に並べるのは、<br>もうやめよう。大事なのは“経路”。</h1>
+    <p class="lead">外部に公開されたまま未修正の機器、承認や端末の条件を満たさない特権ログイン、そして機密ファイルの大量参照。
+      ばらばらに見えるこの3つの兆候を、AI Secure は<b>根拠つきの「1件の事案」</b>としてまとめます。
+      すべて手元の端末で完結し、LLM は不要。しかも、自分たちの検知ルールが正常業務で何件の誤検知を出すかまで公開しています。</p>
     <div class="cta">
       <a class="btn primary" href="try.html">ブラウザで試す →</a>
       <a class="btn ghost" href="https://github.com/FORIFOR/AISecure">GitHubでStar</a>
       <a class="btn ghost" href="#start">ローカルで動かす</a>
     </div>
-    <p class="note" style="margin-top:10px">インストール不要・アカウント不要。合成データ上の実UIです。2分のフィードバックが本当に助かります。</p>
-    <div class="badges"><span>MIT</span><span>Python 3.11+</span><span>依存ゼロ</span><span>テスト178件</span><span>127.0.0.1のみ</span></div>
+    <p class="note" style="margin-top:10px">インストールもアカウントも不要。合成データ上で、実際の画面をそのまま触れます。2分いただけると本当に助かります。</p>
+    <div class="badges"><span>MIT</span><span>Python 3.11+</span><span>依存ゼロ</span><span>テスト179件</span><span>127.0.0.1のみ</span></div>
     <div class="media"><video src="media/intro-ja.mp4" poster="media/intro-poster-ja.png" controls autoplay muted loop playsinline preload="metadata"></video></div>
-    <p class="note" style="text-align:center">約37秒のイントロ。音楽はミュート解除で。<a href="media/intro-narrated-ja.mp4">ナレーション版はこちら</a>。</p>
+    <p class="note" style="text-align:center">約37秒のイントロです。音を出すにはミュートを解除してください。<a href="media/intro-narrated-ja.mp4">ナレーション版もあります</a>。</p>
   </div>
 </section>
 
 <section id="measured">
   <div class="wrap">
-    <p class="eyebrow">この製品の出発点になった数字</p>
-    <h2>「5分で100ファイル」ルールは誰でも作る。<br>その代償を公開する人は、ほとんどいない。</h2>
-    <p style="max-width:66ch">そこで自分たちのルールを測りました。合成ながら現実的な正常業務 18.8日ぶん・85,509イベント——
-      夜間バックアップ、分析担当の一括参照、移行作業日、検索インデックス、週次ウイルススキャン、eDiscovery、バッチETL、そして私物端末からの承認済み保守——に対してです。</p>
+    <p class="eyebrow">この製品が生まれた、一つの数字</p>
+    <h2>「5分で100ファイル」——このルールは誰でも書ける。<br>でも、その代償を公開する人は、ほとんどいない。</h2>
+    <p style="max-width:66ch">そこで、自分たちのルールを測ってみました。対象は、合成データですが現実に近い正常業務 18.8日ぶん・85,509イベント——
+      夜間バックアップ、分析担当の一括参照、移行作業、検索インデックス、週次のウイルススキャン、eDiscovery、バッチETL、そして私物端末からの承認済み保守です。</p>
 
     <div class="finding" style="margin-top:30px">
       <table>
@@ -188,13 +188,13 @@ footer a{color:var(--muted)}
           <td class="n">1</td><td class="n">1</td><td class="n big ok">0</td>
         </tr>
       </table>
-      <p class="note">大量参照ルールが静かになるまで閾値を上げると、事案も検知できなくなります。
-        閾値と時間窓の組み合わせ21通りを試した結果、誤検知が0になる設定はすべて、仕込んだ侵害も見逃しました。</p>
+      <p class="note">大量参照ルールが静かになるまで閾値を上げると、肝心の事案まで検知できなくなります。
+        閾値と時間窓を21通り試しましたが、誤検知がゼロになる設定は、どれも仕込んだ侵入を見逃しました。</p>
     </div>
 
-    <p style="margin-top:28px;max-width:66ch"><b>この非対称性こそが、製品の核心です。</b>
-      量だけでは信号になりません——バックアップと持ち出しは同じ形をしています。信号になるのは、経路です。</p>
-    <p class="note">合成データです。実環境の誤検知率ではありません。閾値を信頼する前に、自分のログで測り直すためのリハーサルです。
+    <p style="margin-top:28px;max-width:66ch"><b>この“非対称さ”こそが、この製品の主張のすべてです。</b>
+      量そのものは手がかりになりません——バックアップと持ち出しは、同じ形に見えるからです。手がかりになるのは、経路です。</p>
+    <p class="note">これは合成データの数値で、実環境の誤検知率ではありません。閾値を信じる前に、自分のログで測り直すための“予行演習”だと考えてください。
       <a href="TUNING.md">測定手順・スイープ表・注意点 →</a></p>
   </div>
 </section>
@@ -202,31 +202,31 @@ footer a{color:var(--muted)}
 <section id="start">
   <div class="wrap">
     <p class="eyebrow">はじめる</p>
-    <h2>pip不要。APIキー不要。クラウド契約不要。</h2>
-    <p>必要なのは Python 3.11 以上だけ。<code>127.0.0.1</code> のみで待ち受け、起動ごとに新しいトークンを発行します。</p>
+    <h2>pipも、APIキーも、クラウド契約もいりません。</h2>
+    <p>必要なのは Python 3.11 以上だけ。起動するたびに新しいトークンを発行し、<code>127.0.0.1</code> でだけ待ち受けます。</p>
 <pre><span class="c">git clone https://github.com/FORIFOR/AISecure.git &amp;&amp; cd AISecure
 python3 -m aisecure serve --demo</span>
 
-<span class="m"># 自分のログを取り込む（読み取り専用・ソースには書き込まない）</span>
+<span class="m"># 自分のログを取り込む（読み取り専用。元のファイルには何も書き込みません）</span>
 <span class="c">python3 -m aisecure import \
   --source generic-auth-csv=auth.csv \
   --source generic-file-access-jsonl=access.jsonl \
   --out snapshot.json --quality quality.json</span>
 
-<span class="m"># 正常業務で閾値の誤検知コストを測る</span>
+<span class="m"># 正常業務で、閾値がどれだけ誤検知を出すかを測る</span>
 <span class="c">python3 -m aisecure baseline --days 5 --users 40 --out normal.json
 python3 -m aisecure evaluate normal.json incident.json --sweep --out report.md</span></pre>
 
     <div class="grid g3">
-      <div class="card"><div class="num">01 / 取り込み</div><h3>許可した項目だけ</h3>
-        <p>CSV / JSON Lines は、許可リストの項目しか指定できないマッピングプロファイル経由で取り込みます。
-          ファイル本文や資格情報を取り込むプロファイルは書けません。読めない値は <code>null</code>（不明）のまま——<code>false</code> にはしません。</p></div>
-      <div class="card"><div class="num">02 / 検知</div><h3>決定論的で、調整可能</h3>
-        <p>公開状況・特権への到達性・行動を組み合わせて優先度を決めます。閾値は設定として外部化し、
-          ハッシュ化して監査チェーンに記録するので、感度をこっそり下げることはできません。</p></div>
-      <div class="card"><div class="num">03 / 判断</div><h3>権限は人が持つ</h3>
-        <p>各事案は「入力から確認できること」「仮説」「まだ分からないこと」を分け、根拠のイベントIDを添え、
-          承認の前に業務影響を提示します。</p></div>
+      <div class="card"><div class="num">01 / 取り込み</div><h3>読むのは、許可した項目だけ</h3>
+        <p>CSV・JSON Lines は、あらかじめ許可した項目しか読めないマッピング経由で取り込みます。
+          ファイル本文や認証情報を取り込む設定は作れません。読めなかった値は <code>null</code>（不明）のまま——勝手に <code>false</code>（なし）にはしません。</p></div>
+      <div class="card"><div class="num">02 / 検知</div><h3>決定論的で、あとから調整できる</h3>
+        <p>公開状況・特権への到達性・行動を組み合わせて優先度を決めます。閾値は設定として外に出し、
+          ハッシュ化して監査ログに記録するので、感度をこっそり下げることはできません。</p></div>
+      <div class="card"><div class="num">03 / 判断</div><h3>決めるのは、人</h3>
+        <p>各事案は「入力から確認できること」「仮説」「まだ分からないこと」を分けて示し、根拠のイベントIDを添え、
+          承認の前に業務への影響を提示します。</p></div>
     </div>
   </div>
 </section>
@@ -234,17 +234,17 @@ python3 -m aisecure evaluate normal.json incident.json --sweep --out report.md</
 <section id="limits">
   <div class="wrap">
     <p class="eyebrow">できないこと</p>
-    <h2>できないことを、先に書く。</h2>
-    <p style="max-width:64ch">強みしか並べないセキュリティツールは、信頼するのに十分な情報を伝えていません。</p>
+    <h2>できないことから、先に書く。</h2>
+    <p style="max-width:64ch">強みしか語らないセキュリティツールは、信頼するための材料が足りません。</p>
     <ul class="nots">
-      <li><b>監視しません。</b> 渡されたスナップショットを解析するだけで、常時稼働する処理はありません。</li>
-      <li><b>実行しません。</b> 対応計画はすべてシミュレーション専用。セッション失効・通信遮断・アカウント停止を行うコードはありません。</li>
-      <li><b>漏えいを確定しません。</b> 「ファイルを参照した」と「データが外に出た」は別の主張として区別して表示します。</li>
-      <li><b>LLMは何も決めません。</b> 検知は決定論的。任意のローカルモデルは補助説明を書くだけで、ツールも原文ログも渡さず、参照は表示前に検証します。</li>
-      <li><b>不明を「安全」にしません。</b> 読めなかった項目は不明として数え、無害だとは仮定しません。</li>
+      <li><b>監視はしません。</b> 渡されたスナップショットを解析するだけで、常に動き続ける処理はありません。</li>
+      <li><b>遮断はしません。</b> 対応計画はすべてシミュレーション。セッションを切る・通信を止める・アカウントを止めるコードはありません。</li>
+      <li><b>漏えいを断定しません。</b> 「ファイルを見た」と「データが外に出た」は、別のこととして分けて表示します。</li>
+      <li><b>LLMは何も決めません。</b> 検知は決定論的なルールです。任意のローカルモデルは補足説明を書くだけで、ツールも生ログも渡さず、引用は表示前に必ず検証します。</li>
+      <li><b>「不明」を「安全」にしません。</b> 読めなかった項目は「不明」として数え、無害だとは決めつけません。</li>
     </ul>
-    <p class="note">公開前の自己検証で、取り込み境界の検知回避欠陥を4件発見・修正しました——
-      機器名を選ぶだけで他の資産の公開状況を上書きできるものを含みます。第三者監査ではありません。
+    <p class="note">公開前の自己点検で、取り込み処理に潜む「検知をすり抜けさせる」欠陥を4件見つけて直しました——
+      機器名を選ぶだけで、別の資産の公開状態を上書きできてしまうものも含みます。第三者による監査ではありません。
       <a href="SECURITY_REVIEW.md">検証レポート →</a></p>
   </div>
 </section>
@@ -252,37 +252,37 @@ python3 -m aisecure evaluate normal.json incident.json --sweep --out report.md</
 <section>
   <div class="wrap">
     <p class="eyebrow">画面</p>
-    <h2>ひとつの画面に、判断の根拠を残す。</h2>
+    <h2>判断の根拠まで、ひとつの画面に残す。</h2>
     <figure class="shot" style="margin-top:28px">
       <video src="media/screendemo.mp4" poster="media/screendemo-poster.png" controls muted loop playsinline preload="none"></video>
-      <figcaption>短いウォークスルー——実ログを取り込み、閾値の誤検知コストを測る。</figcaption></figure>
+      <figcaption>短いウォークスルー：実際のログを取り込み、閾値の誤検知コストを測るまで。</figcaption></figure>
     <div class="shots">
       <figure class="shot"><img src="screenshots/overview.ja.png" alt="相関事案と根拠を表示する初動画面" loading="lazy">
-        <figcaption>初動——相関した事案、3つの兆候、そしてまだ分からないこと。</figcaption></figure>
+        <figcaption>初動画面——相関した1件の事案、3つの兆候、そして「まだ分からないこと」。</figcaption></figure>
       <figure class="shot"><img src="screenshots/tuning.ja.png" alt="検知閾値の設定画面" loading="lazy">
-        <figcaption>検知設定——各値の意味と、自分で測るためのコマンド。</figcaption></figure>
+        <figcaption>検知設定——各値が何を意味するか、そして自分で測るためのコマンド。</figcaption></figure>
     </div>
-    <p class="note">画面は英語・日本語に完全対応。検知内容・計画・パラメータ説明まで言語が切り替わります。</p>
+    <p class="note">画面は日本語・英語に完全対応。検知内容も、対応計画も、設定の説明も、まるごと言語が切り替わります。</p>
   </div>
 </section>
 
 <section>
   <div class="wrap">
     <p class="eyebrow">現状</p>
-    <h2>v0.2.1 — 正直に位置づけた、ローカルのプロトタイプ。</h2>
+    <h2>v0.2.1 — できることを、正直に書いたローカル版。</h2>
     <div class="grid g2">
       <div class="card"><h3>いま役立つこと</h3>
-        <p>端から端まで読める検知ロジックの学習。初動と承認のワークフローのリハーサル（画面は英語・日本語に完全対応）。
-          そして、閾値を導入する<i>前</i>に、その誤検知コストを測ること。</p></div>
+        <p>端から端まで追える検知ロジックを学ぶ。初動から承認までの流れを試す（画面は日本語・英語対応）。
+          そして、閾値を導入する<i>前</i>に、その誤検知コストを測る。</p></div>
       <div class="card"><h3>未実装</h3>
-        <p>常時収集コネクタ、KEV・ベンダー情報の照合、SSO・RBAC、保管時暗号化、
-          独立した監査保管、実対応。本番のセキュリティ制御ではありません。</p></div>
+        <p>常時収集するコネクタ、KEV・ベンダー情報の照合、SSO・RBAC、保管時の暗号化、
+          独立した監査保管、実際の遮断——これらはまだありません。本番のセキュリティ製品ではありません。</p></div>
     </div>
-    <p style="margin-top:26px;max-width:66ch">次の目標は機能追加ではありません。ある組織の実際の認証・接続機器・ファイル参照ログを取り込み、
-      何も起きていない期間で誤検知率を測ることです。</p>
-    <p class="note">2026年9月に公表された、ガバメントソリューションサービスへの不正アクセスを受けて制作しました。
-      当初Medium評価・公表済みの脆弱性が修正前に悪用され、保守アカウントが大量のファイルを参照した——CVSS順のキューが最も苦手とする事案です。
-      本作は事案の再現ではなく、同梱データはすべて合成です。 <a href="SOURCES.md">情報源 →</a></p>
+    <p style="margin-top:26px;max-width:66ch">次の目標は、機能を増やすことではありません。ある組織の実際の認証・機器・ファイル参照ログを取り込み、
+      「何も起きていない期間」で誤検知率を測ること。それが次の一歩です。</p>
+    <p class="note">2026年9月に公表された、ガバメントソリューションサービスへの不正アクセスをきっかけに作りました。
+      当初「中（Medium）」評価で、すでに公開されていた脆弱性が修正前に悪用され、保守アカウントが大量のファイルを参照した——CVSSの高い順に処理するやり方が、もっとも苦手とする事案です。
+      この製品はその事案の再現ではなく、同梱のデータはすべて合成です。 <a href="SOURCES.md">情報源 →</a></p>
     <div class="cta" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:32px">
       <a class="btn primary" href="https://github.com/FORIFOR/AISecure">GitHubでStar</a>
       <a class="btn ghost" href="https://github.com/FORIFOR/AISecure/blob/main/README.ja.md">日本語 README</a>
