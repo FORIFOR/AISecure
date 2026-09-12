@@ -98,7 +98,7 @@ Written first, on purpose. A security tool that only lists its strengths is not 
 - **No LLM in the detection path.** Default mode is deterministic rules with template explanations. An optional local Ollama adapter writes *supplementary prose only*, gets no tools and no raw logs, and every claim it makes is checked against the evidence IDs before display.
 - **Unknown is never "safe".** A field that could not be read stays `null` and is counted, rather than becoming `false`.
 
-Read [SECURITY.md](SECURITY.md) for the threat model and the production gates it has not passed.
+Read [SECURITY.md](SECURITY.md) for the threat model, [SECURITY_REVIEW.md](docs/SECURITY_REVIEW.md) for what adversarial testing found, and [SECURITY_CHECKLIST.md](docs/SECURITY_CHECKLIST.md) for an honest, item-by-item production-verification checklist (done / not-done / who must verify).
 
 ## How it is put together
 
