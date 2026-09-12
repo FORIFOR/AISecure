@@ -121,7 +121,7 @@ Detection, explanation, and the authority to act are separate modules with expli
 | **Evidence** | Every finding carries the event IDs it was built from, and separates *observed* from *hypothesis* from *unknown*. |
 | **Audit** | Ingest, explain, plan, approve, simulate, and threshold changes go into a keyed hash chain. Tail truncation needs an external checkpoint — [stated, not hidden](SECURITY.md). |
 | **Approval** | 5-minute expiry, typed confirmation, reason required. Stale snapshots, double approvals, and tampered plans are refused. |
-| **Tests** | 179, standard library only. `python3 -m unittest discover -s tests -v` |
+| **Tests** | 182, standard library only. `python3 -m unittest discover -s tests -v` |
 
 ## Screenshots
 

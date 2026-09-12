@@ -317,7 +317,7 @@ def _asset(record: dict) -> dict:
 
 def build_snapshot(sources: list[tuple[Path, dict]], *, as_of: datetime | None = None,
                    unknown_assets: str = "record", max_rows: int = MAX_ROWS,
-                   max_bytes: int = MAX_SOURCE_BYTES) -> tuple[dict, dict]:
+                   max_bytes: int = MAX_SOURCE_BYTES, now: datetime | None = None) -> tuple[dict, dict]:
     """Combine an asset inventory and log sources into one snapshot plus a quality report."""
     if unknown_assets not in {"record", "skip"}:
         raise ImportError_("unknown_assetsはrecordまたはskipを指定してください。")
@@ -364,6 +364,23 @@ def build_snapshot(sources: list[tuple[Path, dict]], *, as_of: datetime | None =
                     seen_events[event["id"]] = canonical(event)
                     events.append(event)
                     quality["skip_reasons"]["同じイベントIDのため別IDを付与"] = quality["skip_reasons"].get("同じイベントIDのため別IDを付与", 0) + 1
+
+    # A single event dated far in the future (a hostile row, or a source clock skew)
+    # would otherwise drive as_of past "now" and make normalize() reject the whole
+    # snapshot. Drop such events (and stale-future asset rows) and count them, so one
+    # bad timestamp cannot deny the entire import.
+    horizon = (now or utcnow()) + timedelta(minutes=5)
+    future_events = [e for e in events if parse_time(e["at"]) > horizon]
+    if future_events:
+        events = [e for e in events if parse_time(e["at"]) <= horizon]
+        for report in reports:
+            report.setdefault("skip_reasons", {})
+        reports[-1]["skip_reasons"]["未来すぎる時刻"] = reports[-1]["skip_reasons"].get("未来すぎる時刻", 0) + len(future_events)
+        reports[-1]["rows_imported"] = max(0, reports[-1]["rows_imported"] - len(future_events))
+        reports[-1]["rows_skipped"] = reports[-1].get("rows_skipped", 0) + len(future_events)
+    for aid, a in list(assets.items()):
+        if parse_time(a["observed_at"]) > horizon:
+            del assets[aid]
 
     referenced = {e["gateway_id"] if e["type"] == "login" else e["asset_id"] for e in events}
     shadow = sorted(referenced - set(assets))
@@ -423,5 +440,8 @@ def _warnings(reports: list[dict], shadow: list[str], snapshot: dict, stamp: dat
             out.append("イベントの時間幅が1時間未満です。誤検知評価には不十分な期間です。")
         if stamp - parse_time(snapshot["events"][-1]["at"]) > timedelta(days=1):
             out.append("最新イベントがスナップショット時刻より1日以上前です。取得漏れの可能性があります。")
+    future = sum(r["skip_reasons"].get("未来すぎる時刻", 0) for r in reports)
+    if future:
+        out.append(f"取り込み時刻より未来のイベントを{future}行、読み飛ばしました。収集元の時刻設定・時計ずれを確認してください。")
     out.append("このインポートはログの真正性・網羅性を検証していません。収集側の設定と保持期間を別途確認してください。")
     return out
