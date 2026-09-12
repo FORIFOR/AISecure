@@ -70,7 +70,7 @@ python3 -m aisecure evaluate normal.json incident.json --sweep --out report.md
 python3 -m aisecure --rules rules.json serve
 ```
 
-同梱の合成データ（40ユーザー×5日×4シナリオ、52,832イベント）で測った結果、既定の閾値では **単体の大量参照ルール（AS-003）は36件中35件が正常業務**でした。一方、**相関ルール（AS-004）は誤検知0件**で事案を検知しています。閾値を上げて誤検知を0にすると、事案も検知できなくなります。測定手順と全数値は [docs/TUNING.md](docs/TUNING.md)、生の出力は [docs/evaluation/](docs/evaluation/) にあります。
+同梱の合成データ（40ユーザー×5日×4シナリオ、85,509イベント）で測った結果、既定の閾値では **単体の大量参照ルール（AS-003）は103件中102件が正常業務**でした。一方、**相関ルール（AS-004）は誤検知0件**で事案を検知しています。閾値を上げて誤検知を0にすると、事案も検知できなくなります。測定手順と全数値は [docs/TUNING.md](docs/TUNING.md)、生の出力は [docs/evaluation/](docs/evaluation/) にあります。
 
 取り込みの仕組みと独自ログ形式への対応は [docs/CONNECTORS.md](docs/CONNECTORS.md) を参照してください。
 

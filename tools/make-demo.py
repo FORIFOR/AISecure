@@ -122,21 +122,21 @@ def scenes() -> list[tuple[str, float]]:
         (term([f'{PROMPT}python3 -m aisecure baseline --days 5 --users 40 --out normal.json</span>',
                f'{PROMPT}python3 -m aisecure evaluate normal*.json incident.json --sweep</span>',
                '&nbsp;',
-               '<span class=m>シナリオ 4件 / 18.46日 / 52,832イベント</span>',
+               '<span class=m>シナリオ 4件 / 18.84日 / 85,509イベント</span>',
                '&nbsp;',
                '<span class=hi>ルール                        件数   検知   誤検知</span>',
-               '<span class=bad>AS-003  単体の大量ファイル参照     36      1     35</span>',
+               '<span class=bad>AS-003  単体の大量ファイル参照    103      1    102</span>',
                '<span class=ok>AS-004  相関（機器+権限+行動）       1      1      0</span>']), 6.0),
 
         (html('<div class=wrap><div class=card>'
               '<div class=eyebrow>MEASURED, NOT ASSUMED</div>'
-              '<h2>単体ルールは97%が正常業務。<br>相関は18日間で誤検知ゼロ。</h2>'
+              '<h2>単体ルールは99%が正常業務。<br>相関は19日間で誤検知ゼロ。</h2>'
               '<p style="margin-bottom:18px">閾値を上げて誤検知を0にすると、事案も検知できなくなる。'
               '21通り試した結果がそれを示している。</p>'
               '<table><tr><th>設定</th><th style="text-align:right">誤検知</th>'
               '<th style="text-align:right">検知漏れ</th></tr>'
-              '<tr><td>100ファイル / 300秒（既定）</td><td class="n bad">35</td><td class=n>0</td></tr>'
-              '<tr><td>200ファイル / 120秒（静か）</td><td class="n good">0</td><td class="n bad">事案も見逃す</td></tr>'
+              '<tr><td>100ファイル / 300秒（既定）</td><td class="n bad">102</td><td class=n>0</td></tr>'
+              '<tr><td>300ファイル / 120秒（静か）</td><td class="n good">0</td><td class="n bad">事案も見逃す</td></tr>'
               '</table></div></div>'), 6.0),
 
         ("ui:overview", 6.0),

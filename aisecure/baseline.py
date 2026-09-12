@@ -130,6 +130,37 @@ def scenario(name: str, *, seed: int = 1, days: int = 3, users: int = 24, attack
             builder.reads(day_zero + timedelta(days=day, hours=20, minutes=10), "vendor-maintenance@example.invalid",
                           vendor_session, "fileserver-01", rng.randrange(3, 25), spread_seconds=900,
                           folder="maintenance", sensitive=False, unknown_ratio=0.5, first_index=day * 30000)
+        # Search-indexing service: managed, approved, and reads almost everything every night.
+        index_session = f"index-{day}"
+        builder.login(day_zero + timedelta(days=day, hours=1), "svc-indexer@example.invalid", index_session,
+                      "edge-vpn-01", privileged=False, device_trusted=True, approved=True)
+        for server in ("fileserver-01", "fileserver-02"):
+            builder.reads(day_zero + timedelta(days=day, hours=1, minutes=5), "svc-indexer@example.invalid",
+                          index_session, server, rng.randrange(400, 900), spread_seconds=rng.randrange(300, 1200),
+                          folder="index", sensitive=rng.random() < 0.3, unknown_ratio=0.15, first_index=day * 40000)
+        # Endpoint antivirus full scan, scheduled weekly, sweeping a file share.
+        if day % 7 == 3:
+            av_session = f"av-{day}"
+            builder.login(day_zero + timedelta(days=day, hours=3), "svc-antivirus@example.invalid", av_session,
+                          "edge-vpn-01", privileged=False, device_trusted=True, approved=True)
+            builder.reads(day_zero + timedelta(days=day, hours=3, minutes=10), "svc-antivirus@example.invalid",
+                          av_session, "fileserver-02", rng.randrange(600, 1200), spread_seconds=rng.randrange(600, 1800),
+                          folder="avscan", sensitive=rng.random() < 0.4, unknown_ratio=0.2, first_index=day * 50000)
+        # Legal hold / eDiscovery: a compliance analyst pulls a large, mostly-sensitive set with approval.
+        if rng.random() < 0.2:
+            legal_session = f"legal-{day}"
+            builder.login(day_zero + timedelta(days=day, hours=11), "legal-review@example.invalid", legal_session,
+                          "edge-vpn-01", privileged=False, device_trusted=True, approved=True)
+            builder.reads(day_zero + timedelta(days=day, hours=11, minutes=20), "legal-review@example.invalid",
+                          legal_session, "fileserver-01", rng.randrange(150, 500), spread_seconds=rng.randrange(300, 1500),
+                          folder="ediscovery", sensitive=True, unknown_ratio=0.05, first_index=day * 60000)
+        # Nightly batch ETL job reading a reporting share.
+        etl_session = f"etl-{day}"
+        builder.login(day_zero + timedelta(days=day, hours=4), "svc-etl@example.invalid", etl_session,
+                      "edge-vpn-01", privileged=False, device_trusted=True, approved=True)
+        builder.reads(day_zero + timedelta(days=day, hours=4, minutes=5), "svc-etl@example.invalid", etl_session,
+                      "fileserver-02", rng.randrange(200, 700), spread_seconds=rng.randrange(300, 1000),
+                      folder="etl", sensitive=rng.random() < 0.2, unknown_ratio=0.1, first_index=day * 70000)
 
     expect: list[str] = []
     malicious_assets: list[str] = []

@@ -19,11 +19,11 @@ A local-first triage prototype that links an internet-facing unpatched gateway, 
 
 ## The number that started this project
 
-Everyone ships a "user read 100+ files in 5 minutes" rule. Almost nobody publishes what it costs on normal traffic. So we measured ours, on 18.5 days of synthetic-but-realistic business activity — nightly backups, analysts pulling reference material, a migration day, approved vendor maintenance:
+Everyone ships a "user read 100+ files in 5 minutes" rule. Almost nobody publishes what it costs on normal traffic. So we measured ours, on 18.8 days and 85,509 events of synthetic-but-realistic business activity — nightly backups, analyst bursts, a migration day, a search-indexing service, a weekly antivirus sweep, an eDiscovery pull, a batch ETL job, approved vendor maintenance:
 
 | Rule | Alerts | True positives | **False positives** |
 |---|---:|---:|---:|
-| `AS-003` bulk file access, on its own | 36 | 1 | **35** |
+| `AS-003` bulk file access, on its own | 103 | 1 | **102** |
 | `AS-004` correlation: exposed gateway **+** privileged login **+** bulk access | 1 | 1 | **0** |
 
 Raising the threshold until the bulk rule goes quiet also stops it detecting the incident. We swept 21 threshold/window combinations to confirm it — every configuration with zero false positives also missed the planted breach.

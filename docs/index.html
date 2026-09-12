@@ -6,7 +6,7 @@
 <title>AI Secure — Evidence before action</title>
 <meta name="description" content="A local-first security triage prototype that correlates exposure, privilege and behaviour instead of ranking alerts by CVSS — and publishes what that costs in false positives.">
 <meta property="og:title" content="AI Secure — Evidence before action">
-<meta property="og:description" content="We measured our own bulk-access rule on 18.5 days of normal business traffic: 36 alerts, 35 false positives. The correlation rule: 1 alert, 0 false positives.">
+<meta property="og:description" content="We measured our own bulk-access rule on 18.8 days of normal business traffic: 103 alerts, 102 false positives. The correlation rule: 1 alert, 0 false positives.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://forifor.github.io/AISecure/">
 <meta property="og:image" content="https://forifor.github.io/AISecure/media/social-card.png">
@@ -164,15 +164,15 @@ footer a{color:var(--muted)}
   <div class="wrap">
     <p class="eyebrow">The number that started this</p>
     <h2>Everyone ships a “100 files in 5 minutes” rule.<br>Almost nobody publishes what it costs.</h2>
-    <p style="max-width:66ch">So we measured ours — on 18.5 days of synthetic but realistic business activity:
-      nightly backups, analysts pulling reference material, a migration day, approved vendor maintenance on a personal laptop.</p>
+    <p style="max-width:66ch">So we measured ours — on 18.8 days and 85,509 events of synthetic but realistic business activity:
+      nightly backups, analyst bursts, a migration day, a search-indexing service, a weekly antivirus sweep, an eDiscovery pull, a batch ETL job, and approved vendor maintenance on a personal laptop.</p>
 
     <div class="finding" style="margin-top:30px">
       <table>
         <tr><th>Rule</th><th class="n">Alerts</th><th class="n">True positives</th><th class="n">False positives</th></tr>
         <tr>
           <td><b>AS-003</b> — bulk file access, on its own</td>
-          <td class="n">36</td><td class="n">1</td><td class="n big fp">35</td>
+          <td class="n">103</td><td class="n">1</td><td class="n big fp">102</td>
         </tr>
         <tr>
           <td><b>AS-004</b> — exposed gateway <b>+</b> privileged login <b>+</b> bulk access</td>

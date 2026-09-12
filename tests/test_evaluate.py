@@ -38,6 +38,12 @@ class BaselineTests(unittest.TestCase):
         backup = [e for e in document["events"] if e["type"] == "file_access"]
         self.assertGreater(len(backup), 1000)
 
+    def test_normal_traffic_includes_service_and_compliance_actors(self):
+        """Adding realistic noise sources must not create correlation false positives."""
+        result = score(prepare(scenario("clean", seed=6, days=8, users=30)), DEFAULT_RULES)
+        self.assertGreater(result["per_rule"]["AS-003"]["fp"], 10)  # heavier noise -> more single-rule FPs
+        self.assertEqual(result["per_rule"].get("AS-004", {}).get("fp", 0), 0)  # correlation stays clean
+
     def test_scenario_validation_rejects_unknown_keys(self):
         data = scenario("clean", seed=1, **SMALL)
         data["execute"] = True
