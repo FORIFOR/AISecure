@@ -1,0 +1,15 @@
+{
+  "profile_version": 1,
+  "name": "windows-security-logon-csv",
+  "description": "Windows Security ログオンイベント(4624成功/4625失敗)のCSVエクスポート。列名は一般的なwevtutil/Get-WinEventの書き出しに合わせた雛形です。実際のエクスポート列名・時刻書式・タイムゾーンに合わせて調整してください。特権/端末管理/承認はこのログ単体では判定できないため不明のままにします。",
+  "format": "csv",
+  "record": "login",
+  "encoding": "utf-8-sig",
+  "map": {
+    "at": {"field": "TimeCreated", "time": "%Y-%m-%d %H:%M:%S", "timezone": "+09:00"},
+    "actor": {"field": "TargetUserName"},
+    "session": {"field": "TargetLogonId"},
+    "gateway_id": {"field": "WorkstationName"},
+    "success": {"field": "EventID", "true": ["4624"], "false": ["4625"]}
+  }
+}

@@ -1,0 +1,4 @@
+TimeCreated,EventID,TargetUserName,TargetLogonId,IpAddress,LogonType,WorkstationName
+2026-09-01 08:59:11,4625,j.tanaka,0x0,10.0.0.14,3,fileserver-01
+2026-09-01 09:00:02,4624,j.tanaka,0x3E9A21,10.0.0.14,3,fileserver-01
+2026-09-01 09:03:47,4624,svc-backup,0x3F1B02,10.0.0.9,5,fileserver-01

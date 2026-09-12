@@ -37,7 +37,7 @@ class Fixture(unittest.TestCase):
 
 class ProfileTests(Fixture):
     def test_builtin_profiles_load(self):
-        self.assertEqual(set(builtin_profiles()), {"generic-asset-csv", "generic-auth-csv", "generic-file-access-jsonl"})
+        self.assertEqual(set(builtin_profiles()), {"generic-asset-csv", "generic-auth-csv", "generic-file-access-jsonl", "windows-security-logon-csv"})
         for name in builtin_profiles():
             self.assertEqual(load_profile(name)["profile_version"], 1)
 
@@ -312,6 +312,19 @@ class ImportTests(Fixture):
         trusted = normalize(forged, KEY, source_mode="imported", now=datetime(2026, 9, 2, tzinfo=timezone.utc),
                             verified_provenance=True)
         self.assertTrue(trusted["provenance"][0]["verified"])
+
+    def test_windows_security_profile_maps_4624_4625(self):
+        rows = ("TimeCreated,EventID,TargetUserName,TargetLogonId,IpAddress,LogonType,WorkstationName\n"
+                "2026-09-01 08:59:11,4625,u,0x0,10.0.0.1,3,fileserver-01\n"
+                "2026-09-01 09:00:02,4624,u,0x3E9,10.0.0.1,3,fileserver-01\n")
+        path = self.write("winsec.csv", rows)
+        snapshot, quality = build_snapshot([self.source("generic-asset-csv", self.assets()),
+                                            self.source("windows-security-logon-csv", path)])
+        logins = sorted(snapshot["events"], key=lambda e: e["at"])
+        self.assertEqual([e["success"] for e in logins], [False, True])
+        self.assertEqual(logins[1]["at"], "2026-09-01T00:00:02Z")  # +09:00 -> UTC
+        self.assertIsNone(logins[0]["privileged"])  # not knowable from this log
+        self.assertEqual(quality["totals"]["rows_skipped"], 0)
 
     def test_same_input_produces_the_same_snapshot(self):
         first, _ = build_snapshot([self.source("generic-asset-csv", self.assets())])
