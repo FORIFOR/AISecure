@@ -1,3 +1,37 @@
+test_baseline_is_reproducible_from_the_command_line (test_cli.CLITests.test_baseline_is_reproducible_from_the_command_line) ... ok
+test_baseline_writes_a_valid_scenario (test_cli.CLITests.test_baseline_writes_a_valid_scenario) ... ok
+test_evaluate_can_save_recommended_thresholds (test_cli.CLITests.test_evaluate_can_save_recommended_thresholds) ... ok
+test_evaluate_reports_detections_and_false_positives (test_cli.CLITests.test_evaluate_reports_detections_and_false_positives) ... ok
+test_import_of_the_bundled_example_logs (test_cli.CLITests.test_import_of_the_bundled_example_logs) ... ok
+test_import_requires_a_profile_assignment (test_cli.CLITests.test_import_requires_a_profile_assignment) ... ok
+test_import_then_analyze_finds_the_correlation (test_cli.CLITests.test_import_then_analyze_finds_the_correlation) ... ok
+test_invalid_rules_file_is_refused (test_cli.CLITests.test_invalid_rules_file_is_refused) ... ok
+test_profiles_are_listed (test_cli.CLITests.test_profiles_are_listed) ... ok
+test_rules_file_changes_the_active_configuration (test_cli.CLITests.test_rules_file_changes_the_active_configuration) ... ok
+test_sample_command_needs_no_database (test_cli.CLITests.test_sample_command_needs_no_database) ... ok
+test_asset_seen_only_in_logs_is_recorded_as_unknown (test_connectors.ImportTests.test_asset_seen_only_in_logs_is_recorded_as_unknown) ... ok
+test_declared_timezone_is_converted_to_utc (test_connectors.ImportTests.test_declared_timezone_is_converted_to_utc) ... ok
+test_end_to_end_import_detects_the_correlation (test_connectors.ImportTests.test_end_to_end_import_detects_the_correlation) ... ok
+test_file_path_is_kept_only_as_a_pseudonymous_identifier (test_connectors.ImportTests.test_file_path_is_kept_only_as_a_pseudonymous_identifier) ... ok
+test_import_without_an_inventory_is_refused (test_connectors.ImportTests.test_import_without_an_inventory_is_refused) ... ok
+test_malformed_json_lines_are_counted_not_fatal (test_connectors.ImportTests.test_malformed_json_lines_are_counted_not_fatal) ... ok
+test_missing_sources_are_reported_as_warnings (test_connectors.ImportTests.test_missing_sources_are_reported_as_warnings) ... ok
+test_oversized_source_refused (test_connectors.ImportTests.test_oversized_source_refused) ... ok
+test_repeated_identical_rows_collapse_to_one_event (test_connectors.ImportTests.test_repeated_identical_rows_collapse_to_one_event) ... ok
+test_row_limit_is_enforced (test_connectors.ImportTests.test_row_limit_is_enforced) ... ok
+test_row_without_a_timezone_is_skipped_not_guessed (test_connectors.ImportTests.test_row_without_a_timezone_is_skipped_not_guessed) ... ok
+test_same_input_produces_the_same_snapshot (test_connectors.ImportTests.test_same_input_produces_the_same_snapshot) ... ok
+test_skip_policy_drops_events_for_unknown_assets (test_connectors.ImportTests.test_skip_policy_drops_events_for_unknown_assets) ... ok
+test_sources_are_hashed_for_provenance (test_connectors.ImportTests.test_sources_are_hashed_for_provenance) ... ok
+test_symlinked_source_refused (test_connectors.ImportTests.test_symlinked_source_refused) ... ok
+test_unmapped_columns_never_reach_the_snapshot (test_connectors.ImportTests.test_unmapped_columns_never_reach_the_snapshot) ... ok
+test_unreadable_value_becomes_unknown_not_safe (test_connectors.ImportTests.test_unreadable_value_becomes_unknown_not_safe) ... ok
+test_builtin_profiles_load (test_connectors.ProfileTests.test_builtin_profiles_load) ... ok
+test_missing_profile_names_the_builtins (test_connectors.ProfileTests.test_missing_profile_names_the_builtins) ... ok
+test_profile_cannot_map_a_target_outside_the_allowlist (test_connectors.ProfileTests.test_profile_cannot_map_a_target_outside_the_allowlist) ... ok
+test_required_targets_must_be_mapped (test_connectors.ProfileTests.test_required_targets_must_be_mapped) ... ok
+test_slug_keeps_valid_names_and_separates_different_ones (test_connectors.ProfileTests.test_slug_keeps_valid_names_and_separates_different_ones) ... ok
+test_unknown_profile_keys_rejected (test_connectors.ProfileTests.test_unknown_profile_keys_rejected) ... ok
 test_asset_identifier_html_rejected (test_core.BoundaryTests.test_asset_identifier_html_rejected) ... ok
 test_conflicting_event_id_rejected (test_core.BoundaryTests.test_conflicting_event_id_rejected) ... ok
 test_cvss_bool_rejected (test_core.BoundaryTests.test_cvss_bool_rejected) ... ok
@@ -64,22 +98,76 @@ test_secret_identifiers_not_saved_in_db (test_core.StoreTests.test_secret_identi
 test_simulation_never_claims_execution (test_core.StoreTests.test_simulation_never_claims_execution) ... ok
 test_snapshot_change_invalidates_approval (test_core.StoreTests.test_snapshot_change_invalidates_approval) ... ok
 test_tail_deletion_needs_external_anchor (test_core.StoreTests.test_tail_deletion_needs_external_anchor) ... ok
-test_api_requires_auth (test_http.HTTPTests.test_api_requires_auth) ... ok
-test_content_type_enforced (test_http.HTTPTests.test_content_type_enforced) ... ok
-test_cross_site_fetch (test_http.HTTPTests.test_cross_site_fetch) ... ok
-test_demo_confirmation_required (test_http.HTTPTests.test_demo_confirmation_required) ... ok
+test_attack_scenario_labels_only_incident_events (test_evaluate.BaselineTests.test_attack_scenario_labels_only_incident_events) ... ok
+test_clean_baseline_has_no_labeled_incident (test_evaluate.BaselineTests.test_clean_baseline_has_no_labeled_incident) ... ok
+test_different_seeds_differ (test_evaluate.BaselineTests.test_different_seeds_differ) ... ok
+test_generation_is_deterministic (test_evaluate.BaselineTests.test_generation_is_deterministic) ... ok
+test_normal_traffic_contains_legitimate_bulk_access (test_evaluate.BaselineTests.test_normal_traffic_contains_legitimate_bulk_access) ... ok
+test_scenario_validation_rejects_unknown_keys (test_evaluate.BaselineTests.test_scenario_validation_rejects_unknown_keys) ... ok
+test_scenario_version_is_checked (test_evaluate.BaselineTests.test_scenario_version_is_checked) ... ok
+test_asset_rules_are_excluded_from_precision (test_evaluate.EvaluationTests.test_asset_rules_are_excluded_from_precision) ... ok
+test_clean_baseline_produces_no_true_positives (test_evaluate.EvaluationTests.test_clean_baseline_produces_no_true_positives) ... ok
+test_correlation_does_not_fire_on_normal_traffic (test_evaluate.EvaluationTests.test_correlation_does_not_fire_on_normal_traffic) ... ok
+test_empty_scenario_list_refused (test_evaluate.EvaluationTests.test_empty_scenario_list_refused) ... ok
+test_evaluation_does_not_mutate_the_scenario (test_evaluate.EvaluationTests.test_evaluation_does_not_mutate_the_scenario) ... ok
+test_incident_is_detected_at_the_default_thresholds (test_evaluate.EvaluationTests.test_incident_is_detected_at_the_default_thresholds) ... ok
+test_legitimate_bulk_access_is_counted_as_a_false_positive (test_evaluate.EvaluationTests.test_legitimate_bulk_access_is_counted_as_a_false_positive) ... ok
+test_raising_the_threshold_trades_detection_for_quiet (test_evaluate.EvaluationTests.test_raising_the_threshold_trades_detection_for_quiet) ... ok
+test_report_records_the_configuration_used (test_evaluate.EvaluationTests.test_report_records_the_configuration_used) ... ok
+test_totals_add_up (test_evaluate.EvaluationTests.test_totals_add_up) ... ok
+test_a_high_threshold_misses_the_incident (test_evaluate.SweepTests.test_a_high_threshold_misses_the_incident) ... ok
+test_every_cell_is_measured (test_evaluate.SweepTests.test_every_cell_is_measured) ... ok
+test_markdown_report_states_its_limits (test_evaluate.SweepTests.test_markdown_report_states_its_limits) ... ok
+test_recommendation_detects_everything (test_evaluate.SweepTests.test_recommendation_detects_everything) ... ok
+test_recommendation_is_absent_when_nothing_detects (test_evaluate.SweepTests.test_recommendation_is_absent_when_nothing_detects) ... ok
+test_api_requires_auth (test_http.HTTPTests.test_api_requires_auth) ... /opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 401: 'Unauthorized'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+ok
+test_content_type_enforced (test_http.HTTPTests.test_content_type_enforced) ... /opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 415: 'Unsupported Media Type'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+ok
+test_cross_site_fetch (test_http.HTTPTests.test_cross_site_fetch) ... /opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 403: 'Forbidden'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+ok
+test_demo_confirmation_required (test_http.HTTPTests.test_demo_confirmation_required) ... /opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 400: 'Bad Request'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+ok
 test_export_retains_simulation_label (test_http.HTTPTests.test_export_retains_simulation_label) ... ok
 test_full_simulated_workflow (test_http.HTTPTests.test_full_simulated_workflow) ... ok
-test_path_traversal_not_served (test_http.HTTPTests.test_path_traversal_not_served) ... ok
+test_path_traversal_not_served (test_http.HTTPTests.test_path_traversal_not_served) ... /opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 404: 'Not Found'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+ok
 test_query_tokens_rejected (test_http.HTTPTests.test_query_tokens_rejected) ... ok
 test_secret_file_not_served (test_http.HTTPTests.test_secret_file_not_served) ... ok
 test_security_headers_and_no_cors (test_http.HTTPTests.test_security_headers_and_no_cors) ... ok
+test_state_exposes_the_active_detection_config (test_http.HTTPTests.test_state_exposes_the_active_detection_config) ... ok
+test_state_reports_unknown_read_sizes (test_http.HTTPTests.test_state_reports_unknown_read_sizes) ... ok
 test_unicode_token_rejected_without_server_crash (test_http.HTTPTests.test_unicode_token_rejected_without_server_crash) ... ok
 test_wrong_host (test_http.HTTPTests.test_wrong_host) ... ok
 test_wrong_origin (test_http.HTTPTests.test_wrong_origin) ... ok
 test_wrong_token (test_http.HTTPTests.test_wrong_token) ... ok
+test_startup_records_the_active_configuration (test_rules.RuleAuditTests.test_startup_records_the_active_configuration) ... ok
+test_state_exposes_the_active_configuration (test_rules.RuleAuditTests.test_state_exposes_the_active_configuration) ... ok
+test_threshold_change_is_recorded_as_evidence (test_rules.RuleAuditTests.test_threshold_change_is_recorded_as_evidence) ... ok
+test_unchanged_configuration_is_not_recorded_twice (test_rules.RuleAuditTests.test_unchanged_configuration_is_not_recorded_twice) ... ok
+test_boolean_is_not_an_integer (test_rules.RuleConfigTests.test_boolean_is_not_an_integer) ... ok
+test_defaults_match_v01_behaviour (test_rules.RuleConfigTests.test_defaults_match_v01_behaviour) ... ok
+test_describe_covers_every_parameter (test_rules.RuleConfigTests.test_describe_covers_every_parameter) ... ok
+test_digest_changes_with_values (test_rules.RuleConfigTests.test_digest_changes_with_values) ... ok
+test_identity_conditions_limited_to_known_choices (test_rules.RuleConfigTests.test_identity_conditions_limited_to_known_choices) ... ok
+test_out_of_range_rejected_not_clamped (test_rules.RuleConfigTests.test_out_of_range_rejected_not_clamped) ... ok
+test_sensitive_minimum_cannot_exceed_threshold (test_rules.RuleConfigTests.test_sensitive_minimum_cannot_exceed_threshold) ... ok
+test_unknown_key_rejected (test_rules.RuleConfigTests.test_unknown_key_rejected) ... ok
+test_both_conditions_required_suppresses_approved_byod (test_rules.TunedDetectionTests.test_both_conditions_required_suppresses_approved_byod) ... ok
+test_both_conditions_still_catches_the_incident (test_rules.TunedDetectionTests.test_both_conditions_still_catches_the_incident) ... ok
+test_cvss_threshold_affects_only_unexposed_priority (test_rules.TunedDetectionTests.test_cvss_threshold_affects_only_unexposed_priority) ... ok
+test_findings_carry_the_configuration_that_produced_them (test_rules.TunedDetectionTests.test_findings_carry_the_configuration_that_produced_them) ... ok
+test_lookback_zero_breaks_correlation_only (test_rules.TunedDetectionTests.test_lookback_zero_breaks_correlation_only) ... ok
+test_narrowing_window_drops_bulk (test_rules.TunedDetectionTests.test_narrowing_window_drops_bulk) ... ok
+test_raising_threshold_drops_bulk_and_correlation (test_rules.TunedDetectionTests.test_raising_threshold_drops_bulk_and_correlation) ... ok
+test_sensitive_minimum_can_require_more_labels (test_rules.TunedDetectionTests.test_sensitive_minimum_can_require_more_labels) ... ok
 
 ----------------------------------------------------------------------
-Ran 80 tests in 0.838s
+Ran 158 tests in 1.745s
 
 OK

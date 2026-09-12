@@ -1,0 +1,93 @@
+# ログ取り込み（読み取り専用）
+
+`aisecure import` は、認証ログ・接続機器ログ・ファイル参照ログのファイルを読み、スナップショットに変換します。**ソースには一切書き込みません。** SIEM・IdP・ファイルサーバーへ接続する機能はなく、ログの真正性・網羅性も検証しません。
+
+```bash
+python3 -m aisecure import \
+  --source generic-asset-csv=examples/logs/assets.csv \
+  --source generic-auth-csv=examples/logs/auth.csv \
+  --source generic-file-access-jsonl=examples/logs/file-access.jsonl \
+  --out snapshot.json --quality quality.json
+```
+
+`--ingest` を付けるとローカルDBにも取り込みます。組み込みプロファイルの一覧は `python3 -m aisecure profiles`。
+
+## この境界で守っていること
+
+| 方針 | 実装 |
+|---|---|
+| 持ち出す項目を限定する | プロファイルは許可リストにある項目しかマッピングできません。他の列はスナップショットにもDBにもLLMにも渡りません。ファイル本文・パスワード列を取り込むプロファイルは書けません。 |
+| 不明を安全に置き換えない | 読めない値・未設定の値は `null`（不明）になります。`false` や `0` で代用しません。件数は品質レポートに残ります。 |
+| 時刻を推測しない | タイムゾーンのない時刻は、プロファイルで明示した場合のみ解釈します。指定がなければその行を読み飛ばします。1時間のずれは相関を壊すためです。 |
+| 出所を残す | 各ソースのファイル名（パスなし）とSHA-256、読み込み行数をスナップショットの `provenance` に記録します。 |
+| 台帳にない資産を隠さない | ログにだけ現れた資産は `patch_state: unknown` / `kind: unknown` として登録し、AS-005（資産情報の不足）で表面化させます。`--unknown-assets skip` でそのイベントを捨てることもできます。 |
+| 事故で壊さない | シンボリックリンク・通常ファイル以外は拒否。サイズ64 MiB、1ソース2,000,000行、1フィールド8 KiBの上限。読み取り専用でオープンします。 |
+| 再送で水増ししない | イベントIDがないソースでは内容から決定論的にIDを導出するため、同じ行を二重に読み込んでも件数は増えません。 |
+
+仮名化は取り込み時ではなく保存時に行われます。`actor` / `session` / `file_id` は正規化時に鍵付きハッシュへ変換され、原文（ユーザー名・パス）は保存されません。取り込み処理中はメモリ上に原文が存在するため、実行環境の権限管理は別途必要です。
+
+## プロファイル
+
+プロファイルはJSONです。組み込みは `aisecure/connectors/profiles/`、独自のものはパスで指定します。
+
+```json
+{
+  "profile_version": 1,
+  "name": "vendor-vpn-auth",
+  "format": "csv",
+  "record": "login",
+  "encoding": "cp932",
+  "delimiter": ",",
+  "skip_rows": 0,
+  "map": {
+    "at": {"field": "日時", "time": "%Y/%m/%d %H:%M:%S", "timezone": "+09:00"},
+    "actor": {"field": "ユーザー"},
+    "session": {"field": "セッションID"},
+    "gateway_id": {"field": "装置名"},
+    "success": {"field": "結果", "true": ["成功"], "false": ["失敗"]},
+    "privileged": {"field": "権限", "true": ["管理者"], "false": ["一般"]},
+    "device_trusted": {"field": "端末", "true": ["管理端末"], "false": ["私物"]},
+    "approved": {"field": "作業票", "true_contains": ["CHG-"], "false": ["なし"]}
+  }
+}
+```
+
+- `format`: `csv` | `jsonl`。JSON Lines では `"field": "user.id"` のようにドット区切りで入れ子を参照できます。
+- `record`: `login` | `file_access` | `asset`。指定できる項目は種別ごとに固定です。
+- `encoding`: `utf-8` / `utf-8-sig` / `cp932` / `shift_jis` / `euc_jp` / `latin-1`。
+
+### 項目の書き方
+
+| 書き方 | 意味 |
+|---|---|
+| `{"field": "列名"}` | その列の値を使う |
+| `{"const": "edge-vpn-01"}` | 列がない場合に固定値を入れる（1機器分のログなど） |
+| `{"derive": "content"}` | `id` 専用。行の内容から決定論的にIDを導出する |
+| `{"true": [...], "false": [...]}` | 真偽値の対応表。どちらにも一致しなければ不明（`null`） |
+| `{"true_contains": [...], "false_contains": [...]}` | 部分一致での判定。正規表現は使いません |
+| `{"map": {"元の値": "変換後"}}` | `kind` や `patch_state` の値変換 |
+| `{"default": ...}` | 読めなかったときの既定値。**慎重に使ってください**（不明を既知に変えます） |
+| `{"time": "iso8601"}` | 時刻書式。`epoch_seconds` / `epoch_millis` / `strptime` 書式も可 |
+| `{"timezone": "+09:00"}` | タイムゾーンのない時刻の解釈。省略するとその行は読み飛ばされます |
+
+必須項目（`login` なら `at` / `actor` / `session` / `gateway_id` / `success`）が読めない行は読み飛ばし、理由別に件数を数えます。`id` を指定しない場合は自動で `derive: content` になります。
+
+機器名や共有名が識別子の文字種（英数字と `_ . : -`、80文字以内）に収まらない場合は、元の名前のハッシュを付けた識別子へ変換し、変換件数を品質レポートに記録します。別々の名前が同じIDに統合されることはありません。
+
+## 品質レポート
+
+`--quality` で出力されるJSONには次が含まれます。取り込みが成功したかではなく、**何がどれだけ分からなかったか**を見るためのものです。
+
+- `sources[]`: ファイルごとの行数・SHA-256・読み飛ばし理由・不明値の件数
+- `totals`: 合計、取り込んだ資産数・イベント数
+- `shadow_assets`: 台帳になくログにだけ現れた資産
+- `time_range`: 取り込んだイベントの時間幅
+- `warnings`: 3種類のログが揃っているか、読み飛ばし率が5%を超えていないか、期間が短すぎないか、など
+
+## 取り込み後にやること
+
+1. `warnings` と `unknown_values` を読み、マッピングの誤りを直す。
+2. `docs/TUNING.md` の手順で、**正常な業務期間**のログに対して誤検知を測る。
+3. 閾値を決めてから `--rules` を付けて起動する。
+
+取り込みが通ることと、検知が正しいことは別です。順番を飛ばさないでください。

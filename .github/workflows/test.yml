@@ -7,10 +7,28 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python: ['3.11', '3.12', '3.13']
+        python: ['3.11', '3.12', '3.13', '3.14']
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
       - run: python -m unittest discover -s tests -v
+      - name: 取り込みと誤検知評価が通ることを確認
+        run: |
+          python -m aisecure profiles
+          python examples/make-example-logs.py
+          python -m aisecure import \
+            --source generic-asset-csv=examples/logs/assets.csv \
+            --source generic-auth-csv=examples/logs/auth.csv \
+            --source generic-file-access-jsonl=examples/logs/file-access.jsonl \
+            --out /tmp/snapshot.json --quality /tmp/quality.json
+          python -m aisecure --data-dir /tmp/ai-secure-ci analyze /tmp/snapshot.json > /dev/null
+          python -m aisecure baseline --name ci-normal --seed 1 --days 2 --users 10 --out /tmp/normal.json
+          python -m aisecure baseline --name ci-incident --seed 2 --days 2 --users 10 --attack --out /tmp/incident.json
+          python -m aisecure evaluate /tmp/normal.json /tmp/incident.json --sweep --out /tmp/report.md
+      - name: 画面の実行確認
+        if: matrix.python == '3.13'
+        run: |
+          node --check web/app.js
+          node tools/dom-check.mjs
