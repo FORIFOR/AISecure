@@ -13,6 +13,8 @@ function notify(message,error=false) { clearTimeout(toastTimer); const n=$('toas
 function date(value) { return value ? new Date(value).toLocaleString(lang==='ja'?'ja-JP':'en-GB',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}) : '—'; }
 function count(n) { return Number(n || 0).toLocaleString(lang==='ja'?'ja-JP':'en-US'); }
 function auditAction(action) { const k='audit.action.'+action; const v=t(k); return v===k?action:v; }
+// Backend objects carry Japanese plus an English "_en" companion; pick per UI language, fall back to source.
+function L(obj, field) { const v = lang==='en' ? (obj[field+'_en'] ?? obj[field]) : obj[field]; return v; }
 async function api(path,body,rawBody=false) {
   if(PREVIEW) throw new Error(t('err.previewOnly'));
   const response=await fetch(path,{method:body===undefined?'GET':'POST',headers:{'Authorization':'Bearer '+token,...(body===undefined?{}:{'Content-Type':'application/json'})},...(body===undefined?{}:{body:rawBody?body:JSON.stringify(body)}),credentials:'omit',cache:'no-store'});
@@ -52,7 +54,7 @@ function renderOverview(root) {
   const grid=el('div','content-grid'), card=el('article','card incident-card'), inner=el('div','card-pad');
   add(inner,add(el('div','incident-topline'),pill(selected.priority,selected.priority==='P1'?'danger':'warn'),pill(selected.kind==='correlation'?t('ov.corrPill'):t('ov.respPill'),'neutral'),el('span','mono muted',selected.rule+' · '+selected.id)));
   const isCorrelation=selected.kind==='correlation';
-  add(inner,el('h2','incident-title',isCorrelation?t('ov.corrTitle'):selected.title),el('p','incident-description',isCorrelation?t('ov.corrDesc'):selected.reasons.join(' ')));
+  add(inner,el('h2','incident-title',isCorrelation?t('ov.corrTitle'):L(selected,'title')),el('p','incident-description',isCorrelation?t('ov.corrDesc'):L(selected,'reasons').join(' ')));
   if(isCorrelation){
     const path=el('div','path-grid');
     const steps=[['01',t('ov.step1'),selected.gateway_id],['02',t('ov.step2t'),t('ov.step2')],['03',t('ov.step3t'),t('ov.step3',count(selected.distinct_files),count(selected.sensitive_files))]];
@@ -64,7 +66,7 @@ function renderOverview(root) {
   const brief=add(el('aside','card brief-card'),el('div','card-pad')); const body=brief.firstChild;
   add(body,add(el('div','brief-heading'),el('span','brief-mark','⌁'),el('h3','',t('ov.briefTitle')),pill(t('ov.briefPill'),'green')));
   const fact=(label,text,cls='')=>add(el('div','fact-block'),el('div','fact-label '+cls,label),el('p','',text));
-  add(body,fact(t('ov.factObserved'),selected.reasons[0]),fact(t('ov.factHypo'),isCorrelation?t('ov.factHypoCorr'):t('ov.factHypoSingle'),'warn'),fact(t('ov.factUnknown'),t('ov.factUnknownText'),'neutral'));
+  add(body,fact(t('ov.factObserved'),L(selected,'reasons')[0]),fact(t('ov.factHypo'),isCorrelation?t('ov.factHypoCorr'):t('ov.factHypoSingle'),'warn'),fact(t('ov.factUnknown'),t('ov.factUnknownText'),'neutral'));
   const output=el('div','model-output');output.hidden=true;output.setAttribute('role','status');
   const llmButton=button(t('ov.llmBtn'),'secondary compact',()=>run(async()=>{
     llmButton.disabled=true;llmButton.textContent=t('ov.llmGen');
@@ -73,7 +75,7 @@ function renderOverview(root) {
   }),!!PREVIEW || !state.llm?.configured);
   add(body,add(el('div','brief-meta'),el('div','',t('ov.metaDetect',state.rule_version)),el('div','',state.llm?.configured?t('ov.metaModelYes'):t('ov.metaModelNo'))),llmButton,output);add(grid,brief);add(root,grid);
   const lower=el('div','lower-grid'), listing=el('section','');add(listing,section(t('ov.findings',findings.length)));const list=el('div','card');
-  findings.forEach(f=>{const row=el('button','finding-row'+(selected.id===f.id?' selected':''));row.type='button';row.addEventListener('click',()=>{selectedId=f.id;render();});add(row,pill(f.priority,f.priority==='P1'?'danger':'warn'),add(el('div','finding-text'),el('strong','',f.title),el('small','',f.rule+' · '+(f.asset_id || f.gateway_id || t('ov.authEvent'))+' · '+t('ov.evCount',count(f.evidence_ids.length)))),el('span','row-arrow','↗'));add(list,row);});add(listing,list);add(lower,listing);
+  findings.forEach(f=>{const row=el('button','finding-row'+(selected.id===f.id?' selected':''));row.type='button';row.addEventListener('click',()=>{selectedId=f.id;render();});add(row,pill(f.priority,f.priority==='P1'?'danger':'warn'),add(el('div','finding-text'),el('strong','',L(f,'title')),el('small','',f.rule+' · '+(f.asset_id || f.gateway_id || t('ov.authEvent'))+' · '+t('ov.evCount',count(f.evidence_ids.length)))),el('span','row-arrow','↗'));add(list,row);});add(listing,list);add(lower,listing);
   const scope=el('section','');add(scope,section(t('ov.scope'),t('ov.scopeInput')));const scopeCard=el('div','card card-pad');
   [[t('ov.assetLedger'),state.snapshot.assets.length+t('unit.units')],[t('ov.authLog'),count(state.snapshot.event_counts.login)+t('unit.count')],[t('ov.fileLog'),count(state.snapshot.event_counts.file_access)+t('unit.count')]].forEach(([name,num])=>add(scopeCard,add(el('div','telemetry-item'),el('span','',name),pill(num,'neutral'))));
   add(scopeCard,el('p','telemetry-caption',t('ov.telemetry1')),el('p','telemetry-caption',t('ov.telemetry2',count(state.coverage.unknown_asset_fields),count(state.coverage.unknown_login_fields),count(state.coverage.unknown_classifications),count(state.coverage.unknown_read_sizes))));
@@ -90,11 +92,11 @@ function renderAssets(root){
 function renderPlans(root){
   add(root,section(t('pl.section'),t('pl.sub')));
   if(!state.proposals.length){add(root,add(el('div','empty-state'),el('h2','',t('pl.emptyTitle')),el('p','',t('pl.emptyText')),button(t('pl.back'),'secondary',()=>changeView('overview'))));return;}
-  state.proposals.forEach(p=>{const card=el('article','card plan-card');const status={pending:t('pl.pending'),expired:t('pl.expired'),simulated:t('pl.simulated')}[p.status]||p.status;add(card,add(el('div','plan-card-head'),el('h3','',p.plan.title),pill(status,p.status==='pending'?'warn':'neutral')),el('p','',p.plan.impact),el('p','mono',p.id+' / '+p.plan.target),el('small','muted',t('pl.deadline',date(p.expires_at))));
+  state.proposals.forEach(p=>{const card=el('article','card plan-card');const status={pending:t('pl.pending'),expired:t('pl.expired'),simulated:t('pl.simulated')}[p.status]||p.status;add(card,add(el('div','plan-card-head'),el('h3','',L(p.plan,'title')),pill(status,p.status==='pending'?'warn':'neutral')),el('p','',L(p.plan,'impact')),el('p','mono',p.id+' / '+p.plan.target),el('small','muted',t('pl.deadline',date(p.expires_at))));
     if(p.status==='pending')add(card,button(t('pl.open'),'secondary compact',()=>{currentPlan={proposal_id:p.id,plan:p.plan,expires_at:p.expires_at,snapshot_id:state.snapshot_id};showPlanDialog();},!!PREVIEW));add(root,card);});
 }
 function renderAudit(root){
-  add(root,add(el('div','audit-top'),add(el('div',''),pill(state.audit.valid?t('au.chainOk'):t('au.chainErr'),state.audit.valid?'green':'danger'),el('p','audit-note',state.audit.limitation)),button(t('au.export'),'secondary',()=>run(exportReport),!!PREVIEW)));
+  add(root,add(el('div','audit-top'),add(el('div',''),pill(state.audit.valid?t('au.chainOk'):t('au.chainErr'),state.audit.valid?'green':'danger'),el('p','audit-note',L(state.audit,'limitation'))),button(t('au.export'),'secondary',()=>run(exportReport),!!PREVIEW)));
   add(root,section(t('au.records',count(state.audit.count))));
   const table=el('table','table');add(table,add(el('thead',''),add(el('tr',''),...[t('au.h.record'),t('au.h.action'),t('au.h.basis')].map(v=>el('th','',v)))));const body=el('tbody','');
   state.audit_records.forEach(r=>add(body,add(el('tr',''),add(el('td',''),el('span','mono','#'+r.seq),el('small','',date(r.at))),add(el('td',''),el('span','',auditAction(r.action)),el('small','mono',r.action)),add(el('td',''),el('span','mono',r.payload.finding_id||r.payload.proposal_id||r.payload.snapshot_id||'—'),el('small','',r.payload.executed===false?t('au.noChange'):r.payload.actual_provider||t('au.integrityTarget'))))));add(table,body);add(root,add(el('div','card table-wrap'),table),el('p','audit-note',t('au.note')));
@@ -103,7 +105,7 @@ function renderTuning(root){
   const config=state.rule_config;
   add(root,section(t('tu.current'),t('tu.hash',config.digest)));
   const table=el('table','table');add(table,add(el('thead',''),add(el('tr',''),...[t('tu.h.name'),t('tu.h.value'),t('tu.h.meaning')].map(h=>el('th','',h)))));const body=el('tbody','');
-  config.parameters.forEach(p=>add(body,add(el('tr',''),add(el('td',''),el('span','mono',p.name)),add(el('td',''),el('strong','',String(p.value))),add(el('td',''),el('span','',p.description)))));
+  config.parameters.forEach(p=>add(body,add(el('tr',''),add(el('td',''),el('span','mono',p.name)),add(el('td',''),el('strong','',String(p.value))),add(el('td',''),el('span','',L(p,'description'))))));
   add(table,body);add(root,add(el('div','card table-wrap'),table));
   add(root,el('p','caution',t('tu.caution')));
   add(root,section(t('tu.measure'),t('tu.cli')));
@@ -124,9 +126,9 @@ async function loadDemo(){
 async function openPlan(finding){const result=await api('/api/plan',{snapshot_id:state.snapshot_id,finding_id:finding.id});currentPlan={...result,snapshot_id:state.snapshot_id};await refresh();showPlanDialog();}
 function showPlanDialog(){
   const p=currentPlan, d=$('planDialogContent');d.replaceChildren();
-  add(d,el('p','eyebrow',t('dlg.review')),add(el('div','plan-card-head'),el('h2','',p.plan.title),pill(t('dlg.simOnly'),'warn')));d.querySelector('h2').id='planTitle';
-  add(d,el('p','',p.plan.impact),el('p','mono',t('dlg.target',p.plan.target)));
-  add(d,el('h3','',t('dlg.preChecks')));const checks=el('ul','detail-list');p.plan.prechecks.forEach(x=>add(checks,el('li','',x)));add(d,checks,el('h3','field-label',t('dlg.recovery')),el('p','',p.plan.recovery),el('p','caution',t('dlg.cautionSim')));
+  add(d,el('p','eyebrow',t('dlg.review')),add(el('div','plan-card-head'),el('h2','',L(p.plan,'title')),pill(t('dlg.simOnly'),'warn')));d.querySelector('h2').id='planTitle';
+  add(d,el('p','',L(p.plan,'impact')),el('p','mono',t('dlg.target',p.plan.target)));
+  add(d,el('h3','',t('dlg.preChecks')));const checks=el('ul','detail-list');L(p.plan,'prechecks').forEach(x=>add(checks,el('li','',x)));add(d,checks,el('h3','field-label',t('dlg.recovery')),el('p','',L(p.plan,'recovery')),el('p','caution',t('dlg.cautionSim')));
   const reasonLabel=el('label','field-label',t('dlg.reasonLabel'));reasonLabel.htmlFor='approvalReason';const reason=el('textarea','');reason.id='approvalReason';reason.maxLength=500;reason.placeholder=t('dlg.reasonPlaceholder');
   const confirmLabel=el('label','field-label',t('dlg.confirmLabel'));confirmLabel.htmlFor='approvalConfirm';const confirmation=el('input','');confirmation.type='text';confirmation.id='approvalConfirm';confirmation.autocomplete='off';confirmation.spellcheck=false;
   const ack=el('input','');ack.type='checkbox';ack.id='approvalAck';const ackLabel=el('label','ack-label');ackLabel.htmlFor=ack.id;add(ackLabel,ack,el('span','',t('dlg.ack')));

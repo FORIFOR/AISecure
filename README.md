@@ -108,7 +108,7 @@ Detection, explanation, and the authority to act are separate modules with expli
 |---|---|
 | ![overview](docs/screenshots/overview.png) | ![tuning](docs/screenshots/tuning.png) |
 
-The UI shell is bilingual (English default, `日本語` toggle in the top bar). Analysis output produced by the backend — finding text, plan wording, parameter descriptions — is currently Japanese only; translating it is tracked as future work.
+The UI is fully bilingual — English by default, with a `日本語` toggle in the top bar. Finding text, plan wording, and parameter descriptions all switch language too.
 
 ## Status
 

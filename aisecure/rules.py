@@ -75,7 +75,18 @@ def from_mapping(raw) -> RuleConfig:
     return config
 
 
+DESC_EN = {
+    "window_seconds": "Time window for counting bulk access (seconds)",
+    "distinct_file_threshold": "Distinct files needed within the window to detect",
+    "login_lookback_seconds": "Max gap to link a login before bulk access (seconds)",
+    "sensitive_file_minimum": "Sensitive-labelled files required for correlation",
+    "stale_asset_hours": "Age after which asset data counts as stale",
+    "cvss_priority_threshold": "CVSS floor that raises an unknown-exposure asset to P2",
+    "identity_conditions": "Conditions that flag a privileged login. any = unmanaged or unapproved, both = both",
+}
+
+
 def describe(config: RuleConfig) -> list[dict]:
     values = config.as_dict()
-    return ([{"name": name, "value": values[name], "description": BOUNDS[name][3]} for name in BOUNDS]
-            + [{"name": name, "value": values[name], "description": CHOICES[name][1]} for name in CHOICES])
+    return ([{"name": name, "value": values[name], "description": BOUNDS[name][3], "description_en": DESC_EN[name]} for name in BOUNDS]
+            + [{"name": name, "value": values[name], "description": CHOICES[name][1], "description_en": DESC_EN[name]} for name in CHOICES])

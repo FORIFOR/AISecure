@@ -134,7 +134,8 @@ class Store:
                 anchored = type(count) is int and isinstance(tip, str) and count in seen and hmac.compare_digest(seen[count], tip)
                 valid = valid and anchored
             return {"valid": valid, "count": len(rows), "tip": previous, "anchor_checked": anchor is not None, "anchor_valid": anchored,
-                    "limitation": "外部チェックポイントなしでは末尾削除を検出できません。ホストと鍵の同時侵害には耐えません。"}
+                    "limitation": "外部チェックポイントなしでは末尾削除を検出できません。ホストと鍵の同時侵害には耐えません。",
+                    "limitation_en": "Without an external checkpoint, tail truncation cannot be detected. It does not withstand simultaneous compromise of the host and the key."}
 
     def ingest(self, raw: dict, source_mode: str = "imported", now=None, max_events: int = MAX_EVENTS,
                max_assets: int = MAX_ASSETS, verified_provenance: bool = False) -> str:
