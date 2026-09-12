@@ -32,6 +32,23 @@ Raising the threshold until the bulk rule goes quiet also stops it detecting the
 
 > Synthetic data. This is not a real-world false-positive rate — it is a rehearsal you re-run on your own logs. [Full method and caveats →](docs/TUNING.md)
 
+## 🧪 Want to help test it? (2 minutes)
+
+This is an early prototype and **the most useful thing right now is a second pair of eyes.** No security expertise needed.
+
+```bash
+git clone https://github.com/FORIFOR/AISecure.git && cd AISecure
+python3 -m aisecure serve --demo   # opens a local, offline UI
+```
+
+Then click through the demo and tell us one thing that confused you, or whether the core idea (correlate the *path*, not the CVSS score) landed. **[Open a 2-minute feedback issue →](https://github.com/FORIFOR/AISecure/issues/new?template=tester-feedback.md)**
+
+More hands-on? Two asks that would genuinely move this forward:
+- **[Does the importer choke on your log format?](https://github.com/FORIFOR/AISecure/issues?q=is%3Aissue+label%3Aconnector)** — VPN / IdP / file-server logs. [Report a format →](https://github.com/FORIFOR/AISecure/issues/new?template=log-format.md)
+- **[Is a normal-business pattern missing from the false-positive baseline?](https://github.com/FORIFOR/AISecure/issues?q=is%3Aissue+label%3Atester-wanted)** — the thing that makes the measured number honest.
+
+Everything runs locally and offline. No account, no telemetry, nothing leaves your machine.
+
 ## Quick start
 
 Python 3.11+. No pip install, no API key, no cloud account, no LLM.
