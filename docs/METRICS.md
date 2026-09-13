@@ -1,6 +1,8 @@
 # Detection metrics (synthetic data)
 
-Precision, recall, F1 and false positives per day for each detection rule, measured with the bundled evaluator on **labeled synthetic scenarios**. These are **not real-world rates**. They are a rehearsal you re-run on your own logs before you trust a threshold. The most important open milestone is exactly this measurement on one organisation's real, anonymised logs — see [SECURITY_CHECKLIST.md](SECURITY_CHECKLIST.md).
+Precision, recall and false positives per day for each detection rule, measured with the bundled evaluator on **labeled synthetic scenarios**. These are **not real-world rates**. They are a rehearsal you re-run on your own logs before you trust a threshold. The most important open milestone is exactly this measurement on one organisation's real, anonymised logs — see [SECURITY_CHECKLIST.md](SECURITY_CHECKLIST.md).
+
+The [2026-09-13 evaluation](evidence/README.md) adds F1/FPR/FNR using a single unit (scenario × behavioral rule), and prevents repeated alerts from inflating recall. Do not combine the alert-level precision below with scenario/rule recall to calculate F1.
 
 ## What was measured
 
@@ -10,13 +12,13 @@ Precision, recall, F1 and false positives per day for each detection rule, measu
 
 ## Results
 
-| Rule | What it fires on | Precision | Recall | F1 | FP/day |
-|---|---|--:|--:|--:|--:|
-| **AS-002** | Privileged login that fails its conditions | 0.027 | 1.00 | 0.053 | 0.48 |
-| **AS-003** | Bulk file access on its own | 0.003 | 1.00 | 0.006 | 4.73 |
-| **AS-004** | Exposure **+** privileged login **+** bulk access (correlation) | **1.000** | **1.00** | **1.000** | **0.00** |
+| Rule | What it fires on | Alert precision | Scenario/rule recall | FP/day |
+|---|---|--:|--:|--:|
+| **AS-002** | Privileged login that fails its conditions | 0.027 | 1.00 | 0.48 |
+| **AS-003** | Bulk file access on its own | 0.003 | 1.00 | 4.73 |
+| **AS-004** | Exposure **+** privileged login **+** bulk access (correlation) | **1.000** | **1.00** | **0.00** |
 
-- **Precision** = incidents correctly flagged ÷ (that + false alerts across all scenarios).
+- **Alert precision** = alerts linked to a labeled incident ÷ all behavioral alerts across the scenarios.
 - **Recall** = incidents detected ÷ incidents present.
 - **FP/day** = false alerts ÷ scenario-days.
 

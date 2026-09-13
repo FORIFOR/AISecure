@@ -1,6 +1,7 @@
 from __future__ import annotations
 import json
 import unittest
+from unittest.mock import patch
 
 from aisecure.baseline import scenario, load_scenario, BEHAVIORAL_RULES
 from aisecure.evaluate import evaluate, markdown, prepare, score, sweep
@@ -99,6 +100,23 @@ class EvaluationTests(unittest.TestCase):
         self.assertEqual(totals["true_positives"], sum(r["behavioral"]["tp"] for r in report["scenarios"]))
         self.assertEqual(totals["false_positives"], sum(r["behavioral"]["fp"] for r in report["scenarios"]))
         self.assertEqual(totals["expected_detections"], len(BEHAVIORAL_RULES))
+
+    def test_multiple_alerts_for_one_incident_do_not_inflate_recall(self):
+        prepared = {**self.incident, 'labels': {**self.incident['labels'], 'expect_rules': ['AS-004']}}
+        malicious_id = prepared['labels']['malicious_event_ids'][0]
+        finding = {'rule': 'AS-004', 'evidence_ids': [malicious_id]}
+        with patch('aisecure.evaluate.analyze', return_value=[finding, finding]):
+            totals = evaluate([prepared])['totals']
+        self.assertEqual(totals['true_positives'], 2)
+        self.assertEqual(totals['recall'], 1)
+        self.assertEqual(totals['rule_case_metrics']['tp'], 1)
+        self.assertEqual(totals['rule_case_metrics']['f1'], 1)
+        self.assertIsNone(totals['mttr_reduction'])
+
+    def test_negative_only_dataset_has_no_invented_recall(self):
+        metrics = evaluate([self.clean])['totals']['rule_case_metrics']
+        self.assertIsNone(metrics['recall'])
+        self.assertGreater(metrics['false_positive_rate'], 0)
 
     def test_report_records_the_configuration_used(self):
         config = DEFAULT_RULES.replace(window_seconds=600)

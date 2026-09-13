@@ -1,0 +1,662 @@
+{
+  "rule_version": "2026-09-12.2",
+  "rule_config": {
+    "digest": "814b2f0ec0026668",
+    "values": {
+      "window_seconds": 300,
+      "distinct_file_threshold": 100,
+      "login_lookback_seconds": 1800,
+      "sensitive_file_minimum": 1,
+      "stale_asset_hours": 24,
+      "cvss_priority_threshold": 7.0,
+      "identity_conditions": "any"
+    }
+  },
+  "generated_at": "2026-09-13T10:23:10Z",
+  "scenarios": [
+    {
+      "scenario": "controlled-1-False",
+      "attack": false,
+      "days": 6.81,
+      "events": 22579,
+      "per_rule": {
+        "AS-002": {
+          "alerts": 3,
+          "fp": 3
+        },
+        "AS-003": {
+          "alerts": 32,
+          "fp": 32
+        }
+      },
+      "behavioral": {
+        "tp": 0,
+        "fp": 35,
+        "fn": 0,
+        "false_positive_actors": 6,
+        "false_positives_per_day": 5.14
+      },
+      "hygiene_alerts": 0,
+      "missed_rules": []
+    },
+    {
+      "scenario": "controlled-1-True",
+      "attack": true,
+      "days": 6.93,
+      "events": 23588,
+      "per_rule": {
+        "AS-002": {
+          "alerts": 5,
+          "fp": 4,
+          "tp": 1
+        },
+        "AS-003": {
+          "alerts": 32,
+          "fp": 31,
+          "tp": 1
+        },
+        "AS-004": {
+          "alerts": 1,
+          "tp": 1
+        },
+        "AS-001": {
+          "alerts": 1
+        }
+      },
+      "behavioral": {
+        "tp": 3,
+        "fp": 35,
+        "fn": 0,
+        "false_positive_actors": 7,
+        "false_positives_per_day": 5.05
+      },
+      "hygiene_alerts": 1,
+      "missed_rules": []
+    },
+    {
+      "scenario": "controlled-2-False",
+      "attack": false,
+      "days": 6.81,
+      "events": 22390,
+      "per_rule": {
+        "AS-002": {
+          "alerts": 3,
+          "fp": 3
+        },
+        "AS-003": {
+          "alerts": 30,
+          "fp": 30
+        }
+      },
+      "behavioral": {
+        "tp": 0,
+        "fp": 33,
+        "fn": 0,
+        "false_positive_actors": 6,
+        "false_positives_per_day": 4.85
+      },
+      "hygiene_alerts": 0,
+      "missed_rules": []
+    },
+    {
+      "scenario": "controlled-2-True",
+      "attack": true,
+      "days": 6.93,
+      "events": 21616,
+      "per_rule": {
+        "AS-002": {
+          "alerts": 5,
+          "fp": 4,
+          "tp": 1
+        },
+        "AS-003": {
+          "alerts": 31,
+          "fp": 30,
+          "tp": 1
+        },
+        "AS-004": {
+          "alerts": 1,
+          "tp": 1
+        },
+        "AS-001": {
+          "alerts": 1
+        }
+      },
+      "behavioral": {
+        "tp": 3,
+        "fp": 34,
+        "fn": 0,
+        "false_positive_actors": 6,
+        "false_positives_per_day": 4.9
+      },
+      "hygiene_alerts": 1,
+      "missed_rules": []
+    },
+    {
+      "scenario": "controlled-3-False",
+      "attack": false,
+      "days": 6.81,
+      "events": 22544,
+      "per_rule": {
+        "AS-002": {
+          "alerts": 6,
+          "fp": 6
+        },
+        "AS-003": {
+          "alerts": 30,
+          "fp": 30
+        }
+      },
+      "behavioral": {
+        "tp": 0,
+        "fp": 36,
+        "fn": 0,
+        "false_positive_actors": 6,
+        "false_positives_per_day": 5.29
+      },
+      "hygiene_alerts": 0,
+      "missed_rules": []
+    },
+    {
+      "scenario": "controlled-3-True",
+      "attack": true,
+      "days": 6.93,
+      "events": 23959,
+      "per_rule": {
+        "AS-002": {
+          "alerts": 1,
+          "tp": 1
+        },
+        "AS-003": {
+          "alerts": 31,
+          "fp": 30,
+          "tp": 1
+        },
+        "AS-004": {
+          "alerts": 1,
+          "tp": 1
+        },
+        "AS-001": {
+          "alerts": 1
+        }
+      },
+      "behavioral": {
+        "tp": 3,
+        "fp": 30,
+        "fn": 0,
+        "false_positive_actors": 6,
+        "false_positives_per_day": 4.33
+      },
+      "hygiene_alerts": 1,
+      "missed_rules": []
+    },
+    {
+      "scenario": "controlled-4-False",
+      "attack": false,
+      "days": 6.81,
+      "events": 22515,
+      "per_rule": {
+        "AS-002": {
+          "alerts": 2,
+          "fp": 2
+        },
+        "AS-003": {
+          "alerts": 29,
+          "fp": 29
+        }
+      },
+      "behavioral": {
+        "tp": 0,
+        "fp": 31,
+        "fn": 0,
+        "false_positive_actors": 6,
+        "false_positives_per_day": 4.55
+      },
+      "hygiene_alerts": 0,
+      "missed_rules": []
+    },
+    {
+      "scenario": "controlled-4-True",
+      "attack": true,
+      "days": 6.93,
+      "events": 23428,
+      "per_rule": {
+        "AS-002": {
+          "alerts": 4,
+          "tp": 1,
+          "fp": 3
+        },
+        "AS-003": {
+          "alerts": 34,
+          "fp": 33,
+          "tp": 1
+        },
+        "AS-004": {
+          "alerts": 1,
+          "tp": 1
+        },
+        "AS-001": {
+          "alerts": 1
+        }
+      },
+      "behavioral": {
+        "tp": 3,
+        "fp": 36,
+        "fn": 0,
+        "false_positive_actors": 7,
+        "false_positives_per_day": 5.19
+      },
+      "hygiene_alerts": 1,
+      "missed_rules": []
+    },
+    {
+      "scenario": "controlled-5-False",
+      "attack": false,
+      "days": 6.48,
+      "events": 23764,
+      "per_rule": {
+        "AS-002": {
+          "alerts": 3,
+          "fp": 3
+        },
+        "AS-003": {
+          "alerts": 31,
+          "fp": 31
+        }
+      },
+      "behavioral": {
+        "tp": 0,
+        "fp": 34,
+        "fn": 0,
+        "false_positive_actors": 7,
+        "false_positives_per_day": 5.25
+      },
+      "hygiene_alerts": 0,
+      "missed_rules": []
+    },
+    {
+      "scenario": "controlled-5-True",
+      "attack": true,
+      "days": 6.93,
+      "events": 23234,
+      "per_rule": {
+        "AS-002": {
+          "alerts": 4,
+          "fp": 3,
+          "tp": 1
+        },
+        "AS-003": {
+          "alerts": 30,
+          "fp": 29,
+          "tp": 1
+        },
+        "AS-004": {
+          "alerts": 1,
+          "tp": 1
+        },
+        "AS-001": {
+          "alerts": 1
+        }
+      },
+      "behavioral": {
+        "tp": 3,
+        "fp": 32,
+        "fn": 0,
+        "false_positive_actors": 6,
+        "false_positives_per_day": 4.62
+      },
+      "hygiene_alerts": 1,
+      "missed_rules": []
+    },
+    {
+      "scenario": "controlled-6-False",
+      "attack": false,
+      "days": 6.81,
+      "events": 24538,
+      "per_rule": {
+        "AS-002": {
+          "alerts": 4,
+          "fp": 4
+        },
+        "AS-003": {
+          "alerts": 32,
+          "fp": 32
+        }
+      },
+      "behavioral": {
+        "tp": 0,
+        "fp": 36,
+        "fn": 0,
+        "false_positive_actors": 7,
+        "false_positives_per_day": 5.29
+      },
+      "hygiene_alerts": 0,
+      "missed_rules": []
+    },
+    {
+      "scenario": "controlled-6-True",
+      "attack": true,
+      "days": 6.93,
+      "events": 23683,
+      "per_rule": {
+        "AS-002": {
+          "alerts": 5,
+          "tp": 1,
+          "fp": 4
+        },
+        "AS-003": {
+          "alerts": 31,
+          "fp": 30,
+          "tp": 1
+        },
+        "AS-004": {
+          "alerts": 1,
+          "tp": 1
+        },
+        "AS-001": {
+          "alerts": 1
+        }
+      },
+      "behavioral": {
+        "tp": 3,
+        "fp": 34,
+        "fn": 0,
+        "false_positive_actors": 7,
+        "false_positives_per_day": 4.9
+      },
+      "hygiene_alerts": 1,
+      "missed_rules": []
+    },
+    {
+      "scenario": "controlled-7-False",
+      "attack": false,
+      "days": 6.81,
+      "events": 22634,
+      "per_rule": {
+        "AS-002": {
+          "alerts": 5,
+          "fp": 5
+        },
+        "AS-003": {
+          "alerts": 31,
+          "fp": 31
+        }
+      },
+      "behavioral": {
+        "tp": 0,
+        "fp": 36,
+        "fn": 0,
+        "false_positive_actors": 6,
+        "false_positives_per_day": 5.29
+      },
+      "hygiene_alerts": 0,
+      "missed_rules": []
+    },
+    {
+      "scenario": "controlled-7-True",
+      "attack": true,
+      "days": 6.93,
+      "events": 24307,
+      "per_rule": {
+        "AS-002": {
+          "alerts": 7,
+          "fp": 6,
+          "tp": 1
+        },
+        "AS-003": {
+          "alerts": 32,
+          "fp": 31,
+          "tp": 1
+        },
+        "AS-004": {
+          "alerts": 1,
+          "tp": 1
+        },
+        "AS-001": {
+          "alerts": 1
+        }
+      },
+      "behavioral": {
+        "tp": 3,
+        "fp": 37,
+        "fn": 0,
+        "false_positive_actors": 7,
+        "false_positives_per_day": 5.34
+      },
+      "hygiene_alerts": 1,
+      "missed_rules": []
+    },
+    {
+      "scenario": "controlled-8-False",
+      "attack": false,
+      "days": 6.81,
+      "events": 22328,
+      "per_rule": {
+        "AS-002": {
+          "alerts": 4,
+          "fp": 4
+        },
+        "AS-003": {
+          "alerts": 28,
+          "fp": 28
+        }
+      },
+      "behavioral": {
+        "tp": 0,
+        "fp": 32,
+        "fn": 0,
+        "false_positive_actors": 6,
+        "false_positives_per_day": 4.7
+      },
+      "hygiene_alerts": 0,
+      "missed_rules": []
+    },
+    {
+      "scenario": "controlled-8-True",
+      "attack": true,
+      "days": 6.93,
+      "events": 24080,
+      "per_rule": {
+        "AS-002": {
+          "alerts": 3,
+          "tp": 1,
+          "fp": 2
+        },
+        "AS-003": {
+          "alerts": 33,
+          "fp": 32,
+          "tp": 1
+        },
+        "AS-004": {
+          "alerts": 1,
+          "tp": 1
+        },
+        "AS-001": {
+          "alerts": 1
+        }
+      },
+      "behavioral": {
+        "tp": 3,
+        "fp": 34,
+        "fn": 0,
+        "false_positive_actors": 7,
+        "false_positives_per_day": 4.9
+      },
+      "hygiene_alerts": 1,
+      "missed_rules": []
+    },
+    {
+      "scenario": "controlled-9-False",
+      "attack": false,
+      "days": 6.47,
+      "events": 26532,
+      "per_rule": {
+        "AS-002": {
+          "alerts": 2,
+          "fp": 2
+        },
+        "AS-003": {
+          "alerts": 30,
+          "fp": 30
+        }
+      },
+      "behavioral": {
+        "tp": 0,
+        "fp": 32,
+        "fn": 0,
+        "false_positive_actors": 6,
+        "false_positives_per_day": 4.95
+      },
+      "hygiene_alerts": 0,
+      "missed_rules": []
+    },
+    {
+      "scenario": "controlled-9-True",
+      "attack": true,
+      "days": 6.93,
+      "events": 23001,
+      "per_rule": {
+        "AS-002": {
+          "alerts": 6,
+          "tp": 1,
+          "fp": 5
+        },
+        "AS-003": {
+          "alerts": 31,
+          "tp": 1,
+          "fp": 30
+        },
+        "AS-004": {
+          "alerts": 1,
+          "tp": 1
+        },
+        "AS-001": {
+          "alerts": 1
+        }
+      },
+      "behavioral": {
+        "tp": 3,
+        "fp": 35,
+        "fn": 0,
+        "false_positive_actors": 6,
+        "false_positives_per_day": 5.05
+      },
+      "hygiene_alerts": 1,
+      "missed_rules": []
+    },
+    {
+      "scenario": "controlled-10-False",
+      "attack": false,
+      "days": 6.81,
+      "events": 24302,
+      "per_rule": {
+        "AS-002": {
+          "alerts": 2,
+          "fp": 2
+        },
+        "AS-003": {
+          "alerts": 32,
+          "fp": 32
+        }
+      },
+      "behavioral": {
+        "tp": 0,
+        "fp": 34,
+        "fn": 0,
+        "false_positive_actors": 7,
+        "false_positives_per_day": 4.99
+      },
+      "hygiene_alerts": 0,
+      "missed_rules": []
+    },
+    {
+      "scenario": "controlled-10-True",
+      "attack": true,
+      "days": 6.93,
+      "events": 23909,
+      "per_rule": {
+        "AS-002": {
+          "alerts": 4,
+          "fp": 3,
+          "tp": 1
+        },
+        "AS-003": {
+          "alerts": 31,
+          "fp": 30,
+          "tp": 1
+        },
+        "AS-004": {
+          "alerts": 1,
+          "tp": 1
+        },
+        "AS-001": {
+          "alerts": 1
+        }
+      },
+      "behavioral": {
+        "tp": 3,
+        "fp": 33,
+        "fn": 0,
+        "false_positive_actors": 6,
+        "false_positives_per_day": 4.76
+      },
+      "hygiene_alerts": 1,
+      "missed_rules": []
+    }
+  ],
+  "totals": {
+    "scenarios": 20,
+    "days": 136.73,
+    "events": 468931,
+    "true_positives": 30,
+    "false_positives": 679,
+    "missed": 0,
+    "expected_detections": 30,
+    "precision": 0.0423,
+    "recall": 1.0,
+    "rule_case_metrics": {
+      "tp": 30,
+      "fp": 20,
+      "tn": 10,
+      "fn": 0,
+      "unit": "scenario × behavioral rule",
+      "precision": 0.6,
+      "recall": 1.0,
+      "f1": 0.75,
+      "false_positive_rate": 0.6667,
+      "false_negative_rate": 0.0
+    },
+    "mttr_reduction": null,
+    "false_positives_per_day": 4.97,
+    "hygiene_alerts": 10,
+    "per_rule": {
+      "AS-001": {
+        "alerts": 10
+      },
+      "AS-002": {
+        "alerts": 78,
+        "fp": 68,
+        "tp": 10
+      },
+      "AS-003": {
+        "alerts": 621,
+        "fp": 611,
+        "tp": 10
+      },
+      "AS-004": {
+        "alerts": 10,
+        "tp": 10
+      }
+    }
+  },
+  "caveats": [
+    "合成データ上の数値であり、実環境の誤検知率ではありません。",
+    "AS-001とAS-005は台帳の登録内容をそのまま示すため、精度計算には含めていません。",
+    "検知漏れは、ラベル付き事案に対して期待したルールが1件も一致しなかった場合に数えています。",
+    "precisionはアラート単位、recallは期待したシナリオ×ルール単位です。同じ単位のF1・FPR・FNRはrule_case_metricsに記録します。",
+    "MTTR短縮は人間の調査時間を測っていないため未測定です。"
+  ],
+  "scope": "20 synthetic seven-day datasets: 10 seeds × normal/one injected attack chain; not 20 distinct attack types, not enterprise logs",
+  "source_commit": "b426792c0ba67038f3bf5b1c08b9c39a141ec1f2",
+  "working_tree_changes": "deduplicate recall; add rule-case metrics"
+}

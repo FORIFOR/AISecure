@@ -91,6 +91,24 @@ def evaluate(scenarios: list[dict], config: RuleConfig | None = None) -> dict:
     fn = sum(r["behavioral"]["fn"] for r in results)
     expected = sum(len(p["labels"]["expect_rules"]) for p in prepared)
     per_rule: dict[str, Counter] = {}
+    # A rule can emit several alerts for one labeled scenario. Recall counts
+    # detected scenario/rule pairs once; alert volume is a different denominator.
+    cases = Counter(tp=0, fp=0, tn=0, fn=0)
+    for source, result in zip(prepared, results):
+        expected_rules = set(source['labels']['expect_rules'])
+        for rule in BEHAVIORAL_RULES:
+            counts = result['per_rule'].get(rule, {})
+            if rule in expected_rules:
+                cases['tp' if counts.get('tp', 0) else 'fn'] += 1
+            else:
+                cases['fp' if counts.get('alerts', 0) else 'tn'] += 1
+    ratio = lambda a, b: round(a / b, 4) if b else None
+    case_metrics = {**cases, 'unit': 'scenario × behavioral rule',
+                    'precision': ratio(cases['tp'], cases['tp'] + cases['fp']),
+                    'recall': ratio(cases['tp'], cases['tp'] + cases['fn']),
+                    'f1': ratio(2 * cases['tp'], 2 * cases['tp'] + cases['fp'] + cases['fn']),
+                    'false_positive_rate': ratio(cases['fp'], cases['fp'] + cases['tn']),
+                    'false_negative_rate': ratio(cases['fn'], cases['tp'] + cases['fn'])}
     for row in results:
         for rule, counts in row["per_rule"].items():
             per_rule.setdefault(rule, Counter()).update(counts)
@@ -101,13 +119,17 @@ def evaluate(scenarios: list[dict], config: RuleConfig | None = None) -> dict:
                        "true_positives": tp, "false_positives": fp, "missed": fn,
                        "expected_detections": expected,
                        "precision": round(tp / (tp + fp), 4) if tp + fp else None,
-                       "recall": round(tp / expected, 4) if expected else None,
+                       "recall": round((expected - fn) / expected, 4) if expected else None,
+                       "rule_case_metrics": case_metrics,
+                       "mttr_reduction": None,
                        "false_positives_per_day": round(fp / days, 2) if days else None,
                        "hygiene_alerts": sum(r["hygiene_alerts"] for r in results),
                        "per_rule": {rule: dict(counts) for rule, counts in sorted(per_rule.items())}},
             "caveats": ["合成データ上の数値であり、実環境の誤検知率ではありません。",
                         "AS-001とAS-005は台帳の登録内容をそのまま示すため、精度計算には含めていません。",
-                        "検知漏れは、ラベル付き事案に対して期待したルールが1件も一致しなかった場合に数えています。"]}
+                        "検知漏れは、ラベル付き事案に対して期待したルールが1件も一致しなかった場合に数えています。",
+                        "precisionはアラート単位、recallは期待したシナリオ×ルール単位です。同じ単位のF1・FPR・FNRはrule_case_metricsに記録します。",
+                        "MTTR短縮は人間の調査時間を測っていないため未測定です。"]}
 
 
 def sweep(scenarios: list[dict], base: RuleConfig | None = None,
