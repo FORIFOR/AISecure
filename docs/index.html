@@ -143,6 +143,7 @@ footer a{color:var(--muted)}
       <a class="hide-sm" href="#measured">The measurement</a>
       <a class="hide-sm" href="#start">Quick start</a>
       <a class="hide-sm" href="#limits">Limits</a>
+      <a class="hide-sm" href="#use">Use it</a>
       <a href="index.ja.html">日本語</a>
       <a href="https://github.com/FORIFOR/AISecure">GitHub&nbsp;↗</a>
     </nav>
@@ -293,6 +294,31 @@ python3 -m aisecure evaluate normal.json incident.json --sweep --out report.md</
       <a class="btn primary" href="https://github.com/FORIFOR/AISecure">Star on GitHub</a>
       <a class="btn ghost" href="https://github.com/FORIFOR/AISecure/blob/main/README.ja.md">日本語 README</a>
     </div>
+  </div>
+</section>
+
+<section id="use">
+  <div class="wrap">
+    <p class="eyebrow">Two ways to use this</p>
+    <h2>Run it yourself, or evaluate it on your logs.</h2>
+    <div class="grid g2">
+      <div class="card">
+        <h3>Use it as open source</h3>
+        <p>Investigate the sample case, read the detection logic end to end, and run it locally on your own snapshot. Free under MIT — issues and pull requests welcome.</p>
+        <div class="cta" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:20px">
+          <a class="btn ghost" href="#start">Run it locally</a>
+          <a class="btn ghost" href="https://github.com/FORIFOR/AISecure">Star on GitHub</a>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Evaluate it on your environment</h3>
+        <p>Talk through importing your own authentication, gateway and file-access logs, and measuring the false-positive rate over a period where nothing happened. We ask for the log <i>shape</i>, the systems involved, and the question you want answered — in non-confidential terms. Never paste real logs or secrets.</p>
+        <div class="cta" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:20px">
+          <a class="btn primary" href="https://github.com/FORIFOR/AISecure/issues/new?template=evaluation-inquiry.md">Discuss an evaluation →</a>
+        </div>
+      </div>
+    </div>
+    <p class="note">This is a prototype, and an evaluation is hands-on and exploratory — not a paid monitoring service. Everything runs locally; you never upload real logs anywhere.</p>
   </div>
 </section>
 
