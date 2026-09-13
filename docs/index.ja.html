@@ -6,7 +6,7 @@
 <title>AI Secure — 判断の根拠は手元に</title>
 <meta name="description" content="公開・特権・行動を相関させ、CVSS順の並べ替えをやめる、ローカル完結のセキュリティ初動支援プロトタイプ。自分たちのルールの誤検知コストも公開しています。">
 <meta property="og:title" content="AI Secure — Evidence before action">
-<meta property="og:description" content="自分たちの大量参照ルールを正常業務18.8日ぶんで測定: 103件中102件が誤検知。相関ルールは1件中0件でした。">
+<meta property="og:description" content="点のアラートを、証拠つきの「調べられる1件」に。公開状態・特権ログイン・大量ファイル閲覧を関連づけます。合成データ上でオフライン動作、対応はすべてシミュレーション。本番の防御機構ではなく、検証用プロトタイプです。">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://forifor.github.io/AISecure/index.ja.html">
 <meta property="og:image" content="https://forifor.github.io/AISecure/media/social-card.png">
@@ -31,7 +31,7 @@
   --bg:#f6f7f5; --paper:#fff; --ink:#20352f; --muted:#5d6f65; --faint:#8b978d;
   --green:#175b48; --green-2:#104737; --mint:#edf5ef; --line:#e3e8e2;
   --red:#a44136; --red-bg:#fff0ed; --amber:#9c4c25;
-  --radius:16px; --max:1120px;
+  --radius:16px; --max:1200px;
   --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,"Noto Sans JP","Hiragino Kaku Gothic ProN",Meiryo,sans-serif;
   --mono:ui-monospace,SFMono-Regular,Menlo,"Noto Sans Mono",monospace;
 }
@@ -68,7 +68,7 @@ header nav a:hover{color:var(--ink)}
 @media(max-width:720px){header nav a.hide-sm{display:none}}
 
 /* buttons */
-.btn{display:inline-flex;align-items:center;gap:9px;border-radius:9px;padding:12px 20px;font-size:15px;
+.btn{display:inline-flex;align-items:center;gap:9px;border-radius:9px;padding:12px 20px;min-height:48px;font-size:15px;
      font-weight:600;text-decoration:none;border:1px solid transparent;white-space:nowrap}
 .btn.primary{background:var(--green);color:#fff}
 .btn.primary:hover{background:var(--green-2)}
@@ -161,11 +161,11 @@ footer a{color:var(--muted)}
       ばらばらに見えるこの3つの兆候を、AI Secure は<b>根拠つきの「1件の事案」</b>としてまとめます。
       すべて手元の端末で完結し、LLM は不要。しかも、自分たちの検知ルールが正常業務で何件の誤検知を出すかまで公開しています。</p>
     <div class="cta">
-      <a class="btn primary" href="try.html">ブラウザで試す →</a>
-      <a class="btn ghost" href="https://github.com/FORIFOR/AISecure">GitHubでStar</a>
+      <a class="btn primary" href="try.html">サンプル事例を調べる →</a>
       <a class="btn ghost" href="#start">ローカルで動かす</a>
+      <a class="btn ghost" href="https://github.com/FORIFOR/AISecure">GitHubでStar</a>
     </div>
-    <p class="note" style="margin-top:10px">インストールもアカウントも不要。合成データ上で、実際の画面をそのまま触れます。2分いただけると本当に助かります。</p>
+    <p class="note" style="margin-top:10px">検証用プロトタイプ — 合成データ上の実画面で、対応はすべてシミュレーションです。インストールもアカウントも不要。2分いただけると本当に助かります。</p>
     <div class="badges"><span>MIT</span><span>Python 3.11+</span><span>依存ゼロ</span><span>テスト179件</span><span>127.0.0.1のみ</span></div>
     <div class="media"><video src="media/intro-ja.mp4" poster="media/intro-poster-ja.png" controls autoplay muted loop playsinline preload="metadata"></video></div>
     <p class="note" style="text-align:center">約37秒のイントロです。音を出すにはミュートを解除してください。<a href="media/intro-narrated-ja.mp4">ナレーション版もあります</a>。</p>

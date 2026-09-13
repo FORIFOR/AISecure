@@ -6,7 +6,7 @@
 <title>AI Secure — Evidence before action</title>
 <meta name="description" content="A local-first security triage prototype that correlates exposure, privilege and behaviour instead of ranking alerts by CVSS — and publishes what that costs in false positives.">
 <meta property="og:title" content="AI Secure — Evidence before action">
-<meta property="og:description" content="We measured our own bulk-access rule on 18.8 days of normal business traffic: 103 alerts, 102 false positives. The correlation rule: 1 alert, 0 false positives.">
+<meta property="og:description" content="A local-first prototype that turns point alerts into one evidence-backed case you can investigate — exposure + privileged login + bulk file access. Runs offline on synthetic data; actions simulated. An evaluation prototype, not a production control.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://forifor.github.io/AISecure/">
 <meta property="og:image" content="https://forifor.github.io/AISecure/media/social-card.png">
@@ -31,7 +31,7 @@
   --bg:#f6f7f5; --paper:#fff; --ink:#20352f; --muted:#5d6f65; --faint:#8b978d;
   --green:#175b48; --green-2:#104737; --mint:#edf5ef; --line:#e3e8e2;
   --red:#a44136; --red-bg:#fff0ed; --amber:#9c4c25;
-  --radius:16px; --max:1120px;
+  --radius:16px; --max:1200px;
   --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,"Noto Sans JP","Hiragino Kaku Gothic ProN",Meiryo,sans-serif;
   --mono:ui-monospace,SFMono-Regular,Menlo,"Noto Sans Mono",monospace;
 }
@@ -68,7 +68,7 @@ header nav a:hover{color:var(--ink)}
 @media(max-width:720px){header nav a.hide-sm{display:none}}
 
 /* buttons */
-.btn{display:inline-flex;align-items:center;gap:9px;border-radius:9px;padding:12px 20px;font-size:15px;
+.btn{display:inline-flex;align-items:center;gap:9px;border-radius:9px;padding:12px 20px;min-height:48px;font-size:15px;
      font-weight:600;text-decoration:none;border:1px solid transparent;white-space:nowrap}
 .btn.primary{background:var(--green);color:#fff}
 .btn.primary:hover{background:var(--green-2)}
@@ -162,11 +162,11 @@ footer a{color:var(--muted)}
       and a burst of sensitive file reads into <b>one reviewable case with its evidence attached</b>.
       It runs entirely on your machine, needs no LLM, and it publishes what its own rules cost in false positives.</p>
     <div class="cta">
-      <a class="btn primary" href="try.html">Try in your browser →</a>
-      <a class="btn ghost" href="https://github.com/FORIFOR/AISecure">Star on GitHub</a>
+      <a class="btn primary" href="try.html">Investigate a sample case →</a>
       <a class="btn ghost" href="#start">Run it locally</a>
+      <a class="btn ghost" href="https://github.com/FORIFOR/AISecure">Star on GitHub</a>
     </div>
-    <p class="note" style="margin-top:10px">No install, no account — the real UI on synthetic data. Two minutes of feedback would genuinely help.</p>
+    <p class="note" style="margin-top:10px">An evaluation prototype — the real UI on synthetic data, actions simulated. No install, no account; two minutes of feedback would genuinely help.</p>
     <div class="badges"><span>MIT</span><span>Python 3.11+</span><span>0 runtime deps</span><span>178 tests</span><span>127.0.0.1 only</span></div>
     <div class="media"><video src="media/intro.mp4" poster="media/intro-poster.png" controls autoplay muted loop playsinline preload="metadata"></video></div>
     <p class="note" style="text-align:center">A 35-second intro. Unmute for the music, or <a href="media/intro-narrated.mp4">watch the narrated version</a>.</p>
