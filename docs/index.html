@@ -269,6 +269,25 @@ python3 -m aisecure evaluate normal.json incident.json --sweep --out report.md</
   </div>
 </section>
 
+<section id="failure">
+  <div class="wrap">
+    <p class="eyebrow">When the input is broken or ambiguous</p>
+    <h2>How it fails matters more than how it demos.</h2>
+    <p style="max-width:64ch">A tool is only trustworthy once you know what it does with a bad row, an unreadable value, or a case it cannot resolve. Here it fails loudly and safely — never with a quiet, confident, wrong answer.</p>
+    <div class="grid g2">
+      <div class="card"><div class="num">MALFORMED ROW</div><h3>Skipped with a reason, not dropped</h3>
+        <p>A row it cannot parse is counted and given a reason in the quality report (<code>rows_skipped</code>, <code>skip_reasons</code>) — never silently discarded, never coerced into a value that changes a verdict.</p></div>
+      <div class="card"><div class="num">UNREADABLE VALUE</div><h3>Stays unknown, never “safe”</h3>
+        <p>A field that cannot be read is kept as <code>unknown</code> — not <code>false</code>, not a benign default. Unknown never quietly becomes safe.</p></div>
+      <div class="card"><div class="num">HOSTILE INPUT</div><h3>Refused — never a crash or a leak</h3>
+        <p>620 fuzzed import cases and 200 fuzzed HTTP requests: malformed and adversarial input is refused with a declared error, and no response leaks a stack trace or an internal path. One fuzz run found a real defect — a far-future timestamp poisoning the snapshot — now fixed.</p></div>
+      <div class="card"><div class="num">AMBIGUOUS CASE</div><h3>No false success</h3>
+        <p>“These files were read” and “data left the building” stay separate claims. A correlation is labelled a correlation — it never reports a confirmed breach it cannot prove.</p></div>
+    </div>
+    <p class="note">This is the question an enterprise actually turns on — not “does the demo work?” but “what does it do when it breaks?” <a href="SECURITY_REVIEW.md">The self-review →</a></p>
+  </div>
+</section>
+
 <section>
   <div class="wrap">
     <p class="eyebrow">The interface</p>
@@ -298,6 +317,7 @@ python3 -m aisecure evaluate normal.json incident.json --sweep --out report.md</
         <p>Live collectors, KEV and vendor advisory matching, SSO and RBAC, encryption at rest,
           external audit storage, real enforcement. This is not a production security control.</p></div>
     </div>
+    <p class="note">Where this sits: <b>demo / PoC-ready (L1)</b> — you can evaluate it locally on synthetic data and read every line of the logic. It is <b>not</b> a paid-PoC (L2) or production (L3) control: real-log validation, SSO/RBAC, encryption at rest, external audit storage and an independent review are still open. <a href="SECURITY_CHECKLIST.md">The readiness checklist →</a></p>
     <p style="margin-top:26px;max-width:66ch">The next milestone is not more features. It is getting one organisation's real
       authentication, gateway and file-access logs through the importer, and measuring the false-positive rate over a period
       where nothing happened.</p>

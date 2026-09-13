@@ -268,6 +268,25 @@ python3 -m aisecure evaluate normal.json incident.json --sweep --out report.md</
   </div>
 </section>
 
+<section id="failure">
+  <div class="wrap">
+    <p class="eyebrow">入力が壊れている・曖昧なとき</p>
+    <h2>「どう動くか」より、「どう失敗するか」。</h2>
+    <p style="max-width:60ch">壊れた行、読めない値、判断のつかない事案に何をするか——それが分かって初めて信頼できます。ここでは、静かに自信ありげな誤答を返すのではなく、はっきりと、安全に失敗します。</p>
+    <div class="grid g2">
+      <div class="card"><div class="num">壊れた行</div><h3>破棄ではなく、理由つきでスキップ</h3>
+        <p>解析できない行は件数を数え、品質レポートに理由を残します（<code>rows_skipped</code> / <code>skip_reasons</code>）。黙って捨てず、判断を変える値に化けさせません。</p></div>
+      <div class="card"><div class="num">読めない値</div><h3>「不明」のまま。「安全」にしない</h3>
+        <p>読めなかった項目は <code>unknown</code> として保持します。<code>false</code> でも、無害な既定値でもありません。不明が、こっそり安全になることはありません。</p></div>
+      <div class="card"><div class="num">敵対的な入力</div><h3>拒否する。落ちない・漏らさない</h3>
+        <p>取り込み620ケース＋HTTP 200ケースのファズ：不正・敵対的な入力は宣言済みのエラーで拒否し、応答にトレースや内部パスを漏らしません。ファズで実際の欠陥（未来すぎる時刻がスナップショットを汚す）を発見し、修正済みです。</p></div>
+      <div class="card"><div class="num">曖昧な事案</div><h3>偽りの成功を出さない</h3>
+        <p>「ファイルを見た」と「データが外に出た」は別の主張のまま。相関は相関として示し、証明できない侵害を確定として報告しません。</p></div>
+    </div>
+    <p class="note">企業の判断は、ここで分かれます——「デモは動くか」ではなく「壊れたとき何をするか」。<a href="SECURITY_REVIEW.md">自己点検レポート →</a></p>
+  </div>
+</section>
+
 <section>
   <div class="wrap">
     <p class="eyebrow">画面</p>
@@ -297,6 +316,7 @@ python3 -m aisecure evaluate normal.json incident.json --sweep --out report.md</
         <p>常時収集するコネクタ、KEV・ベンダー情報の照合、SSO・RBAC、保管時の暗号化、
           独立した監査保管、実際の遮断——これらはまだありません。本番のセキュリティ製品ではありません。</p></div>
     </div>
+    <p class="note">段階でいうと：<b>紹介・PoC可能（L1）</b>——合成データ上でローカルに評価でき、ロジックも1行ずつ読めます。まだ<b>有償PoC（L2）や本番（L3）ではありません</b>：実ログでの検証、SSO/RBAC、保管時暗号化、独立した監査保管、第三者レビューが未了です。<a href="SECURITY_CHECKLIST.md">検証チェックリスト →</a></p>
     <p style="margin-top:26px;max-width:66ch">次の目標は、機能を増やすことではありません。ある組織の実際の認証・機器・ファイル参照ログを取り込み、
       「何も起きていない期間」で誤検知率を測ること。それが次の一歩です。</p>
     <p class="note">2026年9月に公表された、ガバメントソリューションサービスへの不正アクセスをきっかけに作りました。
