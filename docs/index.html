@@ -214,8 +214,8 @@ footer a{color:var(--muted)}
 
     <p style="margin-top:28px;max-width:66ch"><b>That asymmetry is the entire product thesis.</b>
       Volume on its own is not a signal — a backup job looks identical to an exfiltration. A path is.</p>
-    <p class="note">Synthetic data. This is not a real-world false-positive rate; it is a rehearsal you re-run on your own logs
-      before you trust a threshold. <a href="writeup.html">Read the full write-up →</a> · <a href="TUNING.md">raw method &amp; sweep</a></p>
+    <p class="note">As metrics on ~75 synthetic days: AS-004 (correlation) reaches <b>precision 1.00, F1 1.00, 0 FP/day</b>; the bulk rule alone sits at precision 0.003. Synthetic data — not a real-world rate; a rehearsal you re-run on your own logs before you trust a threshold.
+      <a href="METRICS.md">Precision / recall / F1 →</a> · <a href="SCENARIOS.md">scenario coverage →</a> · <a href="writeup.html">full write-up</a> · <a href="TUNING.md">raw method &amp; sweep</a></p>
   </div>
 </section>
 
@@ -362,7 +362,7 @@ python3 -m aisecure evaluate normal.json incident.json --sweep --out report.md</
 <section class="portfolio-contact" id="business" aria-labelledby="business-heading"><p>BUSINESS INQUIRIES · AISecure</p><h2 id="business-heading">Discuss an evaluation on your log formats</h2><p class="contact-intro">Share your industry, log formats, approximate scale and evaluation goals. Do not send raw logs or confidential information.</p><p class="privacy">Availability, scope, timing and fees are confirmed individually. Sending an inquiry creates no contract or payment.</p><details><summary>Start a private inquiry</summary><form id="portfolio-form"><label>Name<input name="name" required maxlength="80" autocomplete="name"></label><label>Reply email<input name="email" type="email" required maxlength="254" autocomplete="email"></label><label class="wide">Organization (optional)<input name="organization" maxlength="120" autocomplete="organization"></label><label class="wide">What would you like to discuss?<textarea name="message" required minlength="10" maxlength="2000"></textarea></label><label class="trap" aria-hidden="true">Website<input name="website" tabindex="-1" autocomplete="off"></label><p class="privacy wide">Your inquiry is stored privately in Google Cloud for the operator to follow up. It is not used as AI input or analytics, and becomes eligible for deletion after 90 days. It is not posted to a public issue.</p><label class="consent wide"><input type="checkbox" name="consent" required>I agree to this handling of my inquiry.</label><button type="submit">Send inquiry</button><p class="wide" id="portfolio-status" role="status" aria-live="polite"></p></form></details></section><footer>
   <div class="wrap">
     <span>AISecure — Evidence before action. · MIT</span>
-    <span><a href="index.ja.html">日本語</a> · <a href="https://github.com/FORIFOR/AISecure">GitHub</a> · <a href="TUNING.md">Tuning</a> · <a href="CONNECTORS.md">Connectors</a> · <a href="SECURITY_REVIEW.md">Security review</a> · <a href="../SECURITY.md">Threat model</a></span>
+    <span><a href="index.ja.html">日本語</a> · <a href="https://github.com/FORIFOR/AISecure">GitHub</a> · <a href="METRICS.md">Metrics</a> · <a href="SCENARIOS.md">Scenarios</a> · <a href="TUNING.md">Tuning</a> · <a href="CONNECTORS.md">Connectors</a> · <a href="SECURITY_REVIEW.md">Security review</a> · <a href="../SECURITY.md">Threat model</a></span>
   </div>
 </footer>
 
