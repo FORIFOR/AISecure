@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ja">
-<head>
+<head><base href="http://127.0.0.1:4482/">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AISecure — 判断の根拠は手元に</title>
@@ -132,7 +132,7 @@ footer .wrap{display:flex;gap:18px;flex-wrap:wrap;align-items:center;justify-con
 footer a{color:var(--muted)}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 </style>
-<link rel="stylesheet" href="portfolio.css"><link rel="stylesheet" href="case.css"></head>
+<link rel="stylesheet" href="portfolio.css"><link rel="stylesheet" href="case.css"><style>@media(min-width:1000px){}</style></head>
 <body>
 
 <header>
@@ -155,12 +155,12 @@ footer a{color:var(--muted)}
   <div class="wrap"><div class="hero-layout"><div class="case-intro">
     <p class="eyebrow">Evidence before action</p>
     <h1>点のアラートを、<br>調べられる一件に。</h1>
-
+    
     <p class="lead">公開状態・特権ログイン・ファイル参照を関連づけ、根拠から調査を進める。自分の端末で使うセキュリティ分析の試作です。</p>
     <div class="cta">
       <a class="btn primary" href="#case">サンプル事例を調べる →</a>
       <a class="btn ghost" href="#start">ローカルで動かす</a>
-
+      
     </div>
     <p class="note" style="margin-top:10px">検証用プロトタイプ · 合成データ · 監視・遮断なし</p>
     <div class="badges"><span>MIT</span><span>Python 3.11+</span><span>依存ゼロ</span><span>テスト179件</span><span>127.0.0.1のみ</span></div>
@@ -168,8 +168,8 @@ footer a{color:var(--muted)}
 </div></div>  </div>
 </section>
 
-<section id="film"><div class="wrap">    <div class="media"><video src="media/intro-ja.mp4" poster="media/intro-poster-ja.png" controls playsinline preload="none"></video></div>
-    <p class="note" style="text-align:center">約37秒のイントロです。クリックすると再生します。<a href="media/intro-narrated-ja.mp4">ナレーション版もあります</a>。</p></div></section><section id="anatomy">
+<section id="film"><div class="wrap">    <div class="media"><video src="media/intro-ja.mp4" poster="media/intro-poster-ja.png" controls muted loop playsinline preload="none"></video></div>
+    <p class="note" style="text-align:center">約37秒のイントロです。クリックして再生し、音が必要なときにミュートを解除してください。<a href="media/intro-narrated-ja.mp4">ナレーション版もあります</a>。</p></div></section><section id="anatomy">
   <div class="wrap">
     <p class="eyebrow">一件の事案の構造</p>
     <h2>スコアではなく、読める一件。</h2>
@@ -273,7 +273,7 @@ python3 -m aisecure evaluate normal.json incident.json --sweep --out report.md</
     <p class="eyebrow">画面</p>
     <h2>判断の根拠まで、ひとつの画面に残す。</h2>
     <figure class="shot" style="margin-top:28px">
-      <video src="media/screendemo.mp4" poster="media/screendemo-poster.png" controls playsinline preload="none"></video>
+      <video src="media/screendemo.mp4" poster="media/screendemo-poster.png" controls muted loop playsinline preload="none"></video>
       <figcaption>短いウォークスルー：実際のログを取り込み、閾値の誤検知コストを測るまで。</figcaption></figure>
     <div class="shots">
       <figure class="shot"><img src="screenshots/overview.ja.png" alt="相関事案と根拠を表示する初動画面" loading="lazy">

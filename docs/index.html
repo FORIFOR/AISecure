@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AI Secure — Evidence before action</title>
+<title>AISecure — Evidence before action</title>
 <meta name="description" content="A local-first security triage prototype that correlates exposure, privilege and behaviour instead of ranking alerts by CVSS — and publishes what that costs in false positives.">
-<meta property="og:title" content="AI Secure — Evidence before action">
+<meta property="og:title" content="AISecure — Evidence before action">
 <meta property="og:description" content="A local-first prototype that turns point alerts into one evidence-backed case you can investigate — exposure + privileged login + bulk file access. Runs offline on synthetic data; actions simulated. An evaluation prototype, not a production control.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://forifor.github.io/AISecure/">
@@ -20,7 +20,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='14' height='14' x='1' y='1' rx='3' fill='%23175b48'/><rect width='14' height='14' x='17' y='1' rx='3' fill='%238eab92'/><rect width='14' height='14' x='1' y='17' rx='3' fill='%23c9d8c7'/><rect width='14' height='14' x='17' y='17' rx='3' fill='%23175b48'/></svg>">
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"SoftwareApplication","name":"AI Secure",
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"AISecure",
 "applicationCategory":"SecurityApplication","operatingSystem":"Any (Python 3.11+)",
 "description":"A local-first security triage prototype that correlates exposure, privilege and behaviour instead of ranking alerts by CVSS, and publishes what that costs in false positives.",
 "url":"https://forifor.github.io/AISecure/","codeRepository":"https://github.com/FORIFOR/AISecure",
@@ -132,12 +132,12 @@ footer .wrap{display:flex;gap:18px;flex-wrap:wrap;align-items:center;justify-con
 footer a{color:var(--muted)}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 </style>
-</head>
+<link rel="stylesheet" href="portfolio.css"><link rel="stylesheet" href="case.css"></head>
 <body>
 
 <header>
   <div class="wrap">
-    <a class="brand" href="#top"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>AI&nbsp;Secure</a>
+    <a class="brand" href="#top"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>AISecure</a>
     <nav>
       <a class="hide-sm" href="writeup.html">Write-up</a>
       <a class="hide-sm" href="#measured">The measurement</a>
@@ -153,28 +153,24 @@ footer a{color:var(--muted)}
 <main id="top">
 
 <section class="hero">
-  <div class="wrap">
+  <div class="wrap"><div class="hero-layout"><div class="case-intro">
     <p class="eyebrow">Evidence before action</p>
-    <h1>Stop ranking alerts by CVSS.<br>Correlate the path instead.</h1>
-    <p class="note" style="margin-top:16px;padding:12px 16px;border-left:3px solid #2f8f63;background:#2f8f6314;border-radius:0 8px 8px 0;max-width:64ch">
-      On <b>2026-09-11</b> Japan's Digital Agency <a href="https://www.digital.go.jp/news/2026-0911-01">disclosed</a> unauthorized access to its Government Solution Service — a VPN vulnerability exploited, then suspicious bulk file access (~246,000 records potentially exposed). That shape — an exposed perimeter device, then bulk reads — is exactly what AI Secure turns into one evidence-backed case. <span style="opacity:.75">This is not a claim it would have prevented that incident; the point is to make the shape visible early.</span>
-    </p>
-    <p class="lead">AI Secure links an internet-facing unpatched gateway, a privileged login that fails its own conditions,
-      and a burst of sensitive file reads into <b>one reviewable case with its evidence attached</b>.
-      It runs entirely on your machine, needs no LLM, and it publishes what its own rules cost in false positives.</p>
+    <h1>Scattered alerts.<br>One case you can investigate.</h1>
+
+    <p class="lead">Connect exposure, privileged logins and file access. Follow the evidence in a local security-triage prototype.</p>
     <div class="cta">
       <a class="btn primary" href="try.html">Investigate a sample case →</a>
       <a class="btn ghost" href="#start">Run it locally</a>
       <a class="btn ghost" href="https://github.com/FORIFOR/AISecure">Star on GitHub</a>
     </div>
-    <p class="note" style="margin-top:10px">An evaluation prototype — the real UI on synthetic data, actions simulated. No install, no account; two minutes of feedback would genuinely help.</p>
+    <p class="note" style="margin-top:10px">Prototype · synthetic data · no monitoring or blocking</p>
     <div class="badges"><span>MIT</span><span>Python 3.11+</span><span>0 runtime deps</span><span>178 tests</span><span>127.0.0.1 only</span></div>
-    <div class="media"><video src="media/intro.mp4" poster="media/intro-poster.png" controls autoplay muted loop playsinline preload="metadata"></video></div>
-    <p class="note" style="text-align:center">A 35-second intro. Unmute for the music, or <a href="media/intro-narrated.mp4">watch the narrated version</a>.</p>
-  </div>
+</div><div class="case-stage"><div class="case-view" id="case"><div class="case-timeline"><p>Follow observations in the snapshot</p><button type="button" data-case="asset" aria-pressed="false">01　Exposed gateway</button><button type="button" data-case="login" aria-pressed="false">02　Privileged login</button><button type="button" data-case="files" aria-pressed="false">03　Bulk file access</button></div><div class="case-detail" id="case-detail" role="status">Loading sample…</div></div><div class="case-key"><span><b>Observed</b> recorded input</span><span><b>Hypothesis</b> account compromise</span><span><b>Unknown</b> exploitation / exfiltration</span></div><p class="note">A correlated result from synthetic data. No live monitoring or blocking. <a href="try.html">Open the full interface →</a></p>
+</div></div>  </div>
 </section>
 
-<section id="anatomy">
+<section id="film"><div class="wrap">    <div class="media"><video src="media/intro.mp4" poster="media/intro-poster.png" controls playsinline preload="none"></video></div>
+    <p class="note" style="text-align:center">A 35-second intro. Unmute for the music, or <a href="media/intro-narrated.mp4">watch the narrated version</a>.</p></div></section><section id="anatomy">
   <div class="wrap">
     <p class="eyebrow">Anatomy of one case</p>
     <h2>Not a score. A case you can read.</h2>
@@ -278,7 +274,7 @@ python3 -m aisecure evaluate normal.json incident.json --sweep --out report.md</
     <p class="eyebrow">The interface</p>
     <h2>One screen, with the reasoning left in.</h2>
     <figure class="shot" style="margin-top:28px">
-      <video src="media/screendemo.mp4" poster="media/screendemo-poster.png" controls muted loop playsinline preload="none"></video>
+      <video src="media/screendemo.mp4" poster="media/screendemo-poster.png" controls playsinline preload="none"></video>
       <figcaption>A short walkthrough — import real logs, then measure what a threshold costs.</figcaption></figure>
     <div class="shots">
       <figure class="shot"><img src="screenshots/overview.png" alt="Triage screen showing a correlated case with its evidence" loading="lazy">
@@ -333,7 +329,7 @@ python3 -m aisecure evaluate normal.json incident.json --sweep --out report.md</
         <h3>Evaluate it on your environment</h3>
         <p>Talk through importing your own authentication, gateway and file-access logs, and measuring the false-positive rate over a period where nothing happened. We ask for the log <i>shape</i>, the systems involved, and the question you want answered — in non-confidential terms. Never paste real logs or secrets.</p>
         <div class="cta" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:20px">
-          <a class="btn primary" href="https://github.com/FORIFOR/AISecure/issues/new?template=evaluation-inquiry.md">Discuss an evaluation →</a>
+          <a class="btn primary" href="#business">Discuss an evaluation →</a>
         </div>
       </div>
     </div>
@@ -343,12 +339,12 @@ python3 -m aisecure evaluate normal.json incident.json --sweep --out report.md</
 
 </main>
 
-<footer>
+<section class="portfolio-contact" id="business" aria-labelledby="business-heading"><p>BUSINESS INQUIRIES · AISecure</p><h2 id="business-heading">Discuss an evaluation on your log formats</h2><p class="contact-intro">Share your industry, log formats, approximate scale and evaluation goals. Do not send raw logs or confidential information.</p><p class="privacy">Availability, scope, timing and fees are confirmed individually. Sending an inquiry creates no contract or payment.</p><details><summary>Start a private inquiry</summary><form id="portfolio-form"><label>Name<input name="name" required maxlength="80" autocomplete="name"></label><label>Reply email<input name="email" type="email" required maxlength="254" autocomplete="email"></label><label class="wide">Organization (optional)<input name="organization" maxlength="120" autocomplete="organization"></label><label class="wide">What would you like to discuss?<textarea name="message" required minlength="10" maxlength="2000"></textarea></label><label class="trap" aria-hidden="true">Website<input name="website" tabindex="-1" autocomplete="off"></label><p class="privacy wide">Your inquiry is stored privately in Google Cloud for the operator to follow up. It is not used as AI input or analytics, and becomes eligible for deletion after 90 days. It is not posted to a public issue.</p><label class="consent wide"><input type="checkbox" name="consent" required>I agree to this handling of my inquiry.</label><button type="submit">Send inquiry</button><p class="wide" id="portfolio-status" role="status" aria-live="polite"></p></form></details></section><footer>
   <div class="wrap">
-    <span>AI Secure — Evidence before action. · MIT</span>
+    <span>AISecure — Evidence before action. · MIT</span>
     <span><a href="index.ja.html">日本語</a> · <a href="https://github.com/FORIFOR/AISecure">GitHub</a> · <a href="TUNING.md">Tuning</a> · <a href="CONNECTORS.md">Connectors</a> · <a href="SECURITY_REVIEW.md">Security review</a> · <a href="../SECURITY.md">Threat model</a></span>
   </div>
 </footer>
 
-</body>
+<script src="portfolio.js" data-product="aisecure"></script><script src="case.js"></script></body>
 </html>
