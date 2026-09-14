@@ -4,18 +4,18 @@
 
 ## 結果
 
-**Pythonの自動テスト195件が通過**しました。実行環境はmacOS (darwin 25.6.0)、Python 3.14.6。今回の確認時のunittest所要時間は約7.6秒ですが、これはテストスイートの時間であり、実ログの処理速度や検知遅延のベンチマークではありません。
+**Pythonの自動テスト196件が通過**しました。実行環境はmacOS (darwin 25.6.0)、Python 3.14.6。今回の確認時のunittest所要時間は約7.6秒ですが、これはテストスイートの時間であり、実ログの処理速度や検知遅延のベンチマークではありません。
 
 ```text
 python3 -m unittest discover -s tests -v
-Ran 195 tests
+Ran 196 tests
 OK
 ```
 
 | ファイル | 件数 | 対象 |
 |---|---|---|
 | `tests/test_core.py` | 69 | 検知、入力検証、仮名化、承認、監査、LLM境界 |
-| `tests/test_connectors.py` | 34 | 読み取り専用のログ取り込みとマッピングプロファイル |
+| `tests/test_connectors.py` | 35 | 読み取り専用のログ取り込みとマッピングプロファイル |
 | `tests/test_evaluate.py` | 25 | 合成ベースライン、誤検知の数え方、閾値スイープ |
 | `tests/test_rules.py` | 20 | 検知設定の検証、閾値変更の影響、設定の監査記録 |
 | `tests/test_http.py` | 20 | ループバックHTTP境界 |

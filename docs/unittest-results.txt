@@ -26,6 +26,7 @@ test_missing_sources_are_reported_as_warnings (test_connectors.ImportTests.test_
 test_non_finite_number_skips_only_that_row (test_connectors.ImportTests.test_non_finite_number_skips_only_that_row) ... ok
 test_normalized_identifier_cannot_be_forged_as_a_raw_name (test_connectors.ImportTests.test_normalized_identifier_cannot_be_forged_as_a_raw_name)
 slug() output must never be producible by a raw name, or an attacker could ... ok
+test_okta_system_log_profile_round_trips_jsonl (test_connectors.ImportTests.test_okta_system_log_profile_round_trips_jsonl) ... ok
 test_oversized_csv_field_is_refused_without_leaking_content (test_connectors.ImportTests.test_oversized_csv_field_is_refused_without_leaking_content) ... ok
 test_oversized_source_refused (test_connectors.ImportTests.test_oversized_source_refused) ... ok
 test_repeated_identical_rows_collapse_to_one_event (test_connectors.ImportTests.test_repeated_identical_rows_collapse_to_one_event) ... ok
@@ -209,6 +210,6 @@ test_raising_threshold_drops_bulk_and_correlation (test_rules.TunedDetectionTest
 test_sensitive_minimum_can_require_more_labels (test_rules.TunedDetectionTests.test_sensitive_minimum_can_require_more_labels) ... ok
 
 ----------------------------------------------------------------------
-Ran 195 tests in 7.544s
+Ran 196 tests in 7.568s
 
 OK

@@ -1,0 +1,15 @@
+{
+  "profile_version": 1,
+  "name": "okta-system-log-jsonl",
+  "description": "Okta System LogのJSON Lines。認証結果・操作者・外部セッションID・公開イベントIDだけを取り込みます。gateway_idはネットワーク機器ではなくOkta由来のソース識別子です。特権・端末信頼・作業承認はこのログ単体では判定せず不明のままにします。",
+  "format": "jsonl",
+  "record": "login",
+  "map": {
+    "id": {"field": "uuid"},
+    "at": {"field": "published", "time": "iso8601"},
+    "actor": {"field": "actor.alternateId"},
+    "session": {"field": "authenticationContext.externalSessionId"},
+    "gateway_id": {"const": "okta-idp"},
+    "success": {"field": "outcome.result", "true": ["SUCCESS"], "false": ["FAILURE"]}
+  }
+}

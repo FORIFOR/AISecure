@@ -1,0 +1,2 @@
+{"uuid":"okta-evt-001","published":"2026-09-01T00:00:01.000Z","actor":{"alternateId":"operator@example.invalid"},"authenticationContext":{"externalSessionId":"okta-session-001"},"outcome":{"result":"SUCCESS"},"client":{"ipAddress":"192.0.2.10"}}
+{"uuid":"okta-evt-002","published":"2026-09-01T00:00:08.000Z","actor":{"alternateId":"operator@example.invalid"},"authenticationContext":{"externalSessionId":"okta-session-002"},"outcome":{"result":"FAILURE"},"client":{"ipAddress":"192.0.2.10"}}

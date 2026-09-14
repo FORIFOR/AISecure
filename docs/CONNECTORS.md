@@ -12,7 +12,7 @@ python3 -m aisecure import \
 
 `--ingest` を付けるとローカルDBにも取り込みます。組み込みプロファイルの一覧は `python3 -m aisecure profiles`。
 
-組み込みプロファイル: `generic-asset-csv` / `generic-auth-csv` / `generic-file-access-jsonl` / `windows-security-logon-csv`（4624/4625 のCSVエクスポート雛形）。実環境のエクスポート列名・時刻書式に合わせて調整してください。
+組み込みプロファイル: `generic-asset-csv` / `generic-auth-csv` / `generic-file-access-jsonl` / `okta-system-log-jsonl` / `windows-security-logon-csv`（4624/4625 のCSVエクスポート雛形）。実環境のエクスポート列名・時刻書式に合わせて調整してください。`okta-system-log-jsonl` は `examples/logs/okta-system-log-sample.jsonl` で形式を確認できます。
 
 ## この境界で守っていること
 

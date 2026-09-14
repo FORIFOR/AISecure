@@ -37,7 +37,7 @@ class Fixture(unittest.TestCase):
 
 class ProfileTests(Fixture):
     def test_builtin_profiles_load(self):
-        self.assertEqual(set(builtin_profiles()), {"generic-asset-csv", "generic-auth-csv", "generic-file-access-jsonl", "windows-security-logon-csv"})
+        self.assertEqual(set(builtin_profiles()), {"generic-asset-csv", "generic-auth-csv", "generic-file-access-jsonl", "okta-system-log-jsonl", "windows-security-logon-csv"})
         for name in builtin_profiles():
             self.assertEqual(load_profile(name)["profile_version"], 1)
 
@@ -325,6 +325,33 @@ class ImportTests(Fixture):
         self.assertEqual(logins[1]["at"], "2026-09-01T00:00:02Z")  # +09:00 -> UTC
         self.assertIsNone(logins[0]["privileged"])  # not knowable from this log
         self.assertEqual(quality["totals"]["rows_skipped"], 0)
+
+    def test_okta_system_log_profile_round_trips_jsonl(self):
+        rows = [
+            {"uuid": "okta-evt-001", "published": "2026-09-15T00:00:01.000Z",
+             "actor": {"alternateId": "operator@example.invalid"},
+             "authenticationContext": {"externalSessionId": "okta-session-001"},
+             "outcome": {"result": "SUCCESS"}, "client": {"ipAddress": "192.0.2.10"}},
+            {"uuid": "okta-evt-002", "published": "2026-09-15T00:00:08.000Z",
+             "actor": {"alternateId": "operator@example.invalid"},
+             "authenticationContext": {"externalSessionId": "okta-session-002"},
+             "outcome": {"result": "FAILURE"}, "client": {"ipAddress": "192.0.2.10"}},
+        ]
+        okta = self.write("okta.jsonl", "\n".join(json.dumps(row) for row in rows) + "\n")
+        asset_rows = "okta-idp,saas,no,なし,なし,適用済,2026-09-15T09:00:00,,,\n"
+        snapshot, quality = build_snapshot([self.source("generic-asset-csv", self.assets(asset_rows)),
+                                            self.source("okta-system-log-jsonl", okta)],
+                                           now=datetime(2026, 9, 15, 1, tzinfo=timezone.utc))
+        logins = sorted(snapshot["events"], key=lambda event: event["id"])
+        self.assertEqual([event["success"] for event in logins], [True, False])
+        self.assertEqual([event["gateway_id"] for event in logins], ["okta-idp", "okta-idp"])
+        self.assertIsNone(logins[0]["privileged"])
+        self.assertEqual(quality["sources"][1]["rows_imported"], 2)
+        document = normalize(snapshot, KEY, source_mode="imported", now=datetime(2026, 9, 15, 1, tzinfo=timezone.utc))
+        stored = json.dumps(document, ensure_ascii=False)
+        self.assertNotIn("operator@example.invalid", stored)
+        self.assertNotIn("okta-session-001", stored)
+        self.assertEqual(len(document["events"]), 2)
 
     def test_same_input_produces_the_same_snapshot(self):
         first, _ = build_snapshot([self.source("generic-asset-csv", self.assets())])
