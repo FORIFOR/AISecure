@@ -17,6 +17,7 @@ import threading
 from .schema import canonical, normalize, utcnow, iso, parse_time, ValidationError, MAX_EVENTS, MAX_ASSETS
 from .engine import analyze, coverage, RULE_VERSION
 from .policy import plan_for, SimulationAdapter
+from .responder import ResponderError, SignedWebhookResponder
 from .rules import RuleConfig, DEFAULT as DEFAULT_RULES, describe
 
 ZERO = "0" * 64
@@ -203,7 +204,7 @@ class Store:
                     status = "expired" if row["status"] == "pending" and parse_time(row["expires_at"]) < utcnow() else row["status"]
                     proposals.append({"id": row["id"], "finding_id": row["finding_id"], "plan": json.loads(row["body"]), "created_at": row["created_at"], "expires_at": row["expires_at"], "status": status})
             records = [{"seq": r["seq"], "at": r["at"], "action": r["action"], "payload": json.loads(r["payload"]), "mac": r["mac"]} for r in self.db.execute("SELECT * FROM audit ORDER BY seq DESC LIMIT 100")]
-            return {"version": "0.2.1", "rule_version": RULE_VERSION,
+            return {"version": "0.3.0", "rule_version": RULE_VERSION,
                     "rule_config": {"digest": self.config.digest, "values": self.config.as_dict(), "parameters": describe(self.config)}, "snapshot_id": sid, "snapshot": self.summarize(doc) if doc else None, "findings": findings, "proposals": proposals, "audit": audit, "audit_records": records, "coverage": coverage(doc) if doc else {"live_connectors": 0, "expected_connectors": 3, "snapshot_only": True, "missing_sources": ["資産台帳", "認証ログ", "ファイル参照ログ"]}, "mode": "local-prototype", "real_actions_enabled": False, "generated_at": iso(utcnow())}
 
     def get_finding(self, sid: str, fid: str) -> dict:
@@ -253,3 +254,95 @@ class Store:
             self.db.execute("UPDATE proposals SET status='simulated' WHERE id=?", (proposal_id,))
             self._audit("plan.simulated", {"proposal_id": proposal_id, "executed": False, "adapter": result["adapter"]})
             return result
+
+    def approve_for_execution(self, proposal_id: str, expected_snapshot: str, confirmation: str,
+                              secondary_confirmation: str, reason: str,
+                              primary_operator: str, secondary_operator: str) -> dict:
+        """Record two explicit approvals without contacting the responder.
+
+        The responder remains a separate trust boundary.  Names are only used
+        to prove that two distinct approval labels were supplied; production
+        deployments must bind them to authenticated identities in the
+        responder or an SSO/RBAC layer.
+        """
+        if confirmation != "EXECUTE REAL ACTION":
+            raise ValidationError("実操作にはEXECUTE REAL ACTIONの確認が必要です。")
+        if secondary_confirmation != "SECOND APPROVER CONFIRMED":
+            raise ValidationError("別担当者の確認文字列が一致しません。")
+        for label, value in (("承認者", primary_operator), ("第二承認者", secondary_operator)):
+            if not isinstance(value, str) or not 1 <= len(value.strip()) <= 120 or any(ord(c) < 32 for c in value):
+                raise ValidationError(f"{label}の識別子が不正です。")
+        if primary_operator.strip() == secondary_operator.strip():
+            raise ValidationError("実操作には異なる2名の承認者が必要です。")
+        if not isinstance(reason, str) or not 10 <= len(reason.strip()) <= 500:
+            raise ValidationError("承認理由は10〜500文字で入力してください。")
+        with self.transaction():
+            row = self.db.execute("SELECT * FROM proposals WHERE id=?", (proposal_id,)).fetchone()
+            if row is None:
+                raise ValidationError("計画が見つかりません。")
+            if row["status"] != "pending":
+                raise ConflictError("この計画はすでに処理済みです。")
+            if row["snapshot_id"] != expected_snapshot or self.snapshot()[0] != expected_snapshot:
+                raise ConflictError("計画作成後に入力が更新されました。再確認が必要です。")
+            if parse_time(row["expires_at"]) <= utcnow():
+                raise ConflictError("承認期限の5分を過ぎています。計画を作り直してください。")
+            expected = plan_for(self.get_finding(expected_snapshot, row["finding_id"]))
+            if row["body"] != canonical(expected):
+                raise IntegrityError("計画と現行ポリシーの内容が一致しません。")
+            self._audit("plan.approved", {
+                "proposal_id": proposal_id,
+                "execution_mode": "real",
+                "primary_operator_hmac": hmac.new(self.audit_key, primary_operator.strip().encode(), hashlib.sha256).hexdigest(),
+                "secondary_operator_hmac": hmac.new(self.audit_key, secondary_operator.strip().encode(), hashlib.sha256).hexdigest(),
+                "reason_hmac": hmac.new(self.audit_key, reason.strip().encode(), hashlib.sha256).hexdigest(),
+                "reason_plaintext_saved": False,
+            })
+            self.db.execute("UPDATE proposals SET status='approved' WHERE id=?", (proposal_id,))
+            return {"proposal_id": proposal_id, "status": "approved", "execution_mode": "real"}
+
+    def execute_approved(self, proposal_id: str, expected_snapshot: str,
+                         responder: SignedWebhookResponder, provider_target: str) -> dict:
+        """Execute exactly one approved plan and require verified provider state."""
+        with self.transaction():
+            row = self.db.execute("SELECT * FROM proposals WHERE id=?", (proposal_id,)).fetchone()
+            if row is None:
+                raise ValidationError("計画が見つかりません。")
+            if row["status"] != "approved":
+                raise ConflictError("実行可能な承認済み計画がありません。")
+            if row["snapshot_id"] != expected_snapshot or self.snapshot()[0] != expected_snapshot:
+                raise ConflictError("承認後に入力が更新されました。実行を拒否します。")
+            if parse_time(row["expires_at"]) <= utcnow():
+                raise ConflictError("承認期限を過ぎています。新しい計画と承認が必要です。")
+            finding = self.get_finding(expected_snapshot, row["finding_id"])
+            expected = plan_for(finding)
+            if row["body"] != canonical(expected):
+                raise IntegrityError("計画と現行ポリシーの内容が一致しません。")
+            plan = {**expected, "execution_mode": "real", "automatic_execution": False}
+            context = {"proposal_id": proposal_id, "snapshot_id": expected_snapshot,
+                       "evidence_ids": finding.get("evidence_ids", []),
+                       "provider_target": provider_target}
+            self.db.execute("UPDATE proposals SET status='executing' WHERE id=?", (proposal_id,))
+            self._audit("plan.execution_started", {"proposal_id": proposal_id, "adapter": responder.adapter_name})
+
+        try:
+            result = responder.execute(plan, context)
+        except Exception as exc:
+            with self.transaction():
+                self.db.execute("UPDATE proposals SET status='failed' WHERE id=? AND status='executing'", (proposal_id,))
+                self._audit("plan.failed", {"proposal_id": proposal_id, "error_type": type(exc).__name__})
+            if isinstance(exc, ResponderError):
+                raise
+            raise ResponderError("実行先の処理に失敗しました。") from exc
+
+        with self.transaction():
+            if self.snapshot()[0] != expected_snapshot:
+                self.db.execute("UPDATE proposals SET status='failed' WHERE id=? AND status='executing'", (proposal_id,))
+                self._audit("plan.failed", {"proposal_id": proposal_id, "error_type": "stale_snapshot_after_response"})
+                return {"status": "failed", "executed": False, "adapter": responder.adapter_name}
+            final_status = "verified" if result.get("status") == "verified" and result.get("executed") is True else "failed"
+            self.db.execute("UPDATE proposals SET status=? WHERE id=? AND status='executing'", (final_status, proposal_id))
+            self._audit("plan.verified" if final_status == "verified" else "plan.failed",
+                        {"proposal_id": proposal_id, "executed": final_status == "verified", "adapter": responder.adapter_name})
+        if final_status != "verified":
+            return {**result, "status": "failed", "executed": False}
+        return result

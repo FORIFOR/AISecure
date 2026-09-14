@@ -4,14 +4,14 @@
 
 **Stop ranking alerts by CVSS. Correlate exposure, privilege, and behaviour instead — and measure what that costs you in false positives.**
 
-A local-first triage prototype that links an internet-facing unpatched gateway, a privileged login that fails its own conditions, and a burst of sensitive file reads into **one reviewable case with its evidence attached**.
+A local-first security triage and response gateway that links an internet-facing unpatched gateway, a privileged login that fails its own conditions, and a burst of sensitive file reads into **one reviewable case with its evidence attached**.
 
 [![tests](https://github.com/FORIFOR/AISecure/actions/workflows/test.yml/badge.svg)](https://github.com/FORIFOR/AISecure/actions/workflows/test.yml)
 [![license](https://img.shields.io/badge/license-MIT-175b48)](LICENSE)
 [![python](https://img.shields.io/badge/python-3.11%2B-175b48)](pyproject.toml)
 [![dependencies](https://img.shields.io/badge/runtime%20deps-0-175b48)](pyproject.toml)
 
-[Reachmade Lab product page](https://reachmade.com/products/#aisecure) · [日本語 README](README.ja.md) · [How to tune it](docs/TUNING.md) · [Log connectors](docs/CONNECTORS.md) · [Security review](docs/SECURITY_REVIEW.md)
+[Reachmade Lab product page](https://reachmade.com/products/#aisecure) · [日本語 README](README.ja.md) · [How to tune it](docs/TUNING.md) · [Log connectors](docs/CONNECTORS.md) · [Responder protocol](docs/RESPONDER.md) · [Security review](docs/SECURITY_REVIEW.md)
 
 ![AI Secure — the triage screen, with its evidence](docs/media/screendemo.gif)
 
@@ -51,7 +51,41 @@ More hands-on? Two asks that would genuinely move this forward:
 - **[Does the importer choke on your log format?](https://github.com/FORIFOR/AISecure/issues?q=is%3Aissue+label%3Aconnector)** — VPN / IdP / file-server logs. [Report a format →](https://github.com/FORIFOR/AISecure/issues/new?template=log-format.md)
 - **[Is a normal-business pattern missing from the false-positive baseline?](https://github.com/FORIFOR/AISecure/issues?q=is%3Aissue+label%3Atester-wanted)** — the thing that makes the measured number honest.
 
-Everything runs locally and offline. No account, no telemetry, nothing leaves your machine.
+The demo and analysis paths run locally and offline: no account, no telemetry,
+and no data leaves your machine. The optional `execute` path sends only the
+signed response metadata described in [the responder protocol](docs/RESPONDER.md)
+to the responder URL you configure.
+
+## The live protection path
+
+The local integration path can now poll read-only exports continuously and, only
+after explicit double approval, deliver a minimal signed response request to a
+separate responder. The responder owns provider credentials and must verify the
+post-action state; AISecure never runs shell commands or stores VPN/IdP
+credentials.
+
+```bash
+# Poll changed CSV/JSONL exports and ingest a new evidence snapshot
+python3 -m aisecure watch \
+  --source generic-asset-csv=assets.csv \
+  --source generic-auth-csv=auth.csv \
+  --source generic-file-access-jsonl=access.jsonl
+
+# After reviewing the plan, deliver one explicitly double-approved action
+AISECURE_WEBHOOK_SECRET='use-a-32-byte-secret-from-your-secret-store' \
+python3 -m aisecure execute \
+  --proposal-id P-... --snapshot-id S-... \
+  --provider-target provider-session-42 \
+  --webhook-url https://responder.example/aisecure \
+  --allow-action revoke_session \
+  --primary-operator operator-a --secondary-operator operator-b \
+  --reason '証拠と業務影響を確認し、失効後の復旧担当を決めた' \
+  --confirm 'EXECUTE REAL ACTION' \
+  --second-confirm 'SECOND APPROVER CONFIRMED'
+```
+
+See [the responder protocol](docs/RESPONDER.md) before connecting a real
+control plane. The bundled browser demo remains synthetic and simulation-only.
 
 ## Quick start
 
@@ -92,8 +126,8 @@ CSV and JSON Lines are mapped through a declarative profile that can only refere
 
 Written first, on purpose. A security tool that only lists its strengths is not telling you enough to trust it.
 
-- **No continuous monitoring.** It analyses a snapshot you give it. It does not watch anything.
-- **No enforcement.** Every response plan is simulation-only. There is no code that revokes a session, blocks traffic, or disables an account.
+- **No direct provider control.** `watch` polls local CSV/JSONL exports; it does not connect to a SIEM, IdP, VPN, or file server. `execute` sends a signed request to a separately operated responder; provider credentials and enforcement stay outside AISecure.
+- **No automatic enforcement.** Real delivery requires an explicit plan, two distinct approval labels, an allowlisted action, and a responder that returns verified state. The built-in simulation path changes nothing.
 - **No leak confirmation.** "These files were read" and "this data left the building" are shown as different claims, because they are.
 - **No LLM in the detection path.** Default mode is deterministic rules with template explanations. An optional local Ollama adapter writes *supplementary prose only*, gets no tools and no raw logs, and every claim it makes is checked against the evidence IDs before display.
 - **Unknown is never "safe".** A field that could not be read stays `null` and is counted, rather than becoming `false`.
@@ -133,9 +167,9 @@ The UI is fully bilingual — English by default, with a `日本語` toggle in t
 
 ## Status
 
-**v0.2.1 — a local prototype, honestly labelled.** Useful today for studying detection logic, rehearsing a triage workflow, and measuring what a threshold costs before you deploy one. Not a production security control.
+**v0.3.0 — a local integration prototype, honestly labelled.** Useful today for studying detection logic, polling exported logs, rehearsing a triage workflow, and connecting an independently secured response adapter. Provider-specific production deployment, real-log validation, and an independent security review are still required.
 
-Not implemented: live collectors, KEV/vendor advisory matching, SSO and RBAC, encryption at rest, external audit storage, real enforcement. A [self-review](docs/SECURITY_REVIEW.md) found and fixed four detection-evasion defects in the import boundary; it is not a third-party audit.
+Not implemented: direct live collectors, KEV/vendor advisory matching, SSO and RBAC inside the control plane, encryption at rest, external audit storage, and provider-specific responders. A [self-review](docs/SECURITY_REVIEW.md) found and fixed four detection-evasion defects in the import boundary; it is not a third-party audit.
 
 The next milestone is not more features. It is getting one organisation's real authentication, gateway, and file-access logs through the importer, and measuring the false-positive rate on a period where nothing happened.
 

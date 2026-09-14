@@ -122,6 +122,8 @@ test_clean_baseline_has_no_labeled_incident (test_evaluate.BaselineTests.test_cl
 test_different_seeds_differ (test_evaluate.BaselineTests.test_different_seeds_differ) ... ok
 test_generation_is_deterministic (test_evaluate.BaselineTests.test_generation_is_deterministic) ... ok
 test_normal_traffic_contains_legitimate_bulk_access (test_evaluate.BaselineTests.test_normal_traffic_contains_legitimate_bulk_access) ... ok
+test_normal_traffic_includes_service_and_compliance_actors (test_evaluate.BaselineTests.test_normal_traffic_includes_service_and_compliance_actors)
+Adding realistic noise sources must not create correlation false positives. ... ok
 test_scenario_validation_rejects_unknown_keys (test_evaluate.BaselineTests.test_scenario_validation_rejects_unknown_keys) ... ok
 test_scenario_version_is_checked (test_evaluate.BaselineTests.test_scenario_version_is_checked) ... ok
 test_asset_rules_are_excluded_from_precision (test_evaluate.EvaluationTests.test_asset_rules_are_excluded_from_precision) ... ok
@@ -131,14 +133,14 @@ test_empty_scenario_list_refused (test_evaluate.EvaluationTests.test_empty_scena
 test_evaluation_does_not_mutate_the_scenario (test_evaluate.EvaluationTests.test_evaluation_does_not_mutate_the_scenario) ... ok
 test_incident_is_detected_at_the_default_thresholds (test_evaluate.EvaluationTests.test_incident_is_detected_at_the_default_thresholds) ... ok
 test_legitimate_bulk_access_is_counted_as_a_false_positive (test_evaluate.EvaluationTests.test_legitimate_bulk_access_is_counted_as_a_false_positive) ... ok
+test_multiple_alerts_for_one_incident_do_not_inflate_recall (test_evaluate.EvaluationTests.test_multiple_alerts_for_one_incident_do_not_inflate_recall) ... ok
+test_negative_only_dataset_has_no_invented_recall (test_evaluate.EvaluationTests.test_negative_only_dataset_has_no_invented_recall) ... ok
 test_raising_the_threshold_trades_detection_for_quiet (test_evaluate.EvaluationTests.test_raising_the_threshold_trades_detection_for_quiet) ... ok
 test_report_records_the_configuration_used (test_evaluate.EvaluationTests.test_report_records_the_configuration_used) ... ok
 test_totals_add_up (test_evaluate.EvaluationTests.test_totals_add_up) ... ok
 test_a_high_threshold_misses_the_incident (test_evaluate.SweepTests.test_a_high_threshold_misses_the_incident) ... ok
 test_every_cell_is_measured (test_evaluate.SweepTests.test_every_cell_is_measured) ... ok
 test_markdown_report_states_its_limits (test_evaluate.SweepTests.test_markdown_report_states_its_limits) ... ok
-test_multiple_alerts_for_one_incident_do_not_inflate_recall (test_evaluate.EvaluationTests.test_multiple_alerts_for_one_incident_do_not_inflate_recall) ... ok
-test_negative_only_dataset_has_no_invented_recall (test_evaluate.EvaluationTests.test_negative_only_dataset_has_no_invented_recall) ... ok
 test_recommendation_detects_everything (test_evaluate.SweepTests.test_recommendation_detects_everything) ... ok
 test_recommendation_is_absent_when_nothing_detects (test_evaluate.SweepTests.test_recommendation_is_absent_when_nothing_detects) ... ok
 test_csv_login_fuzz_never_crashes_or_leaks (test_fuzz.ImportFuzzTests.test_csv_login_fuzz_never_crashes_or_leaks) ... ok
@@ -169,13 +171,22 @@ test_state_exposes_the_active_detection_config (test_http.HTTPTests.test_state_e
 test_state_omits_the_event_list (test_http.HTTPTests.test_state_omits_the_event_list) ... ok
 test_state_reports_unknown_read_sizes (test_http.HTTPTests.test_state_reports_unknown_read_sizes) ... ok
 test_submitted_provenance_is_never_marked_verified (test_http.HTTPTests.test_submitted_provenance_is_never_marked_verified) ... ok
-test_fuzz_requests_never_crash_or_leak (test_http_fuzz.HTTPFuzzTests.test_fuzz_requests_never_crash_or_leak) ... ok
-test_auth_always_enforced_after_fuzz (test_http_fuzz.HTTPFuzzTests.test_auth_always_enforced_after_fuzz) ... ok
-test_server_still_healthy_after_fuzz (test_http_fuzz.HTTPFuzzTests.test_server_still_healthy_after_fuzz) ... ok
+test_ui_assets_served (test_http.HTTPTests.test_ui_assets_served) ... ok
 test_unicode_token_rejected_without_server_crash (test_http.HTTPTests.test_unicode_token_rejected_without_server_crash) ... ok
 test_wrong_host (test_http.HTTPTests.test_wrong_host) ... ok
 test_wrong_origin (test_http.HTTPTests.test_wrong_origin) ... ok
 test_wrong_token (test_http.HTTPTests.test_wrong_token) ... ok
+test_auth_always_enforced_after_fuzz (test_http_fuzz.HTTPFuzzTests.test_auth_always_enforced_after_fuzz) ... ok
+test_fuzz_requests_never_crash_or_leak (test_http_fuzz.HTTPFuzzTests.test_fuzz_requests_never_crash_or_leak) ... ok
+test_server_still_healthy_after_fuzz (test_http_fuzz.HTTPFuzzTests.test_server_still_healthy_after_fuzz) ... ok
+test_changed_source_creates_a_new_snapshot (test_monitor.MonitorTests.test_changed_source_creates_a_new_snapshot) ... ok
+test_first_poll_ingests_and_second_unchanged_poll_is_noop (test_monitor.MonitorTests.test_first_poll_ingests_and_second_unchanged_poll_is_noop) ... ok
+test_provider_failure_is_not_recorded_as_success (test_responder.ResponderTests.test_provider_failure_is_not_recorded_as_success) ... ok
+test_real_execution_requires_two_distinct_approvers (test_responder.ResponderTests.test_real_execution_requires_two_distinct_approvers) ... ok
+test_real_webhook_rejects_non_loopback_http (test_responder.ResponderTests.test_real_webhook_rejects_non_loopback_http) ... ok
+test_responder_must_echo_the_current_request (test_responder.ResponderTests.test_responder_must_echo_the_current_request) ... ok
+test_responder_requires_verified_provider_status (test_responder.ResponderTests.test_responder_requires_verified_provider_status) ... ok
+test_signed_webhook_is_verified_and_audited (test_responder.ResponderTests.test_signed_webhook_is_verified_and_audited) ... ok
 test_startup_records_the_active_configuration (test_rules.RuleAuditTests.test_startup_records_the_active_configuration) ... ok
 test_state_exposes_the_active_configuration (test_rules.RuleAuditTests.test_state_exposes_the_active_configuration) ... ok
 test_threshold_change_is_recorded_as_evidence (test_rules.RuleAuditTests.test_threshold_change_is_recorded_as_evidence) ... ok
@@ -198,6 +209,6 @@ test_raising_threshold_drops_bulk_and_correlation (test_rules.TunedDetectionTest
 test_sensitive_minimum_can_require_more_labels (test_rules.TunedDetectionTests.test_sensitive_minimum_can_require_more_labels) ... ok
 
 ----------------------------------------------------------------------
-Ran 187 tests in 6.503s
+Ran 195 tests in 7.544s
 
 OK

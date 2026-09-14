@@ -1,7 +1,7 @@
 [project]
 name = "ai-secure-local-prototype"
-version = "0.2.0"
-description = "Evidence-linked, local-first security triage prototype. Not a production security control."
+version = "0.3.0"
+description = "Evidence-linked local security triage with a signed, separately operated response gateway."
 requires-python = ">=3.11"
 dependencies = []
 

@@ -77,6 +77,14 @@ def build_parser() -> argparse.ArgumentParser:
     importer.add_argument("--max-rows", type=int, default=None, help="Row limit per source")
     importer.add_argument("--ingest", action="store_true", help="Also load the result into the local database")
 
+    watch = sub.add_parser("watch", help="Poll read-only log exports and ingest changed snapshots")
+    watch.add_argument("--source", action="append", required=True, metavar="PROFILE=PATH",
+                       help="Repeatable. Uses the same read-only mapping profiles as import.")
+    watch.add_argument("--interval", type=float, default=30.0, help="Polling interval in seconds (1..3600)")
+    watch.add_argument("--once", action="store_true", help="Poll once and exit")
+    watch.add_argument("--unknown-assets", choices=["record", "skip"], default="record")
+    watch.add_argument("--max-rows", type=int, default=None)
+
     baseline = sub.add_parser("baseline", help="Generate labeled synthetic normal traffic for tuning")
     baseline.add_argument("--name", default="baseline")
     baseline.add_argument("--seed", type=int, default=1)
@@ -93,6 +101,20 @@ def build_parser() -> argparse.ArgumentParser:
     evaluate.add_argument("--format", choices=["markdown", "json"], default="markdown")
     evaluate.add_argument("--out", type=Path)
     evaluate.add_argument("--save-rules", type=Path, help="Write the recommended thresholds as a rules file (--sweep only)")
+
+    execute = sub.add_parser("execute", help="Deliver an explicitly double-approved response through a signed webhook")
+    execute.add_argument("--proposal-id", required=True, help="Pending proposal ID from the local UI or state export")
+    execute.add_argument("--snapshot-id", required=True, help="Snapshot ID the approvers reviewed")
+    execute.add_argument("--provider-target", required=True, help="Target ID verified in the provider console; never inferred from the pseudonymized finding")
+    execute.add_argument("--webhook-url", required=True, help="HTTPS responder URL; HTTP is allowed only for localhost tests")
+    execute.add_argument("--secret-env", default="AISECURE_WEBHOOK_SECRET", help="Environment variable holding the 32+ byte signing secret")
+    execute.add_argument("--allow-action", action="append", required=True, choices=["revoke_session", "restrict_remote_access", "review_evidence"],
+                         help="Repeat for each action the responder is allowed to receive")
+    execute.add_argument("--primary-operator", required=True, help="First approver label")
+    execute.add_argument("--secondary-operator", required=True, help="Second, distinct approver label")
+    execute.add_argument("--reason", required=True, help="Why this real action is approved")
+    execute.add_argument("--confirm", required=True, help="Type EXECUTE REAL ACTION")
+    execute.add_argument("--second-confirm", required=True, help="Type SECOND APPROVER CONFIRMED")
     return parser
 
 
@@ -159,6 +181,23 @@ def main():
     if args.command == "import":
         _run_import(args, config)
         return
+    if args.command == "watch":
+        from .monitor import FileMonitor
+        monitor = FileMonitor(Store(args.data_dir, config), _sources(args.source),
+                              unknown_assets=args.unknown_assets,
+                              max_rows=args.max_rows or 2_000_000,
+                              interval=args.interval)
+        try:
+            result = monitor.poll_once()
+            print(json.dumps(result.as_dict(), ensure_ascii=False, indent=2))
+            if not args.once:
+                print("監視中です。停止するにはCtrl+Cを押してください。", file=sys.stderr)
+                monitor.run()
+        except KeyboardInterrupt:
+            pass
+        finally:
+            monitor.store.close()
+        return
     if args.command == "baseline":
         from .baseline import scenario
         from .schema import parse_time, utcnow
@@ -183,8 +222,8 @@ def main():
             if args.demo and store.snapshot()[0] is None:
                 store.ingest(sample(), "demo")
             server = LocalServer(store, args.port, args.ollama_model)
-            print("AI Secure v0.2.1 — LOCAL PROTOTYPE / 実環境への対応操作は無効", flush=True)
-            print("表示はスナップショット解析です。常時監視・VPN保護は行いません。", flush=True)
+            print("AI Secure v0.3.0 — LOCAL INTEGRATION / 防御側への実操作は明示承認と署名付きレスポンダー経由", flush=True)
+            print("表示はスナップショット解析です。継続監視は watch、実操作は execute を使用します。", flush=True)
             print(f"検知設定: {config.digest}" + ("（既定値）" if args.rules is None else f"（{args.rules}）"), flush=True)
             print(f"Open: {server.origin}/#token={server.token}", flush=True)
             print(f"API token: {server.token}", flush=True)
@@ -214,6 +253,22 @@ def main():
             _write(None, _dump(result), "")
             if not result["valid"]:
                 sys.exit(2)
+        elif args.command == "execute":
+            from .responder import ResponderConfig, SignedWebhookResponder
+            secret_text = os.environ.get(args.secret_env)
+            if not secret_text:
+                raise ValueError(f"署名鍵の環境変数が未設定です: {args.secret_env}")
+            responder = SignedWebhookResponder(ResponderConfig(
+                url=args.webhook_url,
+                secret=secret_text.encode("utf-8"),
+                allowed_actions=frozenset(args.allow_action),
+            ))
+            store.approve_for_execution(
+                args.proposal_id, args.snapshot_id, args.confirm, args.second_confirm,
+                args.reason, args.primary_operator, args.secondary_operator,
+            )
+            result = store.execute_approved(args.proposal_id, args.snapshot_id, responder, args.provider_target)
+            _write(None, _dump(result), "")
     finally:
         store.close()
 
