@@ -104,6 +104,20 @@ class OktaResponderTests(unittest.TestCase):
         self.assertFalse(result["executed"])
         self.assertEqual(OktaHandler.clear_calls, 1)
 
+    def test_emergency_stop_blocks_session_clear(self):
+        with tempfile.TemporaryDirectory() as directory:
+            stop_file = Path(directory) / "STOP"
+            stop_file.touch()
+            responder = OktaSessionResponder(OktaConfig(
+                f"http://127.0.0.1:{self.server.server_port}", TOKEN,
+                timeout=2, verification_timeout=0.5,
+                allow_insecure_localhost=True,
+                emergency_stop_file=str(stop_file),
+            ))
+            with self.assertRaises(OktaError):
+                responder.execute(self.plan(), {"provider_target": USER_ID})
+        self.assertEqual(OktaHandler.clear_calls, 0)
+
     def test_target_and_action_are_narrowly_allowlisted(self):
         with self.assertRaises(ValidationError):
             self.responder().execute(self.plan(), {"provider_target": "alice@example.invalid"})

@@ -28,6 +28,50 @@ def _load_rules(path: Path | None):
     return rule_config.from_mapping(read_json(path.read_bytes()))
 
 
+def _storage_key(args) -> bytes | None:
+    """Read an encrypted-store key only when the operator explicitly opts in."""
+    if not getattr(args, "encrypted", False):
+        return None
+    name = args.master_key_env
+    value = os.environ.get(name)
+    if not value:
+        raise ValueError(f"保管時暗号化の鍵を環境変数から指定してください: {name}")
+    try:
+        key = bytes.fromhex(value)
+    except ValueError as exc:
+        raise ValueError("保管時暗号化の鍵は64文字の16進数で指定してください。") from exc
+    if len(key) != 32:
+        raise ValueError("保管時暗号化の鍵は64文字の16進数（32バイト）で指定してください。")
+    return key
+
+
+def _store(args, config):
+    return Store(args.data_dir, config, master_key=_storage_key(args))
+
+
+def _approval_assertions(args) -> list[dict] | None:
+    paths = (args.approval_keys, args.primary_approval, args.secondary_approval)
+    supplied = any(path is not None for path in paths)
+    if not supplied and not args.require_attested_approvals:
+        return None
+    if not all(path is not None for path in paths):
+        raise ValueError("署名付き承認には--approval-keys、--primary-approval、--secondary-approvalの3つが必要です。")
+    from .approvals import verify_pair
+    return verify_pair(args.primary_approval, args.secondary_approval, args.approval_keys,
+                       args.proposal_id, args.snapshot_id)
+
+
+def _add_approval_options(parser):
+    parser.add_argument("--approval-keys", type=Path, default=None,
+                        help="External Ed25519 approver public-key registry")
+    parser.add_argument("--primary-approval", type=Path, default=None,
+                        help="Signed approval document for the primary approver")
+    parser.add_argument("--secondary-approval", type=Path, default=None,
+                        help="Signed approval document for the secondary approver")
+    parser.add_argument("--require-attested-approvals", action="store_true",
+                        help="Refuse real execution unless both signed approvals are supplied")
+
+
 def _sources(pairs: list[str]):
     from .connectors import load_profile
     out = []
@@ -51,6 +95,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="aisecure", description="AI Secure — local security analysis and response control")
     parser.add_argument("--data-dir", default=str(Path.home() / ".ai-secure-demo"), help="Local state; do not place in a shared or cloud-synced folder")
     parser.add_argument("--rules", type=Path, default=None, help="Detection threshold overrides (JSON). Recorded in the audit chain.")
+    parser.add_argument("--encrypted", action="store_true", help="Encrypt snapshot and audit fields using the external key below")
+    parser.add_argument("--master-key-env", default="AISECURE_MASTER_KEY", help="Environment variable holding a 64-hex-character store key")
     sub = parser.add_subparsers(dest="command", required=True)
 
     serve = sub.add_parser("serve", help="Start local development UI")
@@ -65,6 +111,9 @@ def build_parser() -> argparse.ArgumentParser:
     verify = sub.add_parser("verify-audit", help="Verify local HMAC audit chain")
     verify.add_argument("--anchor", type=Path, help="Independently retained {count,tip} checkpoint")
     sub.add_parser("checkpoint", help="Print audit checkpoint for independent retention")
+    publish_checkpoint = sub.add_parser("publish-checkpoint", help="Publish an audit checkpoint to an independent HTTPS sink")
+    publish_checkpoint.add_argument("--url", required=True, help="HTTPS checkpoint sink URL; HTTP is allowed only for localhost tests")
+    publish_checkpoint.add_argument("--secret-env", default="AISECURE_AUDIT_SINK_SECRET", help="Environment variable holding the separate sink signing secret")
 
     sub.add_parser("profiles", help="List built-in read-only log mapping profiles")
     importer = sub.add_parser("import", help="Read real log files into a snapshot (read-only; nothing is written back)")
@@ -129,6 +178,8 @@ def build_parser() -> argparse.ArgumentParser:
     execute.add_argument("--reason", required=True, help="Why this real action is approved")
     execute.add_argument("--confirm", required=True, help="Type EXECUTE REAL ACTION")
     execute.add_argument("--second-confirm", required=True, help="Type SECOND APPROVER CONFIRMED")
+    execute.add_argument("--emergency-stop-file", type=Path, default=None, help="Presence of this local file blocks the real request")
+    _add_approval_options(execute)
 
     execute_okta = sub.add_parser("execute-okta", help="Clear an explicitly double-approved Okta user's sessions and verify the System Log")
     execute_okta.add_argument("--proposal-id", required=True)
@@ -143,6 +194,8 @@ def build_parser() -> argparse.ArgumentParser:
     execute_okta.add_argument("--reason", required=True)
     execute_okta.add_argument("--confirm", required=True, help="Type EXECUTE REAL ACTION")
     execute_okta.add_argument("--second-confirm", required=True, help="Type SECOND APPROVER CONFIRMED")
+    execute_okta.add_argument("--emergency-stop-file", type=Path, default=None, help="Presence of this local file blocks the Okta request")
+    _add_approval_options(execute_okta)
     return parser
 
 
@@ -159,7 +212,7 @@ def _run_import(args, config):
     print(f"読み込み {totals['rows_read']:,} 行 / 取り込み {totals['rows_imported']:,} 行 / "
           f"読み飛ばし {totals['rows_skipped']:,} 行 / 資産 {totals['assets']} / イベント {totals['events']:,}", file=sys.stderr)
     if args.ingest:
-        store = Store(args.data_dir, config)
+        store = _store(args, config)
         try:
             # Only this path read and hashed the files itself.
             sid = store.ingest(snapshot, "imported", max_events=IMPORT_MAX_EVENTS,
@@ -211,7 +264,7 @@ def main():
         return
     if args.command == "watch":
         from .monitor import FileMonitor
-        monitor = FileMonitor(Store(args.data_dir, config), _sources(args.source),
+        monitor = FileMonitor(_store(args, config), _sources(args.source),
                               unknown_assets=args.unknown_assets,
                               max_rows=args.max_rows or 2_000_000,
                               interval=args.interval)
@@ -238,7 +291,7 @@ def main():
             asset_source, _sources(args.source), lookback_seconds=args.lookback,
             max_rows=args.max_rows or 2_000_000, unknown_assets=args.unknown_assets,
         )
-        store = Store(args.data_dir, config)
+        store = _store(args, config)
         monitor = OktaSystemLogMonitor(store, collector, interval=args.interval)
         try:
             result = monitor.poll_once()
@@ -266,7 +319,7 @@ def main():
         _run_evaluate(args, config)
         return
 
-    store = Store(args.data_dir, config)
+    store = _store(args, config)
     try:
         if args.command == "serve":
             from .server import LocalServer
@@ -300,6 +353,22 @@ def main():
             if not audit["valid"]:
                 raise ValueError("監査チェーンが不整合です。")
             print(json.dumps({"count": audit["count"], "tip": audit["tip"]}))
+        elif args.command == "publish-checkpoint":
+            from .audit_sink import AuditSinkConfig, ExternalAuditSink
+            secret = os.environ.get(args.secret_env)
+            if not secret:
+                raise ValueError(f"監査チェックポイント署名鍵の環境変数が未設定です: {args.secret_env}")
+            secret_bytes = secret.encode("utf-8")
+            if len(secret_bytes) < 32:
+                raise ValueError("監査チェックポイント署名鍵は32バイト以上が必要です。")
+            audit = store.verify_audit()
+            if not audit["valid"]:
+                raise ValueError("監査チェーンが不整合です。")
+            checkpoint = {"count": audit["count"], "tip": audit["tip"]}
+            result = ExternalAuditSink(AuditSinkConfig(args.url, secret_bytes)).publish(checkpoint)
+            store.record("audit.checkpoint_published", {"count": checkpoint["count"], "tip": checkpoint["tip"], "adapter": result["adapter"]})
+            result["current_checkpoint"] = {key: store.verify_audit()[key] for key in ("count", "tip")}
+            _write(None, _dump(result), "")
         elif args.command == "verify-audit":
             anchor = read_json(args.anchor.read_bytes()) if args.anchor else None
             result = store.verify_audit(anchor)
@@ -315,10 +384,13 @@ def main():
                 url=args.webhook_url,
                 secret=secret_text.encode("utf-8"),
                 allowed_actions=frozenset(args.allow_action),
+                emergency_stop_file=args.emergency_stop_file,
             ))
+            approval_assertions = _approval_assertions(args)
             store.approve_for_execution(
                 args.proposal_id, args.snapshot_id, args.confirm, args.second_confirm,
-                args.reason, args.primary_operator, args.secondary_operator,
+                args.reason, args.primary_operator, args.secondary_operator, args.provider_target,
+                approval_assertions,
             )
             result = store.execute_approved(args.proposal_id, args.snapshot_id, responder, args.provider_target)
             _write(None, _dump(result), "")
@@ -330,10 +402,13 @@ def main():
             responder = OktaSessionResponder(OktaConfig(
                 base_url=args.okta_domain, token=token, auth_scheme=args.auth_scheme,
                 verification_timeout=args.verification_timeout,
+                emergency_stop_file=args.emergency_stop_file,
             ))
+            approval_assertions = _approval_assertions(args)
             store.approve_for_execution(
                 args.proposal_id, args.snapshot_id, args.confirm, args.second_confirm,
-                args.reason, args.primary_operator, args.secondary_operator,
+                args.reason, args.primary_operator, args.secondary_operator, args.provider_target,
+                approval_assertions,
             )
             result = store.execute_approved(args.proposal_id, args.snapshot_id, responder, args.provider_target)
             _write(None, _dump(result), "")

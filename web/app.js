@@ -83,6 +83,7 @@ function renderOverview(root) {
   const scope=el('section','');add(scope,section(t('ov.scope'),state.coverage.live_connectors?t('ov.scopeLive'):t('ov.scopeInput')));const scopeCard=el('div','card card-pad');
   [[t('ov.assetLedger'),state.snapshot.assets.length+t('unit.units')],[t('ov.authLog'),count(state.snapshot.event_counts.login)+t('unit.count')],[t('ov.fileLog'),count(state.snapshot.event_counts.file_access)+t('unit.count')]].forEach(([name,num])=>add(scopeCard,add(el('div','telemetry-item'),el('span','',name),pill(num,'neutral'))));
   add(scopeCard,el('p','telemetry-caption',t('ov.telemetry1',count(state.coverage.live_connectors),count(state.coverage.expected_connectors))),el('p','telemetry-caption',t('ov.telemetry2',count(state.coverage.unknown_asset_fields),count(state.coverage.unknown_login_fields),count(state.coverage.unknown_classifications),count(state.coverage.unknown_read_sizes))));
+  add(scopeCard,el('p','telemetry-caption',t('ov.storage',state.storage?.encrypted_at_rest?t('ov.storageEncrypted'):t('ov.storagePlaintext'))));
   const sources=state.coverage.provenance||[];
   if(sources.length){const box=el('details','evidence-box');add(box,el('summary','',t('ov.sources',count(sources.length),!sources.every(s=>s.verified))),el('pre','evidence-ids',sources.map(s=>`${s.verified?t('ov.srcVerified'):t('ov.srcUnverified')} ${s.label}  ${s.sha256.slice(0,16)}…  ${t('ov.srcRows',count(s.rows_imported),count(s.rows_read))}`).join('\n')));add(scopeCard,box);}
   add(scope,scopeCard);add(lower,scope);add(root,lower);

@@ -2,7 +2,7 @@
 
 **Evidence before action. 判断の根拠は手元に、操作の権限は人に。**
 
-[Reachmade Labの製品ページ](https://reachmade.com/products/#aisecure) ・ [English README](README.md) ・ [サイト（日本語）](https://forifor.github.io/AISecure/index.ja.html) ・ [Site (EN)](https://forifor.github.io/AISecure/) ・ [閾値の決め方](docs/TUNING.md) ・ [Okta実対応手順](docs/OKTA.md) ・ [防御側連携プロトコル](docs/RESPONDER.md) ・ [セキュリティ検証](docs/SECURITY_REVIEW.md)
+[Reachmade Labの製品ページ](https://reachmade.com/products/#aisecure) ・ [English README](README.md) ・ [サイト（日本語）](https://forifor.github.io/AISecure/index.ja.html) ・ [Site (EN)](https://forifor.github.io/AISecure/) ・ [閾値の決め方](docs/TUNING.md) ・ [Okta実対応手順](docs/OKTA.md) ・ [防御側連携プロトコル](docs/RESPONDER.md) ・ [認証済み二者承認](docs/APPROVALS.md) ・ [独立監査チェックポイント](docs/AUDIT_SINK.md) ・ [セキュリティ検証](docs/SECURITY_REVIEW.md)
 
 ![AI Secure デモ](docs/media/screendemo.gif)
 
@@ -45,7 +45,7 @@ Oktaについては、`execute-okta` で承認済みの1ユーザー（`00u...`�
 
 ## すぐに動かす
 
-必要環境は **Python 3.11以上**。ランタイムの外部Pythonパッケージ、APIキー、クラウド契約は不要です。ローカルLLMを使わない標準モードの説明です。
+必要環境は **Python 3.11以上**。デモと標準モードは外部Pythonパッケージ、APIキー、クラウド契約が不要です。暗号化保管を使う本番オプションだけ `cryptography` を追加します。
 
 リポジトリを取得し、`AISecure` ディレクトリで実行します。
 
@@ -68,6 +68,11 @@ python3 -m aisecure --data-dir ./private-state serve --demo --port 8765
 
 # テスト（標準ライブラリのみ）
 python3 -m unittest discover -s tests -v
+
+# 本番向け：外部Secret Managerから32バイト鍵を渡して保管データを暗号化
+export AISECURE_MASTER_KEY="64文字の16進数"
+python3 -m pip install '.[production]'
+python3 -m aisecure --encrypted --data-dir ./private-state serve
 ```
 
 ## 最初に試す操作
@@ -119,16 +124,21 @@ python3 -m aisecure --rules rules.json serve
 | 検知設定の外部化・監査記録 | 実装済み。設定ハッシュを起動時と各検知結果に記録 |
 | ユーザー・セッション・ファイル識別子の仮名化 | 実装済み。匿名化ではなく、秘密のない集計情報にも変わらない |
 | 対応計画、承認期限、二重承認・古い入力の拒否 | 実装済み。実操作は署名付きレスポンダー経由 |
+| 実行対象の承認時バインド | 実装済み。承認した対象IDと異なる対象への実行を拒否 |
+| SSO/RBAC発行の署名付き二者承認 | 実装済み。外部Ed25519承認証明を検証可能。認証ゲートウェイ自体は別途必要 |
 | 署名付き実対応要求と実行後検証 | 実装済み。HTTPSの別プロセスへ限定メタデータを送信。プロバイダー別レスポンダーは別途必要 |
 | HMAC監査チェーン・外部チェックポイント検証 | 実装済み。外部保管先は未接続 |
+| 暗号化保管 | 実装済み。`.[production]` と `--encrypted` で外部鍵を使い、スナップショット・監査ペイロードをAES-GCM暗号化 |
+| 独立監査チェックポイント送信 | 実装済み。`publish-checkpoint` が専用鍵でHTTPS送信し、同じ件数・先端の応答だけ受理 |
+| 緊急停止 | 実装済み。`--emergency-stop-file` が存在または確認不能なら実操作を停止 |
 | ルール説明 | 実装済み。LLM未使用と明示 |
 | Ollama補助説明 | アダプター実装・モックテスト済み。実モデルは未検証 |
 | VPN / ファイルサーバーへの直接自動収集 | 未実装。Okta以外は読み取り専用のCSV/JSONL書き出しを監視 |
 | KEV / JVN / ベンダー情報の自動同期・影響バージョン判定 | 未実装。悪用有無・CVSSは入力値 |
-| 本番SSO、RBAC、複数テナント、二者承認 | 未実装 |
+| 本番SSO、RBAC、複数テナント | AISecure内蔵は未実装。外部SSO/RBACの署名付き承認を検証する境界は実装済み |
 | Oktaユーザーのセッション失効 | 実装済み。`execute-okta` が失効後の `user.session.clear` を検証。実Okta環境でのE2Eは未実施 |
 | その他の実機操作・復旧 | 未実装。プロバイダー別レスポンダーと復旧演習が必要 |
-| 保管時暗号化、独立監査保管、鍵管理基盤 | 未実装。標準SQLiteは平文で、OS権限のみ |
+| 保管時暗号化、独立監査保管、鍵管理基盤 | 暗号化保管とチェックポイント送信の接続は実装済み。鍵管理・WORM・外部保管先の運用保証は未確認 |
 | 実環境の正常ログでの誤検知率、検知率 | 未測定。合成データでの測定のみ |
 | 本番負荷、長期運用、大規模ログ | 未測定 |
 
@@ -164,6 +174,8 @@ python3 -m aisecure verify-audit --anchor checkpoint.json
 ```
 
 `checkpoint.json` を同じホストに置くだけでは独立保管になりません。承認された別権限の保管先へ移す運用が必要です。チェックポイントより後に追加された記録の末尾削除までは検出できません。
+
+独立したHTTPS保管先へ自動送信する場合は、専用鍵を設定して `publish-checkpoint` を使います。送信契約は [docs/AUDIT_SINK.md](docs/AUDIT_SINK.md) にあります。送信先のWORM性・バックアップ・可用性は別途検証してください。
 
 HTTP経由の入力は2 MiB・200資産・5,000イベントまでです。それより大きい実ログは `import --ingest` か `analyze` を使ってください（CLIは同じ検証をより大きな上限で行います）。
 

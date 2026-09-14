@@ -172,7 +172,7 @@ footer a{color:var(--muted)}
 
     </div>
     <p class="note" style="margin-top:10px">ブラウザプレビュー · 合成データ · 実操作なし</p>
-    <div class="badges"><span>MIT</span><span>Python 3.11+</span><span>依存ゼロ</span><span>テスト203件</span><span>127.0.0.1のみ</span></div>
+    <div class="badges"><span>MIT</span><span>Python 3.11+</span><span>依存ゼロ</span><span>テスト216件</span><span>127.0.0.1のみ</span></div>
 </div><div class="case-stage"><div class="case-view" id="case"><div class="case-timeline"><p>入力の観測を、時系列でたどる</p><button type="button" data-case="asset" aria-pressed="false">01　公開された接続機器</button><button type="button" data-case="login" aria-pressed="false">02　特権ログイン</button><button type="button" data-case="files" aria-pressed="false">03　ファイル大量参照</button></div><div class="case-detail" id="case-detail" role="status">サンプルを読み込んでいます…</div></div><div class="case-key"> <span><b>観測</b> 入力に記録された事実</span><span><b>仮説</b> アカウント侵害の可能性</span><span><b>不明</b> 脆弱性の悪用・外部漏えい</span></div><p class="note">ブラウザプレビューは合成データを使い、実環境の監視・遮断は行いません。CLIではOkta対応を限定的に利用できます。 <a href="try.html">実画面を開く →</a></p>
 </div></div>  </div>
 </section>
@@ -321,11 +321,11 @@ python3 -m aisecure evaluate normal.json incident.json --sweep --out report.md</
       <div class="card"><h3>いま役立つこと</h3>
         <p>端から端まで追える検知ロジックを学ぶ。初動から承認までの流れを試す（画面は日本語・英語対応）。
           そして、閾値を導入する<i>前</i>に、その誤検知コストを測る。</p></div>
-      <div class="card"><h3>未実装</h3>
-        <p>VPN・ファイルサーバーの直接コネクタ、KEV・ベンダー情報の照合、SSO・RBAC、保管時の暗号化、
-          独立した監査保管、復旧フロー、本番配置——これらはまだありません。実組織での検証も必要です。</p></div>
+      <div class="card"><h3>本番前に必要なこと</h3>
+        <p>VPN・ファイルサーバーの直接コネクタ、KEV・ベンダー情報の照合、復旧フロー、実組織での検証と本番運用です。
+          暗号化保管、独立チェックポイント送信、外部署名付き承認、緊急停止の境界は、管理された構成で利用できます。</p></div>
     </div>
-    <p class="note">段階でいうと：<b>統合プロトタイプ（L1→L2）</b>——ローカル評価、範囲を限定したOkta System Log監視、2名承認と検証つきのセッション対応を試せます。まだ<b>本番（L3）ではありません</b>：実組織での検証、SSO/RBAC、保管時暗号化、独立した監査保管、復旧、第三者レビューが未了です。<a href="SECURITY_CHECKLIST.md">検証チェックリスト →</a></p>
+    <p class="note">段階でいうと：<b>統合プロトタイプ（L1→L2）</b>——ローカル評価、範囲を限定したOkta System Log監視、2名承認と検証つきのセッション対応を試せます。暗号化保管、独立チェックポイント、外部署名付き承認、緊急停止も管理された構成で利用できますが、<b>まだ本番（L3）ではありません</b>：実組織での検証、復旧演習、第三者レビューが未了です。<a href="SECURITY_CHECKLIST.md">検証チェックリスト →</a></p>
     <p style="margin-top:26px;max-width:66ch">次の目標は、機能を増やすことではありません。ある組織の実際の認証・機器・ファイル参照ログを取り込み、
       「何も起きていない期間」で誤検知率を測ること。それが次の一歩です。</p>
     <p class="note">2026年9月に公表された、ガバメントソリューションサービスへの不正アクセスをきっかけに作りました。

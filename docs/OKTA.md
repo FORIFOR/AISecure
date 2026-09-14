@@ -45,6 +45,6 @@ python3 -m aisecure --data-dir ./private-state execute-okta \
 
 API tokenを使う場合は `--auth-scheme SSWS` を追加します。検証待ち時間は `--verification-timeout`（既定5秒）で設定できます。タイムアウト、権限不足、対象ID不正、System Logの検証失敗は成功扱いになりません。
 
-これは自動遮断ではありません。計画・スナップショットの一致、5分の期限、二者の明示確認、対象ID指定が必要です。現行CLIの承認者名は二つの異なるラベルであることを確認するだけなので、本番ではSSO/RBACで認証済みの本人性と職務分離を実装・検証してください。
+これは自動遮断ではありません。計画・スナップショットの一致、5分の期限、二者の明示確認、対象ID指定が必要です。必要なら `--emergency-stop-file ./STOP` を追加してください。ファイルが存在する、または確認できない場合はOkta APIへ送信しません。現行CLIの承認者名は二つの異なるラベルであることを確認するだけなので、本番ではSSO/RBACで認証済みの本人性と職務分離を実装・検証してください。
 
 参考: [Okta System Log query](https://developer.okta.com/docs/reference/system-log-query/)、[Okta OAuth scopes](https://developer.okta.com/docs/api/oauth2)、[Clear user sessions](https://developer.okta.com/docs/guides/keep-me-signed-in/main/)。

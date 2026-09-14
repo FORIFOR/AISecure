@@ -173,7 +173,7 @@ footer a{color:var(--muted)}
       <a class="btn ghost" href="https://github.com/FORIFOR/AISecure">Star on GitHub</a>
     </div>
     <p class="note" style="margin-top:10px">Browser preview · synthetic data · no live action</p>
-    <div class="badges"><span>MIT</span><span>Python 3.11+</span><span>0 runtime deps</span><span>203 tests</span><span>127.0.0.1 only</span></div>
+    <div class="badges"><span>MIT</span><span>Python 3.11+</span><span>0 runtime deps</span><span>216 tests</span><span>127.0.0.1 only</span></div>
 </div><div class="case-stage"><div class="case-view" id="case"><div class="case-timeline"><p>Follow observations in the snapshot</p><button type="button" data-case="asset" aria-pressed="false">01　Exposed gateway</button><button type="button" data-case="login" aria-pressed="false">02　Privileged login</button><button type="button" data-case="files" aria-pressed="false">03　Bulk file access</button></div><div class="case-detail" id="case-detail" role="status">Loading sample…</div></div><div class="case-key"><span><b>Observed</b> recorded input</span><span><b>Hypothesis</b> account compromise</span><span><b>Unknown</b> exploitation / exfiltration</span></div><p class="note">The browser preview uses synthetic data and does not monitor or block a live environment. The CLI supports a narrow Okta path. <a href="try.html">Open the full interface →</a></p>
 </div></div>  </div>
 </section>
@@ -322,11 +322,12 @@ python3 -m aisecure evaluate normal.json incident.json --sweep --out report.md</
       <div class="card"><h3>Useful today for</h3>
         <p>Studying detection logic that is legible end to end. Rehearsing a triage and approval workflow (UI fully in English or Japanese).
           And measuring what a threshold costs <i>before</i> you deploy one.</p></div>
-      <div class="card"><h3>Not implemented</h3>
-        <p>Direct VPN/file-server collectors, KEV and vendor advisory matching, SSO and RBAC, encryption at rest,
-          external audit storage, recovery workflows and production deployment. Real-org validation is still required.</p></div>
+      <div class="card"><h3>Still required before production</h3>
+        <p>Direct VPN/file-server collectors, KEV and vendor advisory matching, recovery workflows, real-organization
+          validation and production operations. Encrypted evidence storage, independent checkpoint publication,
+          signed external approvals and an emergency-stop boundary are available as controlled-deployment capabilities.</p></div>
     </div>
-    <p class="note">Where this sits: <b>integration prototype (L1→L2)</b> — you can evaluate it locally, poll bounded Okta System Log windows, and exercise a two-approval session response with verification. It is <b>not</b> a production (L3) control: real-org validation, SSO/RBAC, encryption at rest, external audit storage, recovery and an independent review are still open. <a href="SECURITY_CHECKLIST.md">The readiness checklist →</a></p>
+    <p class="note">Where this sits: <b>integration prototype (L1→L2)</b> — you can evaluate it locally, poll bounded Okta System Log windows, and exercise a two-approval session response with verification. Controlled deployments can add encrypted storage, independent checkpoints, external signed approvals and an emergency stop; <b>it is not yet a production (L3) control</b> until real-org validation, recovery exercises and an independent review are complete. <a href="SECURITY_CHECKLIST.md">The readiness checklist →</a></p>
     <p style="margin-top:26px;max-width:66ch">The next milestone is not more features. It is getting one organisation's real
       authentication, gateway and file-access logs through the importer, and measuring the false-positive rate over a period
       where nothing happened.</p>

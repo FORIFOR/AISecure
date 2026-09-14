@@ -75,4 +75,6 @@ and recovery procedures, and independently retain audit records.
 The endpoint must use HTTPS. Plain HTTP is accepted only for a loopback test
 responder. The signing secret should come from a secret manager and be at
 least 32 bytes; it must never be committed to the repository or printed in
-logs.
+logs. Pass `--emergency-stop-file ./STOP` to the CLI when an operator-managed
+kill switch is required. Presence of the file, or an error while checking it,
+fails closed before the request is sent.

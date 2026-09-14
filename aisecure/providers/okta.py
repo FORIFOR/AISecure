@@ -24,6 +24,7 @@ from ..responder import ResponderError
 from ..schema import canonical, iso, parse_time, ValidationError, ID, utcnow
 from ..connectors import MAX_ROWS, MAX_SOURCE_BYTES, build_snapshot
 from ..connectors.importer import _warnings
+from ..safety import EmergencyStop, EmergencyStopError
 
 MAX_RESPONSE_BYTES = 8 * 1024 * 1024
 MAX_LOG_PAGES = 20
@@ -49,6 +50,7 @@ class OktaConfig:
     timeout: float = 5.0
     verification_timeout: float = 5.0
     allow_insecure_localhost: bool = False
+    emergency_stop_file: str | None = None
 
     def __post_init__(self):
         try:
@@ -78,6 +80,7 @@ class OktaClient:
 
     def __init__(self, config: OktaConfig):
         self.config = config
+        self.emergency_stop = EmergencyStop(config.emergency_stop_file)
         parts = urlsplit(config.base_url)
         self._origin = urlunsplit((parts.scheme, parts.netloc, "", "", ""))
 
@@ -96,6 +99,11 @@ class OktaClient:
             raise OktaError("Okta APIのリンク先が許可された同一ドメインではありません。")
 
     def _request(self, method: str, url: str) -> tuple[int, bytes, Any]:
+        if method in {"POST", "PUT", "PATCH", "DELETE"}:
+            try:
+                self.emergency_stop.assert_clear()
+            except EmergencyStopError as exc:
+                raise OktaError(str(exc)) from exc
         self._check_url(url)
         request = Request(url, headers={
             "Accept": "application/json",
@@ -171,6 +179,10 @@ class OktaClient:
         raise OktaError("Okta System Logのページ数が上限を超えました。")
 
     def clear_user_sessions(self, user_id: str) -> datetime:
+        try:
+            self.emergency_stop.assert_clear()
+        except EmergencyStopError as exc:
+            raise OktaError(str(exc)) from exc
         if not isinstance(user_id, str) or not OKTA_USER_ID.fullmatch(user_id):
             raise ValidationError("実操作の対象は検証済みOktaユーザーID（00uで始まる値）に限定します。")
         requested_at = datetime.now(timezone.utc)
@@ -210,6 +222,10 @@ class OktaSessionResponder:
         self.client = OktaClient(config)
 
     def execute(self, plan: dict[str, Any], context: dict[str, Any]) -> dict[str, Any]:
+        try:
+            self.client.emergency_stop.assert_clear()
+        except EmergencyStopError as exc:
+            raise OktaError(str(exc)) from exc
         if plan.get("execution_mode") != "real" or plan.get("automatic_execution") is not False:
             raise OktaError("実操作モードかつ自動実行無効の計画だけをOktaへ送信できます。")
         if plan.get("action") != "revoke_session":

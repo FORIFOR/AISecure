@@ -1,3 +1,9 @@
+test_store_records_attested_approval_and_binds_target (test_approvals.ApprovalAttestationTests.test_store_records_attested_approval_and_binds_target) ... skipped 'cryptography is installed only for the production-attestation test environment'
+test_tampering_or_expiry_is_rejected (test_approvals.ApprovalAttestationTests.test_tampering_or_expiry_is_rejected) ... skipped 'cryptography is installed only for the production-attestation test environment'
+test_two_signed_approvals_are_bound_to_the_exact_action (test_approvals.ApprovalAttestationTests.test_two_signed_approvals_are_bound_to_the_exact_action) ... skipped 'cryptography is installed only for the production-attestation test environment'
+test_mismatched_ack_is_not_success (test_audit_sink.AuditSinkTests.test_mismatched_ack_is_not_success) ... ok
+test_signed_checkpoint_requires_exact_acknowledgement (test_audit_sink.AuditSinkTests.test_signed_checkpoint_requires_exact_acknowledgement) ... ok
+test_sink_rejects_invalid_configuration_and_checkpoint (test_audit_sink.AuditSinkTests.test_sink_rejects_invalid_configuration_and_checkpoint) ... ok
 test_baseline_is_reproducible_from_the_command_line (test_cli.CLITests.test_baseline_is_reproducible_from_the_command_line) ... ok
 test_baseline_start_makes_the_scenario_analyzable (test_cli.CLITests.test_baseline_start_makes_the_scenario_analyzable) ... ok
 test_baseline_warns_when_the_scenario_ends_in_the_future (test_cli.CLITests.test_baseline_warns_when_the_scenario_ends_in_the_future) ... ok
@@ -186,9 +192,13 @@ test_file_monitor_records_a_poll_failure_and_keeps_running (test_monitor.Monitor
 test_first_poll_ingests_and_second_unchanged_poll_is_noop (test_monitor.MonitorTests.test_first_poll_ingests_and_second_unchanged_poll_is_noop) ... ok
 test_okta_monitor_records_api_failure_without_secret_details (test_monitor.MonitorTests.test_okta_monitor_records_api_failure_without_secret_details) ... ok
 test_clear_sessions_requires_verified_system_log_event (test_okta.OktaResponderTests.test_clear_sessions_requires_verified_system_log_event) ... ok
+test_emergency_stop_blocks_session_clear (test_okta.OktaResponderTests.test_emergency_stop_blocks_session_clear) ... ok
 test_missing_system_log_event_is_not_success (test_okta.OktaResponderTests.test_missing_system_log_event_is_not_success) ... ok
 test_system_log_collector_maps_only_login_metadata (test_okta.OktaResponderTests.test_system_log_collector_maps_only_login_metadata) ... ok
 test_target_and_action_are_narrowly_allowlisted (test_okta.OktaResponderTests.test_target_and_action_are_narrowly_allowlisted) ... ok
+test_emergency_stop_blocks_request_before_delivery (test_responder.ResponderTests.test_emergency_stop_blocks_request_before_delivery) ... ok
+test_execution_target_must_match_the_target_that_was_approved (test_responder.ResponderTests.test_execution_target_must_match_the_target_that_was_approved) ... ok
+test_malformed_provider_result_fails_closed (test_responder.ResponderTests.test_malformed_provider_result_fails_closed) ... ok
 test_provider_failure_is_not_recorded_as_success (test_responder.ResponderTests.test_provider_failure_is_not_recorded_as_success) ... ok
 test_real_execution_requires_two_distinct_approvers (test_responder.ResponderTests.test_real_execution_requires_two_distinct_approvers) ... ok
 test_real_webhook_rejects_non_loopback_http (test_responder.ResponderTests.test_real_webhook_rejects_non_loopback_http) ... ok
@@ -215,8 +225,11 @@ test_lookback_zero_breaks_correlation_only (test_rules.TunedDetectionTests.test_
 test_narrowing_window_drops_bulk (test_rules.TunedDetectionTests.test_narrowing_window_drops_bulk) ... ok
 test_raising_threshold_drops_bulk_and_correlation (test_rules.TunedDetectionTests.test_raising_threshold_drops_bulk_and_correlation) ... ok
 test_sensitive_minimum_can_require_more_labels (test_rules.TunedDetectionTests.test_sensitive_minimum_can_require_more_labels) ... ok
+test_plaintext_store_cannot_be_opened_as_encrypted (test_storage.EncryptedStorageTests.test_plaintext_store_cannot_be_opened_as_encrypted) ... skipped 'cryptography is installed only for the production-storage test environment'
+test_sensitive_store_fields_are_encrypted_and_reopenable (test_storage.EncryptedStorageTests.test_sensitive_store_fields_are_encrypted_and_reopenable) ... skipped 'cryptography is installed only for the production-storage test environment'
+test_wrong_or_missing_external_key_fails_closed (test_storage.EncryptedStorageTests.test_wrong_or_missing_external_key_fails_closed) ... skipped 'cryptography is installed only for the production-storage test environment'
 
 ----------------------------------------------------------------------
-Ran 203 tests in 8.093s
+Ran 216 tests in 8.590s
 
-OK
+OK (skipped=6)

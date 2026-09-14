@@ -7,6 +7,7 @@ import json
 import threading
 import tempfile
 import unittest
+from pathlib import Path
 
 from aisecure.demo import sample
 from aisecure.responder import ResponderConfig, ResponderError, SignedWebhookResponder
@@ -86,7 +87,7 @@ class ResponderTests(unittest.TestCase):
     def test_signed_webhook_is_verified_and_audited(self):
         approval = self.store.approve_for_execution(
             self.pid, self.sid, "EXECUTE REAL ACTION", "SECOND APPROVER CONFIRMED",
-            "根拠と業務影響を確認しました。", "operator-a", "operator-b")
+            "根拠と業務影響を確認しました。", "operator-a", "operator-b", "provider-session-42")
         self.assertEqual(approval["status"], "approved")
         result = self.store.execute_approved(self.pid, self.sid, self.responder(), "provider-session-42")
         self.assertEqual(result["status"], "verified")
@@ -107,14 +108,38 @@ class ResponderTests(unittest.TestCase):
         self.assertEqual(headers["x-aisecure-signature"], "sha256=" + expected)
         self.assertEqual(headers["x-aisecure-idempotency-key"], self.pid)
 
+    def test_execution_target_must_match_the_target_that_was_approved(self):
+        self.store.approve_for_execution(
+            self.pid, self.sid, "EXECUTE REAL ACTION", "SECOND APPROVER CONFIRMED",
+            "対象と影響を確認しました。", "operator-a", "operator-b", "approved-target")
+        with self.assertRaises(ConflictError):
+            self.store.execute_approved(self.pid, self.sid, self.responder(), "different-target")
+        self.assertEqual(self.store.state()["proposals"][0]["status"], "approved")
+
     def test_provider_failure_is_not_recorded_as_success(self):
         self.store.approve_for_execution(
             self.pid, self.sid, "EXECUTE REAL ACTION", "SECOND APPROVER CONFIRMED",
-            "影響と復旧手順を確認しました。", "operator-a", "operator-b")
+            "影響と復旧手順を確認しました。", "operator-a", "operator-b", "provider-session-42")
         CaptureHandler.response_status = "failed"
         result = self.store.execute_approved(self.pid, self.sid, self.responder(), "provider-session-42")
         self.assertEqual(result["status"], "failed")
         self.assertFalse(result["executed"])
+        self.assertEqual(self.store.state()["proposals"][0]["status"], "failed")
+
+    def test_emergency_stop_blocks_request_before_delivery(self):
+        stop_file = Path(self.temp.name) / "STOP"
+        stop_file.touch()
+        self.store.approve_for_execution(
+            self.pid, self.sid, "EXECUTE REAL ACTION", "SECOND APPROVER CONFIRMED",
+            "影響と復旧手順を確認しました。", "operator-a", "operator-b", "provider-session-42")
+        responder = SignedWebhookResponder(ResponderConfig(
+            url=self.url, secret=self.secret,
+            allowed_actions=frozenset({"revoke_session"}),
+            emergency_stop_file=str(stop_file),
+        ))
+        with self.assertRaises(ResponderError):
+            self.store.execute_approved(self.pid, self.sid, responder, "provider-session-42")
+        self.assertIsNone(CaptureHandler.payload)
         self.assertEqual(self.store.state()["proposals"][0]["status"], "failed")
 
     def test_real_webhook_rejects_non_loopback_http(self):
@@ -125,7 +150,7 @@ class ResponderTests(unittest.TestCase):
     def test_responder_requires_verified_provider_status(self):
         self.store.approve_for_execution(
             self.pid, self.sid, "EXECUTE REAL ACTION", "SECOND APPROVER CONFIRMED",
-            "対象と影響を確認しました。", "operator-a", "operator-b")
+            "対象と影響を確認しました。", "operator-a", "operator-b", "provider-session-42")
         CaptureHandler.response_status = "unknown"
         with self.assertRaises(ResponderError):
             self.store.execute_approved(self.pid, self.sid, self.responder(), "provider-session-42")
@@ -134,10 +159,25 @@ class ResponderTests(unittest.TestCase):
     def test_responder_must_echo_the_current_request(self):
         self.store.approve_for_execution(
             self.pid, self.sid, "EXECUTE REAL ACTION", "SECOND APPROVER CONFIRMED",
-            "対象と影響を確認しました。", "operator-a", "operator-b")
+            "対象と影響を確認しました。", "operator-a", "operator-b", "provider-session-42")
         CaptureHandler.response_request_id = "different-request"
         with self.assertRaises(ResponderError):
             self.store.execute_approved(self.pid, self.sid, self.responder(), "provider-session-42")
+        self.assertEqual(self.store.state()["proposals"][0]["status"], "failed")
+
+    def test_malformed_provider_result_fails_closed(self):
+        self.store.approve_for_execution(
+            self.pid, self.sid, "EXECUTE REAL ACTION", "SECOND APPROVER CONFIRMED",
+            "対象と影響を確認しました。", "operator-a", "operator-b", "provider-session-42")
+
+        class MalformedResponder:
+            adapter_name = "malformed"
+
+            def execute(self, _plan, _context):
+                return None
+
+        result = self.store.execute_approved(self.pid, self.sid, MalformedResponder(), "provider-session-42")
+        self.assertEqual(result, {"status": "failed", "executed": False})
         self.assertEqual(self.store.state()["proposals"][0]["status"], "failed")
 
 

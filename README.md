@@ -11,7 +11,7 @@ A local-first security triage and response gateway that links an internet-facing
 [![python](https://img.shields.io/badge/python-3.11%2B-175b48)](pyproject.toml)
 [![dependencies](https://img.shields.io/badge/runtime%20deps-0-175b48)](pyproject.toml)
 
-[Reachmade Lab product page](https://reachmade.com/products/#aisecure) · [日本語 README](README.ja.md) · [How to tune it](docs/TUNING.md) · [Log connectors](docs/CONNECTORS.md) · [Okta response adapter](docs/OKTA.md) · [Responder protocol](docs/RESPONDER.md) · [Security review](docs/SECURITY_REVIEW.md)
+[Reachmade Lab product page](https://reachmade.com/products/#aisecure) · [日本語 README](README.ja.md) · [How to tune it](docs/TUNING.md) · [Log connectors](docs/CONNECTORS.md) · [Okta response adapter](docs/OKTA.md) · [Responder protocol](docs/RESPONDER.md) · [Signed approvals](docs/APPROVALS.md) · [Audit checkpoint sink](docs/AUDIT_SINK.md) · [Security review](docs/SECURITY_REVIEW.md)
 
 ![AI Secure — the triage screen, with its evidence](docs/media/screendemo.gif)
 
@@ -95,6 +95,21 @@ python3 -m aisecure execute \
   --second-confirm 'SECOND APPROVER CONFIRMED'
 ```
 
+Add `--emergency-stop-file ./STOP` to either real-execution command when an
+operator-managed local kill switch is required. If the file exists, or cannot
+be checked, no provider request is sent.
+
+Retain the audit-chain tip in a separately operated sink (the sink must store
+the acknowledged values independently):
+
+```bash
+AISECURE_AUDIT_SINK_SECRET='use-a-different-32-byte-secret' \
+python3 -m aisecure --data-dir ./private-state publish-checkpoint \
+  --url https://audit-vault.example/checkpoints
+```
+
+See [the checkpoint sink protocol](docs/AUDIT_SINK.md).
+
 See [the responder protocol](docs/RESPONDER.md) before connecting a real
 control plane. The bundled browser demo remains synthetic and simulation-only.
 
@@ -104,7 +119,7 @@ sessions for one operator-supplied Okta user ID and requires a matching
 
 ## Quick start
 
-Python 3.11+. No pip install, no API key, no cloud account, no LLM.
+Python 3.11+. The demo needs no pip install, API key, cloud account, or LLM.
 
 ```bash
 git clone https://github.com/FORIFOR/AISecure.git && cd AISecure
@@ -112,6 +127,17 @@ python3 -m aisecure serve --demo
 ```
 
 Open the `Open:` URL it prints. Binds to `127.0.0.1` only, with a fresh token per run.
+
+For a controlled deployment that must encrypt stored evidence, install the
+optional production dependency and provide the key from a secret manager. The
+key is 32 bytes represented as 64 hexadecimal characters and is never written
+to the data directory:
+
+```bash
+python3 -m pip install '.[production]'
+export AISECURE_MASTER_KEY="$(openssl rand -hex 32)"
+python3 -m aisecure --encrypted --data-dir ./private-state serve
+```
 
 <details>
 <summary><b>Read your own logs, then measure the false positives</b></summary>
@@ -168,9 +194,11 @@ Detection, explanation, and the authority to act are separate modules with expli
 |---|---|
 | **Pseudonymisation** | User, session, and file identifiers become keyed HMACs before they are stored. Never anonymisation — [we say so](docs/INPUT_SCHEMA.md). |
 | **Evidence** | Every finding carries the event IDs it was built from, and separates *observed* from *hypothesis* from *unknown*. |
-| **Audit** | Ingest, explain, plan, approve, simulate, and threshold changes go into a keyed hash chain. Tail truncation needs an external checkpoint — [stated, not hidden](SECURITY.md). |
-| **Approval** | 5-minute expiry, typed confirmation, reason required. Stale snapshots, double approvals, and tampered plans are refused. |
-| **Tests** | 203, standard library only. `python3 -m unittest discover -s tests -v` |
+| **Audit** | Ingest, explain, plan, approve, simulate, and threshold changes go into a keyed hash chain. `publish-checkpoint` can send a signed tip to an independently operated HTTPS sink — [protocol](docs/AUDIT_SINK.md). |
+| **Storage** | The default zero-install mode uses a local file key. `.[production]` plus `--encrypted` encrypts snapshot and audit fields with an external 32-byte key. |
+| **Approval** | 5-minute expiry, typed confirmation, reason required, and exact target binding. Production mode can require two Ed25519 approvals from an external SSO/RBAC gateway. |
+| **Safety** | Optional emergency-stop file fails closed before a webhook or Okta request. |
+| **Tests** | 216 in the default environment (6 optional cryptography tests skipped); the production environment runs all 216. `python3 -m unittest discover -s tests -v` |
 
 ## Screenshots
 
@@ -182,9 +210,9 @@ The UI is fully bilingual — English by default, with a `日本語` toggle in t
 
 ## Status
 
-**v0.3.0 — a local integration prototype, honestly labelled.** Useful today for studying detection logic, polling exported logs, directly reading Okta System Log login metadata, rehearsing a triage workflow, and testing a narrow Okta session-clear path. Real-organization deployment, real-log validation, SSO/RBAC, recovery exercises, and an independent security review are still required.
+**v0.3.0 — a local integration prototype, honestly labelled.** Useful today for studying detection logic, polling exported logs, directly reading Okta System Log login metadata, rehearsing a triage workflow, and testing a narrow Okta session-clear path. Encrypted storage, independent checkpoint publication, signed approval verification, and an emergency-stop boundary are available for controlled deployments. Real-organization deployment, real-log validation, external SSO/RBAC rollout, recovery exercises, and an independent security review are still required.
 
-Not implemented: live collectors for providers other than Okta, KEV/vendor advisory matching, SSO and RBAC inside the control plane, encryption at rest, external audit storage, non-Okta provider responders, and recovery automation. A [self-review](docs/SECURITY_REVIEW.md) found and fixed four detection-evasion defects in the import boundary; it is not a third-party audit.
+Not implemented: live collectors for providers other than Okta, KEV/vendor advisory matching, native SSO/RBAC, non-Okta provider responders, and recovery automation. Signed approvals are a verification boundary and require an external identity gateway; encrypted storage and external audit publication are integration capabilities, not proof that the deployment's key manager or sink is secure. A [self-review](docs/SECURITY_REVIEW.md) found and fixed four detection-evasion defects in the import boundary; it is not a third-party audit.
 
 The next milestone is not more features. It is getting one organisation's real authentication, gateway, and file-access logs through the importer, and measuring the false-positive rate on a period where nothing happened.
 

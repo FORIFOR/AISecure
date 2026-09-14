@@ -23,6 +23,7 @@ from urllib.parse import urlsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 from .schema import canonical, identifier, ValidationError
+from .safety import EmergencyStop, EmergencyStopError
 
 
 class ResponderError(RuntimeError):
@@ -42,6 +43,7 @@ class ResponderConfig:
     secret: bytes
     timeout: float = 5.0
     allowed_actions: frozenset[str] = frozenset()
+    emergency_stop_file: str | None = None
 
     def __post_init__(self):
         try:
@@ -105,8 +107,13 @@ class SignedWebhookResponder:
 
     def __init__(self, config: ResponderConfig):
         self.config = config
+        self.emergency_stop = EmergencyStop(config.emergency_stop_file)
 
     def execute(self, plan: dict[str, Any], context: dict[str, Any]) -> dict[str, Any]:
+        try:
+            self.emergency_stop.assert_clear()
+        except EmergencyStopError as exc:
+            raise ResponderError(str(exc)) from exc
         if plan.get("execution_mode") != "real":
             raise ResponderError("実操作モードではない対応計画は実行できません。")
         if plan.get("automatic_execution") is not False:
@@ -128,9 +135,12 @@ class SignedWebhookResponder:
         }
         request = Request(self.config.url, data=raw, headers=headers, method="POST")
         try:
+            self.emergency_stop.assert_clear()
             with build_opener(_NoRedirect).open(request, timeout=self.config.timeout) as response:
                 status = response.status
                 body = response.read(64 * 1024)
+        except EmergencyStopError as exc:
+            raise ResponderError(str(exc)) from exc
         except HTTPError as exc:
             raise ResponderError(f"実行先がHTTP {exc.code}を返しました。") from exc
         except (URLError, TimeoutError, OSError) as exc:
