@@ -81,6 +81,54 @@ class MonitorTests(unittest.TestCase):
         self.assertFalse(second.changed)
         self.assertEqual(second.snapshot_id, first.snapshot_id)
 
+    def test_file_monitor_records_a_poll_failure_and_keeps_running(self):
+        class BrokenMonitor(FileMonitor):
+            def poll_once(self):
+                raise ValueError("bad input must not enter the audit payload")
+
+        class StopAfterWait:
+            def __init__(self):
+                self.stopped = False
+
+            def is_set(self):
+                return self.stopped
+
+            def wait(self, _interval):
+                self.stopped = True
+                return True
+
+        monitor = BrokenMonitor(self.store, self.sources, interval=1)
+        stop = StopAfterWait()
+        monitor.run(stop)
+        failures = [record for record in self.store.state()["audit_records"]
+                    if record["action"] == "monitor.poll_failed"]
+        self.assertEqual(len(failures), 1)
+        self.assertEqual(failures[0]["payload"], {"error_type": "ValueError"})
+
+    def test_okta_monitor_records_api_failure_without_secret_details(self):
+        class BrokenCollector:
+            def collect(self):
+                raise RuntimeError("token=secret must not enter the audit payload")
+
+        class StopAfterWait:
+            def __init__(self):
+                self.stopped = False
+
+            def is_set(self):
+                return self.stopped
+
+            def wait(self, _interval):
+                self.stopped = True
+                return True
+
+        monitor = OktaSystemLogMonitor(self.store, BrokenCollector(), interval=1)
+        stop = StopAfterWait()
+        monitor.run(stop)
+        failures = [record for record in self.store.state()["audit_records"]
+                    if record["action"] == "monitor.poll_failed"]
+        self.assertEqual(len(failures), 1)
+        self.assertEqual(failures[0]["payload"], {"connector": "okta-system-log-api", "error_type": "RuntimeError"})
+
 
 if __name__ == "__main__":
     unittest.main()

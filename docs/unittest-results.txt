@@ -182,7 +182,9 @@ test_fuzz_requests_never_crash_or_leak (test_http_fuzz.HTTPFuzzTests.test_fuzz_r
 test_server_still_healthy_after_fuzz (test_http_fuzz.HTTPFuzzTests.test_server_still_healthy_after_fuzz) ... ok
 test_authenticated_live_monitor_deduplicates_an_unchanged_window (test_monitor.MonitorTests.test_authenticated_live_monitor_deduplicates_an_unchanged_window) ... ok
 test_changed_source_creates_a_new_snapshot (test_monitor.MonitorTests.test_changed_source_creates_a_new_snapshot) ... ok
+test_file_monitor_records_a_poll_failure_and_keeps_running (test_monitor.MonitorTests.test_file_monitor_records_a_poll_failure_and_keeps_running) ... ok
 test_first_poll_ingests_and_second_unchanged_poll_is_noop (test_monitor.MonitorTests.test_first_poll_ingests_and_second_unchanged_poll_is_noop) ... ok
+test_okta_monitor_records_api_failure_without_secret_details (test_monitor.MonitorTests.test_okta_monitor_records_api_failure_without_secret_details) ... ok
 test_clear_sessions_requires_verified_system_log_event (test_okta.OktaResponderTests.test_clear_sessions_requires_verified_system_log_event) ... ok
 test_missing_system_log_event_is_not_success (test_okta.OktaResponderTests.test_missing_system_log_event_is_not_success) ... ok
 test_system_log_collector_maps_only_login_metadata (test_okta.OktaResponderTests.test_system_log_collector_maps_only_login_metadata) ... ok
@@ -215,6 +217,6 @@ test_raising_threshold_drops_bulk_and_correlation (test_rules.TunedDetectionTest
 test_sensitive_minimum_can_require_more_labels (test_rules.TunedDetectionTests.test_sensitive_minimum_can_require_more_labels) ... ok
 
 ----------------------------------------------------------------------
-Ran 201 tests in 8.035s
+Ran 203 tests in 8.093s
 
 OK

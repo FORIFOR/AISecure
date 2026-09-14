@@ -341,8 +341,15 @@ class Store:
                 return {"status": "failed", "executed": False, "adapter": responder.adapter_name}
             final_status = "verified" if result.get("status") == "verified" and result.get("executed") is True else "failed"
             self.db.execute("UPDATE proposals SET status=? WHERE id=? AND status='executing'", (final_status, proposal_id))
-            self._audit("plan.verified" if final_status == "verified" else "plan.failed",
-                        {"proposal_id": proposal_id, "executed": final_status == "verified", "adapter": responder.adapter_name})
+            audit_result = {"proposal_id": proposal_id, "executed": final_status == "verified",
+                            "adapter": responder.adapter_name}
+            # Provider responses are outside this process's trust boundary.
+            # Preserve only small, allowlisted post-action metadata in the audit.
+            for key, limit in (("provider", 80), ("verification", 160)):
+                value = result.get(key)
+                if isinstance(value, str) and 1 <= len(value) <= limit and not any(ord(c) < 32 for c in value):
+                    audit_result[key] = value
+            self._audit("plan.verified" if final_status == "verified" else "plan.failed", audit_result)
         if final_status != "verified":
             return {**result, "status": "failed", "executed": False}
         return result

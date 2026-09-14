@@ -91,6 +91,9 @@ class ResponderTests(unittest.TestCase):
         result = self.store.execute_approved(self.pid, self.sid, self.responder(), "provider-session-42")
         self.assertEqual(result["status"], "verified")
         self.assertTrue(result["executed"])
+        verified = next(record for record in self.store.state()["audit_records"]
+                        if record["action"] == "plan.verified")
+        self.assertEqual(verified["payload"]["provider"], "test-responder")
         proposal = self.store.state()["proposals"][0]
         self.assertEqual(proposal["status"], "verified")
         payload = json.loads(CaptureHandler.payload)

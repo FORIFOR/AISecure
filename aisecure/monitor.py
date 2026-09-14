@@ -77,7 +77,12 @@ class FileMonitor:
     def run(self, stop: threading.Event | None = None):
         stop = stop or threading.Event()
         while not stop.is_set():
-            self.poll_once()
+            try:
+                self.poll_once()
+            except (OSError, RuntimeError, ValueError) as exc:
+                # Keep only the exception type in the audit chain. Source rows,
+                # paths, tokens, and provider responses must not be copied there.
+                self.store.record("monitor.poll_failed", {"error_type": type(exc).__name__})
             stop.wait(self.interval)
 
 
@@ -117,5 +122,9 @@ class OktaSystemLogMonitor:
     def run(self, stop: threading.Event | None = None):
         stop = stop or threading.Event()
         while not stop.is_set():
-            self.poll_once()
+            try:
+                self.poll_once()
+            except (OSError, RuntimeError, ValueError) as exc:
+                self.store.record("monitor.poll_failed", {"error_type": type(exc).__name__,
+                                                           "connector": "okta-system-log-api"})
             stop.wait(self.interval)

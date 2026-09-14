@@ -156,7 +156,7 @@ real logs (CSV/JSONL) ─→ connectors ─┐
                                      ├─→ validate + pseudonymise ─→ detect ←─ tunable thresholds
 manual JSON snapshot ────────────────┘                              │
                                                                     ├─→ explain   (no authority)
-                                                                    └─→ plan ─→ human approval ─→ simulate
+                                                                    └─→ plan ─→ human approval ─→ simulate / verified response
                                               local store + HMAC audit chain ─→ loopback-only UI
 
 synthetic normal traffic ─→ false-positive measurement ─→ thresholds
@@ -170,7 +170,7 @@ Detection, explanation, and the authority to act are separate modules with expli
 | **Evidence** | Every finding carries the event IDs it was built from, and separates *observed* from *hypothesis* from *unknown*. |
 | **Audit** | Ingest, explain, plan, approve, simulate, and threshold changes go into a keyed hash chain. Tail truncation needs an external checkpoint — [stated, not hidden](SECURITY.md). |
 | **Approval** | 5-minute expiry, typed confirmation, reason required. Stale snapshots, double approvals, and tampered plans are refused. |
-| **Tests** | 201, standard library only. `python3 -m unittest discover -s tests -v` |
+| **Tests** | 203, standard library only. `python3 -m unittest discover -s tests -v` |
 
 ## Screenshots
 
