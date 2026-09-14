@@ -41,6 +41,7 @@ test_tab_in_a_file_path_skips_only_that_row (test_connectors.ImportTests.test_ta
 test_two_names_mapping_to_one_identifier_are_refused (test_connectors.ImportTests.test_two_names_mapping_to_one_identifier_are_refused) ... ok
 test_unmapped_columns_never_reach_the_snapshot (test_connectors.ImportTests.test_unmapped_columns_never_reach_the_snapshot) ... ok
 test_unreadable_value_becomes_unknown_not_safe (test_connectors.ImportTests.test_unreadable_value_becomes_unknown_not_safe) ... ok
+test_windows_security_profile_maps_4624_4625 (test_connectors.ImportTests.test_windows_security_profile_maps_4624_4625) ... ok
 test_builtin_profiles_load (test_connectors.ProfileTests.test_builtin_profiles_load) ... ok
 test_missing_profile_names_the_builtins (test_connectors.ProfileTests.test_missing_profile_names_the_builtins) ... ok
 test_profile_cannot_map_a_target_outside_the_allowlist (test_connectors.ProfileTests.test_profile_cannot_map_a_target_outside_the_allowlist) ... ok
@@ -136,8 +137,13 @@ test_totals_add_up (test_evaluate.EvaluationTests.test_totals_add_up) ... ok
 test_a_high_threshold_misses_the_incident (test_evaluate.SweepTests.test_a_high_threshold_misses_the_incident) ... ok
 test_every_cell_is_measured (test_evaluate.SweepTests.test_every_cell_is_measured) ... ok
 test_markdown_report_states_its_limits (test_evaluate.SweepTests.test_markdown_report_states_its_limits) ... ok
+test_multiple_alerts_for_one_incident_do_not_inflate_recall (test_evaluate.EvaluationTests.test_multiple_alerts_for_one_incident_do_not_inflate_recall) ... ok
+test_negative_only_dataset_has_no_invented_recall (test_evaluate.EvaluationTests.test_negative_only_dataset_has_no_invented_recall) ... ok
 test_recommendation_detects_everything (test_evaluate.SweepTests.test_recommendation_detects_everything) ... ok
 test_recommendation_is_absent_when_nothing_detects (test_evaluate.SweepTests.test_recommendation_is_absent_when_nothing_detects) ... ok
+test_csv_login_fuzz_never_crashes_or_leaks (test_fuzz.ImportFuzzTests.test_csv_login_fuzz_never_crashes_or_leaks) ... ok
+test_jsonl_file_access_fuzz_never_crashes (test_fuzz.ImportFuzzTests.test_jsonl_file_access_fuzz_never_crashes) ... ok
+test_random_bytes_are_refused_or_read_but_never_crash (test_fuzz.ImportFuzzTests.test_random_bytes_are_refused_or_read_but_never_crash) ... ok
 test_api_requires_auth (test_http.HTTPTests.test_api_requires_auth) ... /opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 401: 'Unauthorized'>
   _warnings.warn(self.warn_message, ResourceWarning)
 ok
@@ -163,6 +169,9 @@ test_state_exposes_the_active_detection_config (test_http.HTTPTests.test_state_e
 test_state_omits_the_event_list (test_http.HTTPTests.test_state_omits_the_event_list) ... ok
 test_state_reports_unknown_read_sizes (test_http.HTTPTests.test_state_reports_unknown_read_sizes) ... ok
 test_submitted_provenance_is_never_marked_verified (test_http.HTTPTests.test_submitted_provenance_is_never_marked_verified) ... ok
+test_fuzz_requests_never_crash_or_leak (test_http_fuzz.HTTPFuzzTests.test_fuzz_requests_never_crash_or_leak) ... ok
+test_auth_always_enforced_after_fuzz (test_http_fuzz.HTTPFuzzTests.test_auth_always_enforced_after_fuzz) ... ok
+test_server_still_healthy_after_fuzz (test_http_fuzz.HTTPFuzzTests.test_server_still_healthy_after_fuzz) ... ok
 test_unicode_token_rejected_without_server_crash (test_http.HTTPTests.test_unicode_token_rejected_without_server_crash) ... ok
 test_wrong_host (test_http.HTTPTests.test_wrong_host) ... ok
 test_wrong_origin (test_http.HTTPTests.test_wrong_origin) ... ok
@@ -189,6 +198,6 @@ test_raising_threshold_drops_bulk_and_correlation (test_rules.TunedDetectionTest
 test_sensitive_minimum_can_require_more_labels (test_rules.TunedDetectionTests.test_sensitive_minimum_can_require_more_labels) ... ok
 
 ----------------------------------------------------------------------
-Ran 176 tests in 2.815s
+Ran 187 tests in 6.503s
 
 OK

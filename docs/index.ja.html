@@ -5,8 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AISecure — 判断の根拠は手元に</title>
 <meta name="description" content="公開・特権・行動を相関させ、CVSS順の並べ替えをやめる、ローカル完結のセキュリティ初動支援プロトタイプ。自分たちのルールの誤検知コストも公開しています。">
+<link rel="canonical" href="https://forifor.github.io/AISecure/index.ja.html">
+<link rel="alternate" hreflang="en" href="https://forifor.github.io/AISecure/">
+<link rel="alternate" hreflang="ja" href="https://forifor.github.io/AISecure/index.ja.html">
+<link rel="alternate" hreflang="x-default" href="https://forifor.github.io/AISecure/">
 <meta property="og:title" content="AISecure — Evidence before action">
 <meta property="og:description" content="点のアラートを、証拠つきの「調べられる1件」に。公開状態・特権ログイン・大量ファイル閲覧を関連づけます。合成データ上でオフライン動作、対応はすべてシミュレーション。本番の防御機構ではなく、検証用プロトタイプです。">
+<meta property="og:site_name" content="AISecure · Reachmade Lab">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://forifor.github.io/AISecure/index.ja.html">
 <meta property="og:image" content="https://forifor.github.io/AISecure/media/social-card.png">
@@ -137,7 +142,10 @@ footer a{color:var(--muted)}
 
 <header>
   <div class="wrap">
-    <a class="brand" href="#top"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>AISecure</a>
+    <div class="brand-group">
+      <a class="brand" href="#top"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>AISecure</a>
+      <a class="parent-link" href="https://reachmade.com/products/#aisecure" target="_blank" rel="noopener noreferrer">Reachmade Lab / 製品一覧&nbsp;↗</a>
+    </div>
     <nav>
       <a class="hide-sm" href="#measured">測ってみた</a>
       <a class="hide-sm" href="#start">はじめる</a>
@@ -153,6 +161,7 @@ footer a{color:var(--muted)}
 
 <section class="hero">
   <div class="wrap"><div class="hero-layout"><div class="case-intro">
+    <p class="eyebrow"><a class="context-link" href="https://reachmade.com/products/#aisecure" target="_blank" rel="noopener noreferrer">Reachmade Lab · プロダクト 04 / 06</a></p>
     <p class="eyebrow">Evidence before action</p>
     <h1>点のアラートを、<br>調べられる一件に。</h1>
 
@@ -163,7 +172,7 @@ footer a{color:var(--muted)}
 
     </div>
     <p class="note" style="margin-top:10px">検証用プロトタイプ · 合成データ · 監視・遮断なし</p>
-    <div class="badges"><span>MIT</span><span>Python 3.11+</span><span>依存ゼロ</span><span>テスト179件</span><span>127.0.0.1のみ</span></div>
+    <div class="badges"><span>MIT</span><span>Python 3.11+</span><span>依存ゼロ</span><span>テスト187件</span><span>127.0.0.1のみ</span></div>
 </div><div class="case-stage"><div class="case-view" id="case"><div class="case-timeline"><p>入力の観測を、時系列でたどる</p><button type="button" data-case="asset" aria-pressed="false">01　公開された接続機器</button><button type="button" data-case="login" aria-pressed="false">02　特権ログイン</button><button type="button" data-case="files" aria-pressed="false">03　ファイル大量参照</button></div><div class="case-detail" id="case-detail" role="status">サンプルを読み込んでいます…</div></div><div class="case-key"> <span><b>観測</b> 入力に記録された事実</span><span><b>仮説</b> アカウント侵害の可能性</span><span><b>不明</b> 脆弱性の悪用・外部漏えい</span></div><p class="note">合成データの相関結果です。実環境の監視・遮断は行いません。 <a href="try.html">実画面を開く →</a></p>
 </div></div>  </div>
 </section>
@@ -358,7 +367,7 @@ python3 -m aisecure evaluate normal.json incident.json --sweep --out report.md</
 
 <section class="portfolio-contact" id="business" aria-labelledby="business-heading"><p>事業・導入の相談 · AISecure</p><h2 id="business-heading">自社のログ形式での評価を相談する</h2><p class="contact-intro">業種、ログの種類、想定規模、評価したい内容を教えてください。実ログや機密情報は添付しないでください。</p><p class="privacy">提供可否・範囲・納期・料金は個別に確認します。送信による契約や課金はありません。</p><details><summary>非公開で相談する</summary><form id="portfolio-form"><label>お名前<input name="name" required maxlength="80" autocomplete="name"></label><label>返信先メール<input name="email" type="email" required maxlength="254" autocomplete="email"></label><label class="wide">会社・団体名（任意）<input name="organization" maxlength="120" autocomplete="organization"></label><label class="wide">相談したい内容<textarea name="message" required minlength="10" maxlength="2000"></textarea></label><label class="trap" aria-hidden="true">Website<input name="website" tabindex="-1" autocomplete="off"></label><p class="privacy wide">入力内容は運営者への非公開の問い合わせとしてGoogle Cloudに保存し、返信のために利用します。AIの入力やアクセス解析には利用しません。90日後から順次削除します。公開Issueには投稿されません。</p><label class="consent wide"><input type="checkbox" name="consent" required>上記の取り扱いに同意して送信します。</label><button type="submit">相談を送信</button><p class="wide" id="portfolio-status" role="status" aria-live="polite"></p></form></details></section><footer>
   <div class="wrap">
-    <span>AISecure — Evidence before action. · MIT</span>
+    <span>AISecure — Evidence before action. · MIT<br><a class="lab-link" href="https://reachmade.com/" target="_blank" rel="noopener noreferrer">Reachmade Labのプロダクト&nbsp;↗</a></span>
     <span><a href="index.html">English</a> · <a href="https://github.com/FORIFOR/AISecure">GitHub</a> · <a href="METRICS.md">指標</a> · <a href="SCENARIOS.md">シナリオ</a> · <a href="TUNING.md">閾値</a> · <a href="CONNECTORS.md">取り込み</a> · <a href="SECURITY_REVIEW.md">検証</a> · <a href="../SECURITY.md">脅威モデル</a></span>
   </div>
 </footer>

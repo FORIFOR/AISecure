@@ -17,5 +17,11 @@
 .portfolio-contact .privacy{font-size:14px;line-height:1.8;max-width:75ch}
 .portfolio-contact .trap{position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden}
 .portfolio-contact [role=status]{min-height:28px;font-size:16px;line-height:1.7;overflow-wrap:anywhere}
+.brand-group{display:flex;align-items:center;gap:16px;min-width:0}
+.parent-link,.context-link,.lab-link{color:var(--muted);text-decoration:none}
+.parent-link{font-size:12px;letter-spacing:.02em;white-space:nowrap}
+.context-link{border-bottom:1px solid var(--line);padding-bottom:2px}
+.parent-link:hover,.context-link:hover,.lab-link:hover{color:var(--ink);border-color:var(--green)}
 [hidden]{display:none!important}
 @media(max-width:600px){.portfolio-contact{padding:64px 16px}.portfolio-contact form{grid-template-columns:1fr}.portfolio-contact .contact-intro{font-size:17px}}
+@media(max-width:720px){.brand-group{gap:10px}.parent-link{font-size:11px;max-width:126px;overflow:hidden;text-overflow:ellipsis}}

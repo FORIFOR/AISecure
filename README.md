@@ -11,7 +11,7 @@ A local-first triage prototype that links an internet-facing unpatched gateway, 
 [![python](https://img.shields.io/badge/python-3.11%2B-175b48)](pyproject.toml)
 [![dependencies](https://img.shields.io/badge/runtime%20deps-0-175b48)](pyproject.toml)
 
-[日本語 README](README.ja.md) · [How to tune it](docs/TUNING.md) · [Log connectors](docs/CONNECTORS.md) · [Security review](docs/SECURITY_REVIEW.md)
+[Reachmade Lab product page](https://reachmade.com/products/#aisecure) · [日本語 README](README.ja.md) · [How to tune it](docs/TUNING.md) · [Log connectors](docs/CONNECTORS.md) · [Security review](docs/SECURITY_REVIEW.md)
 
 ![AI Secure — the triage screen, with its evidence](docs/media/screendemo.gif)
 
@@ -121,7 +121,7 @@ Detection, explanation, and the authority to act are separate modules with expli
 | **Evidence** | Every finding carries the event IDs it was built from, and separates *observed* from *hypothesis* from *unknown*. |
 | **Audit** | Ingest, explain, plan, approve, simulate, and threshold changes go into a keyed hash chain. Tail truncation needs an external checkpoint — [stated, not hidden](SECURITY.md). |
 | **Approval** | 5-minute expiry, typed confirmation, reason required. Stale snapshots, double approvals, and tampered plans are refused. |
-| **Tests** | 185, standard library only. `python3 -m unittest discover -s tests -v` |
+| **Tests** | 187, standard library only. `python3 -m unittest discover -s tests -v` |
 
 ## Screenshots
 

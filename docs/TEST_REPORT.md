@@ -1,25 +1,27 @@
 # 検証結果 — AI Secure v0.2.1
 
-実施日: 2026年9月12日
+実施日: 2026年9月15日
 
 ## 結果
 
-**Pythonの自動テスト176件が通過**しました。実行環境はmacOS (darwin 25.6.0)、Python 3.14.6。最終確認時のunittest所要時間は約2.6秒ですが、これはテストスイートの時間であり、実ログの処理速度や検知遅延のベンチマークではありません。v0.1の80件から、取り込み・閾値設定・誤検知評価・CLIで78件、セキュリティ検証の回帰テストで18件を追加しています。
+**Pythonの自動テスト187件が通過**しました。実行環境はmacOS (darwin 25.6.0)、Python 3.14.6。今回の確認時のunittest所要時間は約6.5秒ですが、これはテストスイートの時間であり、実ログの処理速度や検知遅延のベンチマークではありません。
 
 ```text
 python3 -m unittest discover -s tests -v
-Ran 176 tests
+Ran 187 tests
 OK
 ```
 
 | ファイル | 件数 | 対象 |
 |---|---|---|
 | `tests/test_core.py` | 69 | 検知、入力検証、仮名化、承認、監査、LLM境界 |
-| `tests/test_connectors.py` | 33 | 読み取り専用のログ取り込みとマッピングプロファイル |
-| `tests/test_evaluate.py` | 22 | 合成ベースライン、誤検知の数え方、閾値スイープ |
+| `tests/test_connectors.py` | 34 | 読み取り専用のログ取り込みとマッピングプロファイル |
+| `tests/test_evaluate.py` | 25 | 合成ベースライン、誤検知の数え方、閾値スイープ |
 | `tests/test_rules.py` | 20 | 検知設定の検証、閾値変更の影響、設定の監査記録 |
-| `tests/test_http.py` | 19 | ループバックHTTP境界 |
+| `tests/test_http.py` | 20 | ループバックHTTP境界 |
 | `tests/test_cli.py` | 13 | import / baseline / evaluate / analyze のCLI経路 |
+| `tests/test_fuzz.py` | 3 | CSV・JSONLの敵対的入力 |
+| `tests/test_http_fuzz.py` | 3 | HTTP境界の敵対的入力 |
 
 JavaScriptはNode.js v26.5.0で `node --check web/app.js`（構文検査）と `node tools/dom-check.mjs`（6画面の実行確認）を実施しました。実アプリはNode.jsを必要としません。
 

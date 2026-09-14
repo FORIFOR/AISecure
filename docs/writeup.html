@@ -3,11 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="canonical" href="https://forifor.github.io/AISecure/writeup.html">
 <title>We measured our own detection rule: 102 of 103 alerts were false positives</title>
 <meta name="description" content="A local-first triage tool published the false-positive rate of its own bulk-file-access rule on 18.8 days of synthetic normal traffic. The volume rule fired 102/103 false positives; the correlation rule fired 0/1. Here is the method, the sweep, and the caveats.">
 <meta property="og:type" content="article">
 <meta property="og:title" content="We measured our own detection rule: 102 of 103 alerts were false positives">
 <meta property="og:description" content="The volume rule fired 102/103 false positives; the correlation rule fired 0/1. Method, sweep table and caveats — synthetic data, honestly labelled.">
+<meta property="og:site_name" content="AISecure · Reachmade Lab">
 <meta property="og:url" content="https://forifor.github.io/AISecure/writeup.html">
 <meta property="og:image" content="https://forifor.github.io/AISecure/media/social-card.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -32,6 +34,7 @@ header.top .wrap{display:flex;align-items:center;gap:12px;height:58px}
 .mark i{background:var(--green);border-radius:3px}.mark i:nth-child(2){background:#8eab92}.mark i:nth-child(3){background:#c9d8c7}
 header.top nav{margin-left:auto;display:flex;gap:18px;font-size:14px}
 header.top nav a{color:var(--muted);text-decoration:none}
+header.top nav a.parent-link{color:var(--green)}
 article{padding:40px 0 20px}
 .eyebrow{font-size:12px;letter-spacing:.18em;font-weight:700;color:var(--faint);text-transform:uppercase}
 .byline{font-size:14px;color:var(--faint);margin:0 0 28px}
@@ -57,7 +60,7 @@ img{max-width:100%;border:1px solid var(--line);border-radius:var(--radius);disp
 <body>
 <header class="top"><div class="wrap">
   <a class="brand" href="index.html"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>AI&nbsp;Secure</a>
-  <nav><a href="try.html">Try in browser</a><a href="https://github.com/FORIFOR/AISecure">GitHub ↗</a></nav>
+  <nav><a class="parent-link" href="https://reachmade.com/products/#aisecure" target="_blank" rel="noopener noreferrer">Reachmade Lab ↗</a><a href="try.html">Try in browser</a><a href="https://github.com/FORIFOR/AISecure">GitHub ↗</a></nav>
 </div></header>
 
 <main class="wrap">
@@ -122,7 +125,7 @@ python3 -m aisecure evaluate normal.json incident.json --sweep --out report.md</
 </main>
 
 <footer><div class="wrap">
-  AI Secure — Evidence before action. · MIT · <a href="index.html">Home</a> · <a href="index.ja.html">日本語</a> · <a href="https://github.com/FORIFOR/AISecure">GitHub</a>
+  AI Secure — Evidence before action. · MIT · <a href="https://reachmade.com/" target="_blank" rel="noopener noreferrer">A product by Reachmade Lab ↗</a> · <a href="index.html">Home</a> · <a href="index.ja.html">日本語</a> · <a href="https://github.com/FORIFOR/AISecure">GitHub</a>
 </div></footer>
 </body>
 </html>

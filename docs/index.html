@@ -5,8 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AISecure — Evidence before action</title>
 <meta name="description" content="A local-first security triage prototype that correlates exposure, privilege and behaviour instead of ranking alerts by CVSS — and publishes what that costs in false positives.">
+<link rel="canonical" href="https://forifor.github.io/AISecure/">
+<link rel="alternate" hreflang="en" href="https://forifor.github.io/AISecure/">
+<link rel="alternate" hreflang="ja" href="https://forifor.github.io/AISecure/index.ja.html">
+<link rel="alternate" hreflang="x-default" href="https://forifor.github.io/AISecure/">
 <meta property="og:title" content="AISecure — Evidence before action">
 <meta property="og:description" content="A local-first prototype that turns point alerts into one evidence-backed case you can investigate — exposure + privileged login + bulk file access. Runs offline on synthetic data; actions simulated. An evaluation prototype, not a production control.">
+<meta property="og:site_name" content="AISecure · Reachmade Lab">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://forifor.github.io/AISecure/">
 <meta property="og:image" content="https://forifor.github.io/AISecure/media/social-card.png">
@@ -137,7 +142,10 @@ footer a{color:var(--muted)}
 
 <header>
   <div class="wrap">
-    <a class="brand" href="#top"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>AISecure</a>
+    <div class="brand-group">
+      <a class="brand" href="#top"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>AISecure</a>
+      <a class="parent-link" href="https://reachmade.com/products/#aisecure" target="_blank" rel="noopener noreferrer">Reachmade Lab / Products&nbsp;↗</a>
+    </div>
     <nav>
       <a class="hide-sm" href="writeup.html">Write-up</a>
       <a class="hide-sm" href="#measured">The measurement</a>
@@ -154,6 +162,7 @@ footer a{color:var(--muted)}
 
 <section class="hero">
   <div class="wrap"><div class="hero-layout"><div class="case-intro">
+    <p class="eyebrow"><a class="context-link" href="https://reachmade.com/products/#aisecure" target="_blank" rel="noopener noreferrer">Reachmade Lab · Product 04 / 06</a></p>
     <p class="eyebrow">Evidence before action</p>
     <h1>Scattered alerts.<br>One case you can investigate.</h1>
 
@@ -164,7 +173,7 @@ footer a{color:var(--muted)}
       <a class="btn ghost" href="https://github.com/FORIFOR/AISecure">Star on GitHub</a>
     </div>
     <p class="note" style="margin-top:10px">Prototype · synthetic data · no monitoring or blocking</p>
-    <div class="badges"><span>MIT</span><span>Python 3.11+</span><span>0 runtime deps</span><span>178 tests</span><span>127.0.0.1 only</span></div>
+    <div class="badges"><span>MIT</span><span>Python 3.11+</span><span>0 runtime deps</span><span>187 tests</span><span>127.0.0.1 only</span></div>
 </div><div class="case-stage"><div class="case-view" id="case"><div class="case-timeline"><p>Follow observations in the snapshot</p><button type="button" data-case="asset" aria-pressed="false">01　Exposed gateway</button><button type="button" data-case="login" aria-pressed="false">02　Privileged login</button><button type="button" data-case="files" aria-pressed="false">03　Bulk file access</button></div><div class="case-detail" id="case-detail" role="status">Loading sample…</div></div><div class="case-key"><span><b>Observed</b> recorded input</span><span><b>Hypothesis</b> account compromise</span><span><b>Unknown</b> exploitation / exfiltration</span></div><p class="note">A correlated result from synthetic data. No live monitoring or blocking. <a href="try.html">Open the full interface →</a></p>
 </div></div>  </div>
 </section>
@@ -361,7 +370,7 @@ python3 -m aisecure evaluate normal.json incident.json --sweep --out report.md</
 
 <section class="portfolio-contact" id="business" aria-labelledby="business-heading"><p>BUSINESS INQUIRIES · AISecure</p><h2 id="business-heading">Discuss an evaluation on your log formats</h2><p class="contact-intro">Share your industry, log formats, approximate scale and evaluation goals. Do not send raw logs or confidential information.</p><p class="privacy">Availability, scope, timing and fees are confirmed individually. Sending an inquiry creates no contract or payment.</p><details><summary>Start a private inquiry</summary><form id="portfolio-form"><label>Name<input name="name" required maxlength="80" autocomplete="name"></label><label>Reply email<input name="email" type="email" required maxlength="254" autocomplete="email"></label><label class="wide">Organization (optional)<input name="organization" maxlength="120" autocomplete="organization"></label><label class="wide">What would you like to discuss?<textarea name="message" required minlength="10" maxlength="2000"></textarea></label><label class="trap" aria-hidden="true">Website<input name="website" tabindex="-1" autocomplete="off"></label><p class="privacy wide">Your inquiry is stored privately in Google Cloud for the operator to follow up. It is not used as AI input or analytics, and becomes eligible for deletion after 90 days. It is not posted to a public issue.</p><label class="consent wide"><input type="checkbox" name="consent" required>I agree to this handling of my inquiry.</label><button type="submit">Send inquiry</button><p class="wide" id="portfolio-status" role="status" aria-live="polite"></p></form></details></section><footer>
   <div class="wrap">
-    <span>AISecure — Evidence before action. · MIT</span>
+    <span>AISecure — Evidence before action. · MIT<br><a class="lab-link" href="https://reachmade.com/" target="_blank" rel="noopener noreferrer">A product by Reachmade Lab&nbsp;↗</a></span>
     <span><a href="index.ja.html">日本語</a> · <a href="https://github.com/FORIFOR/AISecure">GitHub</a> · <a href="METRICS.md">Metrics</a> · <a href="SCENARIOS.md">Scenarios</a> · <a href="TUNING.md">Tuning</a> · <a href="CONNECTORS.md">Connectors</a> · <a href="SECURITY_REVIEW.md">Security review</a> · <a href="../SECURITY.md">Threat model</a></span>
   </div>
 </footer>
