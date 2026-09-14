@@ -35,8 +35,12 @@ function render() {
   $('viewLabel').textContent=t('nav.'+view); $('pageTitle').textContent=t('headings.'+view)[0]; $('pageSubtitle').textContent=t('headings.'+view)[1];
   document.querySelectorAll('[data-view]').forEach(b=>{b.classList.toggle('active',b.dataset.view===view); if(b.dataset.view===view)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
   const mode=state.snapshot?.source_mode;
-  $('dataMode').textContent=PREVIEW?t('dataMode.preview'):mode==='demo'?t('dataMode.demo'):mode==='imported'?t('dataMode.imported'):t('dataMode.none');
-  $('statusBanner').children[1].textContent=PREVIEW?t('banner.preview'):mode==='demo'?t('banner.demo'):mode==='imported'?t('banner.imported'):t('banner.default');
+  const liveConnectors=state.coverage?.live_connectors ?? 0;
+  const expectedConnectors=state.coverage?.expected_connectors ?? 3;
+  $('dataMode').textContent=PREVIEW?t('dataMode.preview'):liveConnectors?t('dataMode.live'):mode==='demo'?t('dataMode.demo'):mode==='imported'?t('dataMode.imported'):t('dataMode.none');
+  $('statusBanner').children[1].textContent=PREVIEW?t('banner.preview'):liveConnectors?t('banner.live',count(liveConnectors),count(expectedConnectors)):mode==='demo'?t('banner.demo'):mode==='imported'?t('banner.imported'):t('banner.default');
+  const footerStatus=document.querySelector('[data-i18n="footer.status"]');
+  if(footerStatus)footerStatus.textContent=t('footer.status',count(liveConnectors),count(expectedConnectors));
   $('navCount').textContent=state.findings.filter(f=>f.priority==='P1').length;
   $('providerBadge').textContent=state.llm?.configured?t('provider.configured'):t('provider.rule');
   const container=$('viewContent'); container.replaceChildren();
@@ -76,9 +80,9 @@ function renderOverview(root) {
   add(body,add(el('div','brief-meta'),el('div','',t('ov.metaDetect',state.rule_version)),el('div','',state.llm?.configured?t('ov.metaModelYes'):t('ov.metaModelNo'))),llmButton,output);add(grid,brief);add(root,grid);
   const lower=el('div','lower-grid'), listing=el('section','');add(listing,section(t('ov.findings',findings.length)));const list=el('div','card');
   findings.forEach(f=>{const row=el('button','finding-row'+(selected.id===f.id?' selected':''));row.type='button';row.addEventListener('click',()=>{selectedId=f.id;render();});add(row,pill(f.priority,f.priority==='P1'?'danger':'warn'),add(el('div','finding-text'),el('strong','',L(f,'title')),el('small','',f.rule+' · '+(f.asset_id || f.gateway_id || t('ov.authEvent'))+' · '+t('ov.evCount',count(f.evidence_ids.length)))),el('span','row-arrow','↗'));add(list,row);});add(listing,list);add(lower,listing);
-  const scope=el('section','');add(scope,section(t('ov.scope'),t('ov.scopeInput')));const scopeCard=el('div','card card-pad');
+  const scope=el('section','');add(scope,section(t('ov.scope'),state.coverage.live_connectors?t('ov.scopeLive'):t('ov.scopeInput')));const scopeCard=el('div','card card-pad');
   [[t('ov.assetLedger'),state.snapshot.assets.length+t('unit.units')],[t('ov.authLog'),count(state.snapshot.event_counts.login)+t('unit.count')],[t('ov.fileLog'),count(state.snapshot.event_counts.file_access)+t('unit.count')]].forEach(([name,num])=>add(scopeCard,add(el('div','telemetry-item'),el('span','',name),pill(num,'neutral'))));
-  add(scopeCard,el('p','telemetry-caption',t('ov.telemetry1')),el('p','telemetry-caption',t('ov.telemetry2',count(state.coverage.unknown_asset_fields),count(state.coverage.unknown_login_fields),count(state.coverage.unknown_classifications),count(state.coverage.unknown_read_sizes))));
+  add(scopeCard,el('p','telemetry-caption',t('ov.telemetry1',count(state.coverage.live_connectors),count(state.coverage.expected_connectors))),el('p','telemetry-caption',t('ov.telemetry2',count(state.coverage.unknown_asset_fields),count(state.coverage.unknown_login_fields),count(state.coverage.unknown_classifications),count(state.coverage.unknown_read_sizes))));
   const sources=state.coverage.provenance||[];
   if(sources.length){const box=el('details','evidence-box');add(box,el('summary','',t('ov.sources',count(sources.length),!sources.every(s=>s.verified))),el('pre','evidence-ids',sources.map(s=>`${s.verified?t('ov.srcVerified'):t('ov.srcUnverified')} ${s.label}  ${s.sha256.slice(0,16)}…  ${t('ov.srcRows',count(s.rows_imported),count(s.rows_read))}`).join('\n')));add(scopeCard,box);}
   add(scope,scopeCard);add(lower,scope);add(root,lower);

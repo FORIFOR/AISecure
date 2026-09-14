@@ -145,6 +145,7 @@ class OktaResponderTests(unittest.TestCase):
             try:
                 store.ingest(snapshot, now=frozen, verified_provenance=True)
                 stored_document = store.snapshot()[1]
+                stored_coverage = store.state()["coverage"]
             finally:
                 store.close()
         self.assertEqual(len(snapshot["events"]), 1)
@@ -154,6 +155,9 @@ class OktaResponderTests(unittest.TestCase):
         self.assertNotIn("/secret", json.dumps(snapshot, ensure_ascii=False))
         self.assertNotIn("operator@example.invalid", json.dumps(stored_document, ensure_ascii=False))
         self.assertNotIn("okta-session-001", json.dumps(stored_document, ensure_ascii=False))
+        self.assertEqual(stored_coverage["live_connectors"], 1)
+        self.assertEqual(stored_coverage["live_connector_names"], ["okta-system-log-api"])
+        self.assertFalse(stored_coverage["snapshot_only"])
         self.assertEqual(quality["sources"][-1]["rows_read"], 2)
         self.assertEqual(quality["sources"][-1]["rows_imported"], 1)
 

@@ -7,6 +7,7 @@ from .schema import parse_time, canonical
 from .rules import RuleConfig, DEFAULT as DEFAULT_RULES
 
 RULE_VERSION = "2026-09-12.2"
+LIVE_CONNECTORS = frozenset({"okta-system-log-api"})
 
 
 def finding(rule: str, priority: str, title: str, reasons: list[str], evidence: list[str], config: RuleConfig, **extra) -> dict:
@@ -109,7 +110,12 @@ def analyze(snapshot: dict, config: RuleConfig | None = None) -> list[dict]:
 def coverage(snapshot: dict) -> dict:
     events = snapshot["events"]
     missing = [name for name, present in (("資産台帳", bool(snapshot["assets"])), ("認証ログ", any(e["type"] == "login" for e in events)), ("ファイル参照ログ", any(e["type"] == "file_access" for e in events))) if not present]
-    return {"live_connectors": 0, "expected_connectors": 3, "snapshot_only": True, "missing_sources": missing,
+    # File imports are verified as reads, but they are not live connectors.
+    # Only provider adapters that explicitly identify themselves as live count.
+    live = sorted({source.get("connector") for source in snapshot.get("provenance", [])
+                   if source.get("verified") is True and source.get("connector") in LIVE_CONNECTORS})
+    return {"live_connectors": len(live), "live_connector_names": live, "expected_connectors": 3,
+            "snapshot_only": not live, "missing_sources": missing,
             "unknown_asset_fields": sum(a[k] is None for a in snapshot["assets"] for k in ("internet_exposed", "privileged_path", "sensitive_path")),
             "unknown_login_fields": sum(e[k] is None for e in events if e["type"] == "login" for k in ("privileged", "device_trusted", "approved")),
             "unknown_classifications": sum(e["type"] == "file_access" and e["sensitive"] is None for e in events),
