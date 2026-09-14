@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AISecure — Evidence before action</title>
-<meta name="description" content="A local-first security triage prototype that correlates exposure, privilege and behaviour instead of ranking alerts by CVSS — and publishes what that costs in false positives.">
+<meta name="description" content="A local-first security triage prototype with a narrow, explicitly approved Okta session-response path, alongside evidence-backed analysis and measurement on synthetic data.">
 <link rel="canonical" href="https://forifor.github.io/AISecure/">
 <link rel="alternate" hreflang="en" href="https://forifor.github.io/AISecure/">
 <link rel="alternate" hreflang="ja" href="https://forifor.github.io/AISecure/index.ja.html">
 <link rel="alternate" hreflang="x-default" href="https://forifor.github.io/AISecure/">
 <meta property="og:title" content="AISecure — Evidence before action">
-<meta property="og:description" content="A local-first prototype that turns point alerts into one evidence-backed case you can investigate — exposure + privileged login + bulk file access. Runs offline on synthetic data; actions simulated. An evaluation prototype, not a production control.">
+<meta property="og:description" content="A local-first prototype that turns point alerts into one evidence-backed case you can investigate. The browser preview uses synthetic data; the CLI adds bounded Okta monitoring and an explicitly approved session-clear path with System Log verification.">
 <meta property="og:site_name" content="AISecure · Reachmade Lab">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://forifor.github.io/AISecure/">
@@ -172,9 +172,9 @@ footer a{color:var(--muted)}
       <a class="btn ghost" href="#start">Run it locally</a>
       <a class="btn ghost" href="https://github.com/FORIFOR/AISecure">Star on GitHub</a>
     </div>
-    <p class="note" style="margin-top:10px">Prototype · synthetic data · no monitoring or blocking</p>
-    <div class="badges"><span>MIT</span><span>Python 3.11+</span><span>0 runtime deps</span><span>187 tests</span><span>127.0.0.1 only</span></div>
-</div><div class="case-stage"><div class="case-view" id="case"><div class="case-timeline"><p>Follow observations in the snapshot</p><button type="button" data-case="asset" aria-pressed="false">01　Exposed gateway</button><button type="button" data-case="login" aria-pressed="false">02　Privileged login</button><button type="button" data-case="files" aria-pressed="false">03　Bulk file access</button></div><div class="case-detail" id="case-detail" role="status">Loading sample…</div></div><div class="case-key"><span><b>Observed</b> recorded input</span><span><b>Hypothesis</b> account compromise</span><span><b>Unknown</b> exploitation / exfiltration</span></div><p class="note">A correlated result from synthetic data. No live monitoring or blocking. <a href="try.html">Open the full interface →</a></p>
+    <p class="note" style="margin-top:10px">Browser preview · synthetic data · no live action</p>
+    <div class="badges"><span>MIT</span><span>Python 3.11+</span><span>0 runtime deps</span><span>201 tests</span><span>127.0.0.1 only</span></div>
+</div><div class="case-stage"><div class="case-view" id="case"><div class="case-timeline"><p>Follow observations in the snapshot</p><button type="button" data-case="asset" aria-pressed="false">01　Exposed gateway</button><button type="button" data-case="login" aria-pressed="false">02　Privileged login</button><button type="button" data-case="files" aria-pressed="false">03　Bulk file access</button></div><div class="case-detail" id="case-detail" role="status">Loading sample…</div></div><div class="case-key"><span><b>Observed</b> recorded input</span><span><b>Hypothesis</b> account compromise</span><span><b>Unknown</b> exploitation / exfiltration</span></div><p class="note">The browser preview uses synthetic data and does not monitor or block a live environment. The CLI supports a narrow Okta path. <a href="try.html">Open the full interface →</a></p>
 </div></div>  </div>
 </section>
 
@@ -193,7 +193,7 @@ footer a{color:var(--muted)}
       <div class="card"><div class="num">③ EVIDENCE ATTACHED</div><h3>The event IDs, one click away</h3>
         <p>Every case carries the exact events behind it. “Related” and “a leak is confirmed” are shown as different claims, because they are.</p></div>
       <div class="card"><div class="num">④ THE DECISION STAYS HUMAN</div><h3>No step runs on its own</h3>
-        <p>Response plans are simulation-only and need an explicit approval with a reason and an expiry. Nothing is revoked, blocked or disabled automatically.</p></div>
+        <p>The browser preview is simulation-only. The CLI can clear sessions for one narrowly validated Okta user only after two explicit approvals, then requires a matching System Log event; there is no automatic execution.</p></div>
     </div>
   </div>
 </section>
@@ -266,8 +266,8 @@ python3 -m aisecure evaluate normal.json incident.json --sweep --out report.md</
     <h2>Written first, on purpose.</h2>
     <p style="max-width:64ch">A security tool that only lists its strengths is not telling you enough to trust it.</p>
     <ul class="nots">
-      <li><b>It does not monitor.</b> It analyses a snapshot you hand it. Nothing runs continuously.</li>
-      <li><b>It does not enforce.</b> Every response plan is simulation-only. No code revokes a session, blocks traffic, or disables an account.</li>
+      <li><b>The browser preview does not monitor.</b> It analyses a snapshot you hand it. The CLI can poll local sources or an authenticated Okta System Log window.</li>
+      <li><b>It does not generally enforce.</b> The only live response path is a narrowly scoped Okta session clear after two explicit approvals, with System Log verification. VPN, gateway and file-server controls are not implemented.</li>
       <li><b>It does not confirm a leak.</b> “These files were read” and “this data left the building” are shown as different claims, because they are.</li>
       <li><b>No LLM decides anything.</b> Detection is deterministic. The optional local model writes supplementary prose, gets no tools and no raw logs, and every reference it makes is checked before display.</li>
       <li><b>Unknown is never “safe”.</b> A field that could not be read is counted as unknown, not assumed benign.</li>
@@ -317,16 +317,16 @@ python3 -m aisecure evaluate normal.json incident.json --sweep --out report.md</
 <section>
   <div class="wrap">
     <p class="eyebrow">Status</p>
-    <h2>v0.2.1 — a local prototype, honestly labelled.</h2>
+    <h2>v0.3.0 — a local integration prototype, honestly labelled.</h2>
     <div class="grid g2">
       <div class="card"><h3>Useful today for</h3>
         <p>Studying detection logic that is legible end to end. Rehearsing a triage and approval workflow (UI fully in English or Japanese).
           And measuring what a threshold costs <i>before</i> you deploy one.</p></div>
       <div class="card"><h3>Not implemented</h3>
-        <p>Live collectors, KEV and vendor advisory matching, SSO and RBAC, encryption at rest,
-          external audit storage, real enforcement. This is not a production security control.</p></div>
+        <p>Direct VPN/file-server collectors, KEV and vendor advisory matching, SSO and RBAC, encryption at rest,
+          external audit storage, recovery workflows and production deployment. Real-org validation is still required.</p></div>
     </div>
-    <p class="note">Where this sits: <b>demo / PoC-ready (L1)</b> — you can evaluate it locally on synthetic data and read every line of the logic. It is <b>not</b> a paid-PoC (L2) or production (L3) control: real-log validation, SSO/RBAC, encryption at rest, external audit storage and an independent review are still open. <a href="SECURITY_CHECKLIST.md">The readiness checklist →</a></p>
+    <p class="note">Where this sits: <b>integration prototype (L1→L2)</b> — you can evaluate it locally, poll bounded Okta System Log windows, and exercise a two-approval session response with verification. It is <b>not</b> a production (L3) control: real-org validation, SSO/RBAC, encryption at rest, external audit storage, recovery and an independent review are still open. <a href="SECURITY_CHECKLIST.md">The readiness checklist →</a></p>
     <p style="margin-top:26px;max-width:66ch">The next milestone is not more features. It is getting one organisation's real
       authentication, gateway and file-access logs through the importer, and measuring the false-positive rate over a period
       where nothing happened.</p>
