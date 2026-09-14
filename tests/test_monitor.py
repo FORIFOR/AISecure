@@ -6,7 +6,8 @@ import tempfile
 import unittest
 
 from aisecure.connectors import load_profile
-from aisecure.monitor import FileMonitor
+from aisecure.monitor import FileMonitor, OktaSystemLogMonitor
+from aisecure.schema import iso, utcnow
 from aisecure.store import Store
 
 
@@ -53,6 +54,32 @@ class MonitorTests(unittest.TestCase):
         self.assertTrue(second.changed)
         self.assertNotEqual(second.snapshot_id, first.snapshot_id)
         self.assertEqual(second.quality["totals"]["events"], first.quality["totals"]["events"] + 1)
+
+    def test_authenticated_live_monitor_deduplicates_an_unchanged_window(self):
+        stamp = iso(utcnow())
+
+        class FakeCollector:
+            def collect(self):
+                return ({"schema_version": 1, "as_of": stamp,
+                         "assets": [{"id": "okta-idp", "kind": "saas", "patch_state": "unknown",
+                                     "observed_at": stamp, "vulnerability": None,
+                                     "internet_exposed": None, "privileged_path": None, "sensitive_path": None}],
+                         "events": [{"id": "okta-login-1", "type": "login", "at": stamp,
+                                     "actor": "operator@example.invalid", "session": "session-1",
+                                     "gateway_id": "okta-idp", "success": True,
+                                     "privileged": None, "device_trusted": None, "approved": None}],
+                         "provenance": [{"label": "okta-system-log-api", "sha256": "0" * 64,
+                                         "rows_read": 1, "rows_imported": 1,
+                                         "connector": "okta-system-log-api"}]},
+                        {"totals": {"events": 1}, "warnings": [], "sources": [],
+                         "shadow_assets": [], "unknown_assets_policy": "record"})
+
+        monitor = OktaSystemLogMonitor(self.store, FakeCollector(), interval=1)
+        first = monitor.poll_once()
+        second = monitor.poll_once()
+        self.assertTrue(first.changed)
+        self.assertFalse(second.changed)
+        self.assertEqual(second.snapshot_id, first.snapshot_id)
 
 
 if __name__ == "__main__":

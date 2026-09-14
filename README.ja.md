@@ -2,7 +2,7 @@
 
 **Evidence before action. 判断の根拠は手元に、操作の権限は人に。**
 
-[Reachmade Labの製品ページ](https://reachmade.com/products/#aisecure) ・ [English README](README.md) ・ [サイト（日本語）](https://forifor.github.io/AISecure/index.ja.html) ・ [Site (EN)](https://forifor.github.io/AISecure/) ・ [閾値の決め方](docs/TUNING.md) ・ [防御側連携プロトコル](docs/RESPONDER.md) ・ [セキュリティ検証](docs/SECURITY_REVIEW.md)
+[Reachmade Labの製品ページ](https://reachmade.com/products/#aisecure) ・ [English README](README.md) ・ [サイト（日本語）](https://forifor.github.io/AISecure/index.ja.html) ・ [Site (EN)](https://forifor.github.io/AISecure/) ・ [閾値の決め方](docs/TUNING.md) ・ [Okta実対応手順](docs/OKTA.md) ・ [防御側連携プロトコル](docs/RESPONDER.md) ・ [セキュリティ検証](docs/SECURITY_REVIEW.md)
 
 ![AI Secure デモ](docs/media/screendemo.gif)
 
@@ -38,6 +38,10 @@ python3 -m aisecure watch \
 ```
 
 対応計画を確認した後、二者承認で、別に運用するVPN・IdP・ファイアウォール等のレスポンダーへ署名付き要求を送れます。レスポンダーが実操作後に `status: verified` を返した場合だけ成功として記録します。プロトコルは [docs/RESPONDER.md](docs/RESPONDER.md) を参照してください。
+
+Oktaについては、`execute-okta` で承認済みの1ユーザー（`00u...`）のセッションを失効できます。失効APIの成功だけでなく、同じユーザーの `user.session.clear` がSystem Logで確認できた場合だけ成功と記録します。設定と手順は [docs/OKTA.md](docs/OKTA.md) を参照してください。
+
+また、`watch-okta` でOkta System Logのログイン情報をHTTPS経由で直接取得し、ローカルの資産台帳・ファイル参照ログと結合できます。取り込むのは許可したメタデータだけで、取得原文は保存しません。
 
 ## すぐに動かす
 
@@ -108,8 +112,9 @@ python3 -m aisecure --rules rules.json serve
 | JSONスナップショット入力 | 実装済み。2 MiB、200資産、5,000イベントまで |
 | 公開・特権・機密への到達性による優先判定 | 実装済み。値は入力台帳の申告であり、経路自動探索ではない |
 | 5分間の大量参照と同一セッションの相関 | 実装済み。閾値は設定で変更可・限定スキーマ |
-| CSV / JSON Lines ログの読み取り専用取り込み | 実装済み。マッピングプロファイル方式。SIEM・IdPへの接続はなし |
+| CSV / JSON Lines ログの読み取り専用取り込み | 実装済み。マッピングプロファイル方式。SIEM・VPN・ファイルサーバーへの接続はなし |
 | 変更されたログ書き出しの継続監視 | 実装済み。`watch` が同じ読み取り専用取り込みを一定間隔で実行 |
+| Okta System Logの直接監視 | 実装済み。`watch-okta` が直近のログイン情報をHTTPS取得。実Okta組織でのE2Eは未実施 |
 | 誤検知評価と閾値スイープ | 実装済み。合成データで測定済み。実ログでの測定は導入先ごとに必要 |
 | 検知設定の外部化・監査記録 | 実装済み。設定ハッシュを起動時と各検知結果に記録 |
 | ユーザー・セッション・ファイル識別子の仮名化 | 実装済み。匿名化ではなく、秘密のない集計情報にも変わらない |
@@ -118,10 +123,11 @@ python3 -m aisecure --rules rules.json serve
 | HMAC監査チェーン・外部チェックポイント検証 | 実装済み。外部保管先は未接続 |
 | ルール説明 | 実装済み。LLM未使用と明示 |
 | Ollama補助説明 | アダプター実装・モックテスト済み。実モデルは未検証 |
-| VPN / IdP / ファイルサーバーへの直接自動収集 | 未実装。現在は読み取り専用のCSV/JSONL書き出しを監視 |
+| VPN / ファイルサーバーへの直接自動収集 | 未実装。Okta以外は読み取り専用のCSV/JSONL書き出しを監視 |
 | KEV / JVN / ベンダー情報の自動同期・影響バージョン判定 | 未実装。悪用有無・CVSSは入力値 |
 | 本番SSO、RBAC、複数テナント、二者承認 | 未実装 |
-| 実機のセッション失効・遮断・復旧 | 未実装。プロバイダー別レスポンダー側で実装・検証が必要 |
+| Oktaユーザーのセッション失効 | 実装済み。`execute-okta` が失効後の `user.session.clear` を検証。実Okta環境でのE2Eは未実施 |
+| その他の実機操作・復旧 | 未実装。プロバイダー別レスポンダーと復旧演習が必要 |
 | 保管時暗号化、独立監査保管、鍵管理基盤 | 未実装。標準SQLiteは平文で、OS権限のみ |
 | 実環境の正常ログでの誤検知率、検知率 | 未測定。合成データでの測定のみ |
 | 本番負荷、長期運用、大規模ログ | 未測定 |

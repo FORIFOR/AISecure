@@ -10,7 +10,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 import hashlib
 import threading
-import time
 from pathlib import Path
 
 from .connectors import build_snapshot, MAX_ROWS, MAX_SOURCE_BYTES
@@ -69,6 +68,46 @@ class FileMonitor:
             "snapshot_id": sid, "changed": True,
             "sources": len(self.sources), "events": quality["totals"]["events"],
             "findings": len(findings),
+            "priority_one": sum(f["priority"] == "P1" for f in findings),
+            "quality_warnings": len(quality["warnings"]),
+        })
+        return PollResult(True, sid, len(findings),
+                          sum(f["priority"] == "P1" for f in findings), quality)
+
+    def run(self, stop: threading.Event | None = None):
+        stop = stop or threading.Event()
+        while not stop.is_set():
+            self.poll_once()
+            stop.wait(self.interval)
+
+
+class OktaSystemLogMonitor:
+    """Continuously ingest an overlapping, authenticated Okta log window."""
+
+    def __init__(self, store: Store, collector, *, interval: float = 30.0):
+        if not 1 <= interval <= 3600:
+            raise ValueError("監視間隔は1〜3600秒にしてください。")
+        self.store = store
+        self.collector = collector
+        self.interval = interval
+        self._fingerprint: str | None = None
+
+    def poll_once(self) -> PollResult:
+        snapshot, quality = self.collector.collect()
+        fingerprint = hashlib.sha256(canonical(snapshot).encode("utf-8")).hexdigest()
+        if fingerprint == self._fingerprint:
+            state = self.store.state()
+            findings = state["findings"]
+            return PollResult(False, state["snapshot_id"], len(findings),
+                              sum(f["priority"] == "P1" for f in findings), quality)
+        sid = self.store.ingest(snapshot, "imported", max_events=IMPORT_MAX_EVENTS,
+                                max_assets=IMPORT_MAX_ASSETS, verified_provenance=True)
+        self._fingerprint = fingerprint
+        state = self.store.state()
+        findings = state["findings"]
+        self.store.record("monitor.polled", {
+            "snapshot_id": sid, "changed": True, "connector": "okta-system-log-api",
+            "events": quality["totals"]["events"], "findings": len(findings),
             "priority_one": sum(f["priority"] == "P1" for f in findings),
             "quality_warnings": len(quality["warnings"]),
         })

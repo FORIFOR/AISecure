@@ -48,7 +48,7 @@ def _scenarios(paths: list[Path]) -> list[dict]:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="aisecure", description="AI Secure — loopback-only security analysis prototype")
+    parser = argparse.ArgumentParser(prog="aisecure", description="AI Secure — local security analysis and response control")
     parser.add_argument("--data-dir", default=str(Path.home() / ".ai-secure-demo"), help="Local state; do not place in a shared or cloud-synced folder")
     parser.add_argument("--rules", type=Path, default=None, help="Detection threshold overrides (JSON). Recorded in the audit chain.")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -85,6 +85,20 @@ def build_parser() -> argparse.ArgumentParser:
     watch.add_argument("--unknown-assets", choices=["record", "skip"], default="record")
     watch.add_argument("--max-rows", type=int, default=None)
 
+    watch_okta = sub.add_parser("watch-okta", help="Poll Okta System Log and ingest an authenticated login window")
+    watch_okta.add_argument("--asset-source", required=True, metavar="PROFILE=PATH",
+                            help="Asset inventory source; the profile must have record=asset")
+    watch_okta.add_argument("--source", action="append", default=[], metavar="PROFILE=PATH",
+                            help="Optional local file-access source(s) to combine with Okta logins")
+    watch_okta.add_argument("--okta-domain", required=True, help="Okta org URL, for example https://example.okta.com")
+    watch_okta.add_argument("--token-env", default="OKTA_ACCESS_TOKEN", help="Environment variable holding the scoped Okta token")
+    watch_okta.add_argument("--auth-scheme", choices=["Bearer", "SSWS"], default="Bearer")
+    watch_okta.add_argument("--lookback", type=int, default=1800, help="Overlapping System Log window in seconds (60..604800)")
+    watch_okta.add_argument("--interval", type=float, default=30.0, help="Polling interval in seconds (1..3600)")
+    watch_okta.add_argument("--once", action="store_true", help="Poll once and exit")
+    watch_okta.add_argument("--unknown-assets", choices=["record", "skip"], default="record")
+    watch_okta.add_argument("--max-rows", type=int, default=None)
+
     baseline = sub.add_parser("baseline", help="Generate labeled synthetic normal traffic for tuning")
     baseline.add_argument("--name", default="baseline")
     baseline.add_argument("--seed", type=int, default=1)
@@ -115,6 +129,20 @@ def build_parser() -> argparse.ArgumentParser:
     execute.add_argument("--reason", required=True, help="Why this real action is approved")
     execute.add_argument("--confirm", required=True, help="Type EXECUTE REAL ACTION")
     execute.add_argument("--second-confirm", required=True, help="Type SECOND APPROVER CONFIRMED")
+
+    execute_okta = sub.add_parser("execute-okta", help="Clear an explicitly double-approved Okta user's sessions and verify the System Log")
+    execute_okta.add_argument("--proposal-id", required=True)
+    execute_okta.add_argument("--snapshot-id", required=True)
+    execute_okta.add_argument("--provider-target", required=True, help="Verified Okta user ID (00u...); never use the pseudonymized finding actor")
+    execute_okta.add_argument("--okta-domain", required=True, help="Okta org URL, for example https://example.okta.com")
+    execute_okta.add_argument("--token-env", default="OKTA_ACCESS_TOKEN", help="Environment variable holding the scoped Okta token")
+    execute_okta.add_argument("--auth-scheme", choices=["Bearer", "SSWS"], default="Bearer")
+    execute_okta.add_argument("--verification-timeout", type=float, default=5.0)
+    execute_okta.add_argument("--primary-operator", required=True)
+    execute_okta.add_argument("--secondary-operator", required=True)
+    execute_okta.add_argument("--reason", required=True)
+    execute_okta.add_argument("--confirm", required=True, help="Type EXECUTE REAL ACTION")
+    execute_okta.add_argument("--second-confirm", required=True, help="Type SECOND APPROVER CONFIRMED")
     return parser
 
 
@@ -198,6 +226,31 @@ def main():
         finally:
             monitor.store.close()
         return
+    if args.command == "watch-okta":
+        from .monitor import OktaSystemLogMonitor
+        from .providers.okta import OktaConfig, OktaClient, OktaSystemLogCollector
+        token = os.environ.get(args.token_env)
+        if not token:
+            raise ValueError(f"Oktaトークンの環境変数が未設定です: {args.token_env}")
+        asset_source = _sources([args.asset_source])[0]
+        collector = OktaSystemLogCollector(
+            OktaClient(OktaConfig(base_url=args.okta_domain, token=token, auth_scheme=args.auth_scheme)),
+            asset_source, _sources(args.source), lookback_seconds=args.lookback,
+            max_rows=args.max_rows or 2_000_000, unknown_assets=args.unknown_assets,
+        )
+        store = Store(args.data_dir, config)
+        monitor = OktaSystemLogMonitor(store, collector, interval=args.interval)
+        try:
+            result = monitor.poll_once()
+            print(json.dumps(result.as_dict(), ensure_ascii=False, indent=2))
+            if not args.once:
+                print("Okta System Logを監視中です。停止するにはCtrl+Cを押してください。", file=sys.stderr)
+                monitor.run()
+        except KeyboardInterrupt:
+            pass
+        finally:
+            store.close()
+        return
     if args.command == "baseline":
         from .baseline import scenario
         from .schema import parse_time, utcnow
@@ -223,7 +276,7 @@ def main():
                 store.ingest(sample(), "demo")
             server = LocalServer(store, args.port, args.ollama_model)
             print("AI Secure v0.3.0 — LOCAL INTEGRATION / 防御側への実操作は明示承認と署名付きレスポンダー経由", flush=True)
-            print("表示はスナップショット解析です。継続監視は watch、実操作は execute を使用します。", flush=True)
+            print("表示はスナップショット解析です。継続監視は watch / watch-okta、実操作は execute / execute-okta を使用します。", flush=True)
             print(f"検知設定: {config.digest}" + ("（既定値）" if args.rules is None else f"（{args.rules}）"), flush=True)
             print(f"Open: {server.origin}/#token={server.token}", flush=True)
             print(f"API token: {server.token}", flush=True)
@@ -262,6 +315,21 @@ def main():
                 url=args.webhook_url,
                 secret=secret_text.encode("utf-8"),
                 allowed_actions=frozenset(args.allow_action),
+            ))
+            store.approve_for_execution(
+                args.proposal_id, args.snapshot_id, args.confirm, args.second_confirm,
+                args.reason, args.primary_operator, args.secondary_operator,
+            )
+            result = store.execute_approved(args.proposal_id, args.snapshot_id, responder, args.provider_target)
+            _write(None, _dump(result), "")
+        elif args.command == "execute-okta":
+            from .providers.okta import OktaConfig, OktaSessionResponder
+            token = os.environ.get(args.token_env)
+            if not token:
+                raise ValueError(f"Oktaトークンの環境変数が未設定です: {args.token_env}")
+            responder = OktaSessionResponder(OktaConfig(
+                base_url=args.okta_domain, token=token, auth_scheme=args.auth_scheme,
+                verification_timeout=args.verification_timeout,
             ))
             store.approve_for_execution(
                 args.proposal_id, args.snapshot_id, args.confirm, args.second_confirm,

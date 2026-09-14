@@ -11,7 +11,7 @@ A local-first security triage and response gateway that links an internet-facing
 [![python](https://img.shields.io/badge/python-3.11%2B-175b48)](pyproject.toml)
 [![dependencies](https://img.shields.io/badge/runtime%20deps-0-175b48)](pyproject.toml)
 
-[Reachmade Lab product page](https://reachmade.com/products/#aisecure) · [日本語 README](README.ja.md) · [How to tune it](docs/TUNING.md) · [Log connectors](docs/CONNECTORS.md) · [Responder protocol](docs/RESPONDER.md) · [Security review](docs/SECURITY_REVIEW.md)
+[Reachmade Lab product page](https://reachmade.com/products/#aisecure) · [日本語 README](README.ja.md) · [How to tune it](docs/TUNING.md) · [Log connectors](docs/CONNECTORS.md) · [Okta response adapter](docs/OKTA.md) · [Responder protocol](docs/RESPONDER.md) · [Security review](docs/SECURITY_REVIEW.md)
 
 ![AI Secure — the triage screen, with its evidence](docs/media/screendemo.gif)
 
@@ -64,12 +64,23 @@ separate responder. The responder owns provider credentials and must verify the
 post-action state; AISecure never runs shell commands or stores VPN/IdP
 credentials.
 
+The Okta path can also read the authenticated System Log directly over HTTPS
+and combine it with the local asset/file-access sources. It keeps only the
+allowlisted login metadata and records the API response hash as provenance.
+
 ```bash
 # Poll changed CSV/JSONL exports and ingest a new evidence snapshot
 python3 -m aisecure watch \
   --source generic-asset-csv=assets.csv \
   --source generic-auth-csv=auth.csv \
   --source generic-file-access-jsonl=access.jsonl
+
+# Poll Okta directly (the token is read only from the environment)
+OKTA_ACCESS_TOKEN="$TOKEN_FROM_SECRET_MANAGER" \
+python3 -m aisecure --data-dir ./private-state watch-okta \
+  --asset-source generic-asset-csv=assets.csv \
+  --source generic-file-access-jsonl=access.jsonl \
+  --okta-domain https://example.okta.com
 
 # After reviewing the plan, deliver one explicitly double-approved action
 AISECURE_WEBHOOK_SECRET='use-a-32-byte-secret-from-your-secret-store' \
@@ -86,6 +97,10 @@ python3 -m aisecure execute \
 
 See [the responder protocol](docs/RESPONDER.md) before connecting a real
 control plane. The bundled browser demo remains synthetic and simulation-only.
+
+For the first provider-specific path, `execute-okta` can clear all IdP
+sessions for one operator-supplied Okta user ID and requires a matching
+`user.session.clear` event before it reports `verified`. See [the Okta runbook](docs/OKTA.md).
 
 ## Quick start
 
@@ -126,7 +141,7 @@ CSV and JSON Lines are mapped through a declarative profile that can only refere
 
 Written first, on purpose. A security tool that only lists its strengths is not telling you enough to trust it.
 
-- **No direct provider control.** `watch` polls local CSV/JSONL exports; it does not connect to a SIEM, IdP, VPN, or file server. `execute` sends a signed request to a separately operated responder; provider credentials and enforcement stay outside AISecure.
+- **Limited provider control only.** `watch` still polls local CSV/JSONL exports. `watch-okta` reads only Okta System Log login metadata; it does not connect to a VPN or file server. `execute-okta` is a narrow, explicit Okta session-clear adapter; it accepts only a verified `00u...` user ID and requires a matching System Log event. Other providers still use the separately operated signed responder boundary.
 - **No automatic enforcement.** Real delivery requires an explicit plan, two distinct approval labels, an allowlisted action, and a responder that returns verified state. The built-in simulation path changes nothing.
 - **No leak confirmation.** "These files were read" and "this data left the building" are shown as different claims, because they are.
 - **No LLM in the detection path.** Default mode is deterministic rules with template explanations. An optional local Ollama adapter writes *supplementary prose only*, gets no tools and no raw logs, and every claim it makes is checked against the evidence IDs before display.
@@ -155,7 +170,7 @@ Detection, explanation, and the authority to act are separate modules with expli
 | **Evidence** | Every finding carries the event IDs it was built from, and separates *observed* from *hypothesis* from *unknown*. |
 | **Audit** | Ingest, explain, plan, approve, simulate, and threshold changes go into a keyed hash chain. Tail truncation needs an external checkpoint — [stated, not hidden](SECURITY.md). |
 | **Approval** | 5-minute expiry, typed confirmation, reason required. Stale snapshots, double approvals, and tampered plans are refused. |
-| **Tests** | 187, standard library only. `python3 -m unittest discover -s tests -v` |
+| **Tests** | 201, standard library only. `python3 -m unittest discover -s tests -v` |
 
 ## Screenshots
 
@@ -167,9 +182,9 @@ The UI is fully bilingual — English by default, with a `日本語` toggle in t
 
 ## Status
 
-**v0.3.0 — a local integration prototype, honestly labelled.** Useful today for studying detection logic, polling exported logs, rehearsing a triage workflow, and connecting an independently secured response adapter. Provider-specific production deployment, real-log validation, and an independent security review are still required.
+**v0.3.0 — a local integration prototype, honestly labelled.** Useful today for studying detection logic, polling exported logs, directly reading Okta System Log login metadata, rehearsing a triage workflow, and testing a narrow Okta session-clear path. Real-organization deployment, real-log validation, SSO/RBAC, recovery exercises, and an independent security review are still required.
 
-Not implemented: direct live collectors, KEV/vendor advisory matching, SSO and RBAC inside the control plane, encryption at rest, external audit storage, and provider-specific responders. A [self-review](docs/SECURITY_REVIEW.md) found and fixed four detection-evasion defects in the import boundary; it is not a third-party audit.
+Not implemented: live collectors for providers other than Okta, KEV/vendor advisory matching, SSO and RBAC inside the control plane, encryption at rest, external audit storage, non-Okta provider responders, and recovery automation. A [self-review](docs/SECURITY_REVIEW.md) found and fixed four detection-evasion defects in the import boundary; it is not a third-party audit.
 
 The next milestone is not more features. It is getting one organisation's real authentication, gateway, and file-access logs through the importer, and measuring the false-positive rate on a period where nothing happened.
 
