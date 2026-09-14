@@ -153,3 +153,4 @@ $('fileInput').addEventListener('change',()=>run(async()=>{const file=$('fileInp
 $('loginButton').addEventListener('click',login);$('tokenInput').addEventListener('keydown',e=>{if(e.key==='Enter')login();});$('loginDialog').addEventListener('cancel',e=>e.preventDefault());
 applyStatic();
 (async()=>{if(PREVIEW){$('demoButton').disabled=true;$('importButton').disabled=true;await refresh();return;}const params=new URLSearchParams(location.hash.slice(1));token=params.get('token')||'';if(location.hash)history.replaceState(null,'',location.pathname);if(!token){$('loginDialog').showModal();return;}try{await refresh();}catch(e){$('loginDialog').showModal();$('loginError').textContent=e.message;}})();
+setInterval(()=>{if(!PREVIEW&&token&&!$('planDialog').open)run(refresh);},30000);
