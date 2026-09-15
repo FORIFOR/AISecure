@@ -23,3 +23,25 @@
   finally{pending=false;button.disabled=false;}
  });
 })();
+
+/* Progressive onboarding: static approved copy only; no new data collection. */
+(() => {
+  'use strict';
+  const source = document.currentScript?.src;
+  if (!source) return;
+  const mount = () => {
+    const anchor = document.getElementById("film");
+    if (!anchor || !document.getElementById("case") || document.getElementById("your-logs")) return;
+    const ja = document.documentElement.lang === 'ja';
+    const content = ja ? "<section class=\"log-onboarding\" id=\"your-logs\"><div class=\"wrap\"><h2>自分のログで試す前に。</h2><div class=\"log-grid\"><article><h3>資産とイベントを用意</h3><p>管理ID、タイムゾーン付きの時刻、資産・ログイン・ファイル参照の対応関係を確認します。</p></article><article><h3>不明な値を推測で埋めない</h3><p>分からない値は入力仕様に沿ってnullとします。氏名、本文、パスワード、認証トークンを入れません。</p></article><article><h3>ローカルで取り込み、結果を確認</h3><p>実ログの取り込みはCLIを使います。形式、件数上限、相関できない条件を入力仕様と照合してください。</p></article></div><p class=\"log-warning\">この公開ページへ実ログをアップロードしないでください。許可されたデータをローカルで扱い、合成データの測定値と実環境の結果を区別してください。</p><div class=\"log-links\"><a href=\"https://github.com/FORIFOR/AISecure/blob/main/docs/INPUT_SCHEMA.md\">入力仕様を確認する ↗</a><a href=\"https://github.com/FORIFOR/AISecure/blob/main/docs/CONNECTORS.md\">対応する連携を確認する ↗</a></div></div></section>" : "<section class=\"log-onboarding\" id=\"your-logs\"><div class=\"wrap\"><h2>Before using your own logs.</h2><div class=\"log-grid\"><article><h3>Prepare assets and events</h3><p>Check opaque identifiers, timezone-aware timestamps, and the relationships between assets, logins and file access.</p></article><article><h3>Keep unknown values unknown</h3><p>Use null where required by the input contract. Do not include names, message bodies, passwords or credentials.</p></article><article><h3>Import and inspect locally</h3><p>Use the CLI for real logs. Review the schema, input limits and correlation limitations before importing.</p></article></div><p class=\"log-warning\">Do not upload real logs to this public page. Process authorized data locally and distinguish synthetic measurements from real-world results.</p><div class=\"log-links\"><a href=\"https://github.com/FORIFOR/AISecure/blob/main/docs/INPUT_SCHEMA.md\">Input contract (Japanese) ↗</a><a href=\"https://github.com/FORIFOR/AISecure/blob/main/docs/CONNECTORS.md\">Supported connectors (Japanese) ↗</a></div></div></section>";
+    const template = document.createElement('template');
+    template.innerHTML = content;
+    const style = document.createElement('link');
+    style.rel = 'stylesheet';
+    style.href = new URL('onboarding.css', source).href;
+    document.head.append(style);
+    anchor.before(template.content);
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount, {once:true});
+  else mount();
+})();
