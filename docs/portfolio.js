@@ -5,7 +5,7 @@
  const words=(ja,en)=>language==='ja'?ja:en;
  const allowed=new Set(['demo_start','demo_complete','artifact_open','artifact_download','github_outbound','quickstart_open']);
  let budget=40;
- function event(name){if(!allowed.has(name)||budget<=0||navigator.doNotTrack==='1'||navigator.globalPrivacyControl)return;budget--;void fetch(endpoint+'events',{method:'POST',headers:{'content-type':'application/json'},credentials:'omit',referrerPolicy:'no-referrer',keepalive:true,body:JSON.stringify({event:name,scenario:product,language})}).catch(()=>{});}
+ function event(name){if(script.dataset.analytics==='off')return;if(!allowed.has(name)||budget<=0||navigator.doNotTrack==='1'||navigator.globalPrivacyControl)return;budget--;void fetch(endpoint+'events',{method:'POST',headers:{'content-type':'application/json'},credentials:'omit',referrerPolicy:'no-referrer',keepalive:true,body:JSON.stringify({event:name,scenario:product,language})}).catch(()=>{});}
  window.productEvent=event;
  document.addEventListener('click',e=>{const a=e.target.closest('a');if(!a||a.dataset.track)return;const href=a.getAttribute('href')||'';if(a.download||/\.zip(?:$|\?)/.test(href))event('artifact_download');else if(/github\.com/.test(href))event(/TESTING|README|quickstart/.test(href)?'quickstart_open':'github_outbound');else if(/#start|#quickstart/.test(href))event('quickstart_open');else if(a.dataset.artifact||/orbit\.html|kit-site/.test(href))event('artifact_open');});
  if(product!=='agent-team')document.querySelectorAll('video,audio').forEach(v=>{let started=false;v.addEventListener('play',()=>{if(!started){event('demo_start');started=true;}document.querySelectorAll('video,audio').forEach(o=>{if(o!==v)o.pause()});});v.addEventListener('ended',()=>event('demo_complete'));});
@@ -22,6 +22,7 @@
   catch{status.textContent=words('送信できませんでした。入力は保持しています。時間をおいて再度お試しください。','Could not send. Your input is preserved; please try again shortly.');}
   finally{pending=false;button.disabled=false;}
  });
+ const submitButton=form.querySelector('button[type=submit]');if(submitButton)submitButton.disabled=false;
 })();
 
 /* Progressive onboarding: static approved copy only; no new data collection. */
