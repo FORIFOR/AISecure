@@ -1,10 +1,36 @@
 # AI Secure / AIセキュア
 
+**AIに渡す前に確認し、判断の根拠と送信結果を追える、ローカルの開発者向けワークベンチ。**
+
+[日本語サイト](https://forifor.github.io/AISecure/index.ja.html) · [18秒の製品イメージ](https://forifor.github.io/AISecure/media/product-film-ja.mp4) · [送信チェックの導入手順](docs/operations/WORKBENCH.md) · [全タスクと未完了条件](docs/operations/TASK_MATRIX.md)
+
+[![AISecure製品イメージ・実機防御映像ではありません](docs/media/product-film-ja-poster.jpg)](https://forifor.github.io/AISecure/media/product-film-ja.mp4)
+
+## 0.4.0a1：送信前チェックを画面で試す
+
+```sh
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install '.[workbench]'
+python -m aisecure.workbench --demo
+```
+
+リポジトリのルートで実行します。Windowsの仮想環境有効化は `.venv\Scripts\activate`。
+起動URLで「機密情報 → 拒否」「公開情報 → デモ受信」「操作履歴 → 理由の説明」を試せます。
+デモでは外部AIへ送信せず、一時保存は終了時に削除。実OpenAI接続は管理者の明示設定と期限付き分類署名が必要です。
+署名・暗号化・一意の送信予約・入力制限を備えますが、端末全体のDLP・VPN隔離・組織SSOを完成した製品ではありません。
+
+FortiOS読み取りコレクター、入力台帳/KEV照合、DLPメタデータ取り込み、ツール台帳の変更検査は[運用手順](docs/operations/RUNBOOK.md)を参照。
+外部機器・実企業環境での検証、ベンダー別DLP制御/VPN封じ込め、独立セキュリティレビューは未完了です。
+
+---
+
+## 従来のログ分析・承認基盤
+
 **Evidence before action. 判断の根拠は手元に、操作の権限は人に。**
 
 [Reachmade Labの製品ページ](https://reachmade.com/products/#aisecure) ・ [English README](README.md) ・ [サイト（日本語）](https://forifor.github.io/AISecure/index.ja.html) ・ [Site (EN)](https://forifor.github.io/AISecure/) ・ [閾値の決め方](docs/TUNING.md) ・ [Okta実対応手順](docs/OKTA.md) ・ [防御側連携プロトコル](docs/RESPONDER.md) ・ [認証済み二者承認](docs/APPROVALS.md) ・ [独立監査チェックポイント](docs/AUDIT_SINK.md) ・ [セキュリティ検証](docs/SECURITY_REVIEW.md)
 
-![AI Secure デモ](docs/media/screendemo.gif)
 
 > 画面は英語・日本語に完全対応（右上で切替）。検知内容・計画・パラメータ説明も言語が切り替わります。
 
@@ -224,7 +250,7 @@ Python標準HTTPサーバーは本番用途ではありません。これは依�
 
 ## 設計と製品化
 
-詳しい内容は [製品設計書](docs/PRODUCT_SPEC.md)、[脅威モデル](SECURITY.md)、[セキュリティ検証](docs/SECURITY_REVIEW.md)、[取り込み](docs/CONNECTORS.md)、[閾値の決め方](docs/TUNING.md)、[テスト結果](docs/TEST_REPORT.md)、[変更履歴](CHANGELOG.md)、[情報源](docs/SOURCES.md) を参照してください。GitHub公開、既存Astraリポジトリの変更、クラウドデプロイはこの成果物では実施していません。
+詳しい内容は [製品設計書](docs/PRODUCT_SPEC.md)、[脅威モデル](SECURITY.md)、[セキュリティ検証](docs/SECURITY_REVIEW.md)、[取り込み](docs/CONNECTORS.md)、[閾値の決め方](docs/TUNING.md)、[テスト結果](docs/TEST_REPORT.md)、[変更履歴](CHANGELOG.md)、[情報源](docs/SOURCES.md) を参照してください。実装と検証状況は最新のタスク台帳とCI実行結果を確認してください。
 
 同梱ファイルの整合性は `shasum -a 256 -c SHA256SUMS.txt`（Linuxでは `sha256sum -c`）で確認できます。これは配布物が壊れていないことの確認であり、署名による発行元証明ではありません。
 

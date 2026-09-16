@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><title>AISecure · 送信前チェック</title><link rel="stylesheet" href="/app.css"><script src="/app.js" defer></script></head>
+<body><a class="skip" href="#main">本文へ</a><header><div class="brand"><span>✓</span> AISecure <small>WORKBENCH</small></div><button id="refresh" class="secondary" type="button">記録を更新</button></header>
+<main id="main"><div class="intro"><p class="eyebrow">CHECK. UNDERSTAND. DECIDE.</p><h1>送る前に、確かめる。</h1><p>内容の検査から、送信の結果確認まで。この画面を通る操作だけを記録します。</p></div>
+<div id="mode" class="notice" role="status">接続を確認しています。実データを入れる前に対象範囲を確認してください。</div>
+<details id="auth"><summary>起動時のトークンで接続する</summary><label>接続トークン<input id="token" type="password" autocomplete="off"></label><button id="connect" type="button">接続</button><p>起動時のURLを開くか、トークンを入力してください。ブラウザには保存しません。</p></details>
+<div class="workspace"><section class="input-panel"><div class="section-head"><span class="step">01</span><h2>送る内容</h2></div>
+<div id="sample-controls" hidden><label>合成サンプル<select id="sample"><option value="confidential">機密情報 → 拒否</option><option value="secret">認証情報のパターン → 拒否</option><option value="unknown">分類が不明 → 保留</option><option value="public">公開済み情報 → 検査通過</option><option value="">自分でテキストを入力する</option></select></label><p class="fine">合成サンプルの分類はサーバー側で固定しています。</p></div>
+<label>テキスト<textarea id="text" rows="7" maxlength="240000" placeholder="この画面はローカル専用です。まずは架空の情報で試してください。"></textarea></label>
+<details class="label-box"><summary>管理者の分類証明を追加する</summary><label>期限付きの署名JSON<textarea id="label" rows="4" spellcheck="false" placeholder="管理者が現在の本文・モデル・IDに対して発行した証明"></textarea></label><p class="fine">分類を自己申告して送信許可にはできません。秘密情報は分類証明があっても拒否します。</p><p class="fine">リクエストID: <code id="request-id"></code></p></details>
+<div class="actions"><button id="check" type="button">検査する</button><button id="send" class="secondary" type="button" disabled>確認して送信</button></div><label class="consent"><input id="consent" type="checkbox">送信先と内容を確認しました。実接続モードでは外部送信とAPI料金が発生します。</label><p class="fine">添付・画像・PDF・ツール実行は受け付けません。未対応の情報を分割して迂回しないでください。</p></section>
+<section class="result-panel" aria-live="polite"><div class="section-head"><span class="step">02</span><h2>判定と、次の操作</h2></div><div id="result"><p class="empty">まずは「検査する」を押してください。<br>危険な理由と、確認することを表示します。</p></div></section></div>
+<section class="coverage"><h2>いま確認できる範囲</h2><div id="coverage"></div><p class="fine">「この画面で拒否」と「PC全体で遮断」は異なります。受信の確認ができない場合は成功と表示しません。</p></section>
+<section class="coverage"><h2>接続した台帳・DLPの確認事項</h2><div id="posture"></div><p class="fine">入力台帳と収集器の報告に基づきます。実機で防御が効いたという証明ではありません。</p></section>
+<section class="history"><div class="section-head"><span class="step">03</span><h2>操作の記録</h2><span class="fine">直近100件 / 本文・AI回答は保存しません</span></div><div id="history"></div><div id="explanation" role="status"></div></section>
+<footer>ローカルの管理対象経路に限定した開発版。端末DLP・VPNの実機防御は未接続です。<br>説明AIには操作権限がありません。暗号鍵と同じホストの侵害まで保護するものではありません。</footer>
+</main></body></html>

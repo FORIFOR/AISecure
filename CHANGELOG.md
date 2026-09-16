@@ -1,3 +1,11 @@
+# 0.4.0a1 — managed text workbench (2026-09-16)
+
+- Added an opt-in fixed-endpoint OpenAI text transport, administrator-signed classification claims, an encrypted metadata journal, durable dispatch reservations, and a loopback ASGI workbench. Default demo has no external AI traffic.
+- Added normalized DLP intake, single/low-volume transfer review rules, numeric-version advisory assessment, tool manifest review, and read-only FortiOS inventory collection. VPN/endpoint enforcement adapters and SSO remain unfinished.
+- Added full cryptography CI, isolated-network acceptance, Chromium/WebKit workbench and video checks, post-deployment public-page checks, wheel/sdist packaging, build-environment SPDX and provenance workflows.
+- Updated bilingual homepages and READMEs to launch the actual preflight demo. Workbench UI currently Japanese only.
+- Added the 32-task traceability matrix, operator runbook and incomplete-by-default production evidence gate. Code/tests do not certify live protection.
+
 # 変更履歴
 
 ## v0.2.2 — 2026-09-12

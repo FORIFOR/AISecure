@@ -1,4 +1,33 @@
-<div align="center">
+# AI Secure
+
+**Inspect before sending. Keep the reasons and delivery state together. A local workbench for developers.**
+
+[Website](https://forifor.github.io/AISecure/) · [18-second product concept](https://forifor.github.io/AISecure/media/product-film-en.mp4) · [Workbench guide](docs/operations/WORKBENCH.md) · [Task and validation matrix](docs/operations/TASK_MATRIX.md)
+
+[![Product concept, not a recording of live protection](docs/media/product-film-en-poster.jpg)](https://forifor.github.io/AISecure/media/product-film-en.mp4)
+
+## 0.4.0a1: try the preflight workbench
+
+```sh
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install '.[workbench]'
+python -m aisecure.workbench --demo
+```
+
+Run from the repository root. On Windows activate `.venv\Scripts\activate`.
+The workbench currently uses Japanese copy. Its demo sends nothing to an external AI and deletes temporary state when stopped.
+Live OpenAI delivery is an explicit administrator opt-in, requiring a short-lived classification signature bound to the exact input,
+request ID, model, destination and policy. The service never holds the classification private key.
+
+This is an alpha for managed local evaluation, **not** host-wide DLP, VPN containment or a finished enterprise SSO service.
+Read-only FortiOS collection, supplied inventory/advisory assessment, DLP metadata ingestion and manifest drift checks are included.
+Vendor-specific enforcement, real-device validation, retention operations and independent security review remain deployment gates.
+See the [runbook](docs/operations/RUNBOOK.md). The product film is a concept, not live-enforcement evidence.
+
+---
+
+## Existing log triage and response foundation
 
 # AI Secure
 
@@ -13,7 +42,6 @@ A local-first security triage and response gateway that links an internet-facing
 
 [Reachmade Lab product page](https://reachmade.com/products/#aisecure) · [日本語 README](README.ja.md) · [How to tune it](docs/TUNING.md) · [Log connectors](docs/CONNECTORS.md) · [Okta response adapter](docs/OKTA.md) · [Responder protocol](docs/RESPONDER.md) · [Signed approvals](docs/APPROVALS.md) · [Audit checkpoint sink](docs/AUDIT_SINK.md) · [Security review](docs/SECURITY_REVIEW.md)
 
-![AI Secure — the triage screen, with its evidence](docs/media/screendemo.gif)
 
 </div>
 

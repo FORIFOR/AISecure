@@ -14,6 +14,8 @@ from .demo import sample
 from .explain import Explainer
 
 WEB_DIR = Path(__file__).resolve().parent.parent / "web"
+if not WEB_DIR.is_dir():
+    WEB_DIR = Path(__file__).resolve().parent / "legacy_web"
 
 
 class LocalServer(ThreadingHTTPServer):
