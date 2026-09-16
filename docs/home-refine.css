@@ -1,0 +1,32 @@
+/* Product-image repair and density pass. Loaded after home.css by home.js. */
+.product-actual{
+  display:block;width:100%!important;height:100%!important;max-width:none!important;
+  object-fit:cover;transform:none!important;background:#eef2f7
+}
+.hero{padding:76px 0 58px}.hero-grid{gap:52px}.shot-window{height:540px}
+.hero-shot .product-actual{object-position:50% 28%}
+.signature-section{padding:52px 0 76px}.section{padding:88px 0}
+.story-row{min-height:460px;padding:26px 0;gap:72px}.product-crop{height:360px}
+.crop-input .product-actual{object-position:50% 28%}.crop-history .product-actual{object-position:50% 83%}
+.sample-layout,.film-grid,.scope-grid,.start-grid{gap:72px}.workbench-grid{gap:64px}
+.workbench-copy{padding-top:32px}.workbench-shot .shot-window{height:620px}
+.workbench-shot .product-actual{object-position:50% 39%}.film-section{padding:72px 0}
+
+@media (max-width:1100px){
+  .hero{padding:64px 0 52px}.hero-grid{gap:38px}.shot-window{height:500px}
+  .hero-shot .product-actual{object-position:50% 27%}
+  .signature-section{padding:48px 0 68px}.section{padding:78px 0}
+  .story-row{min-height:0;gap:42px;padding:24px 0}.product-crop{height:350px}
+  .workbench-copy{padding-top:0}.workbench-shot .shot-window{height:560px}
+  .film-section{padding:64px 0}
+}
+
+@media (max-width:600px){
+  .hero{padding:48px 0 38px}.hero-grid{gap:28px}.shot-window{height:350px}
+  .hero-shot .product-actual{object-position:50% 25%}
+  .signature-section{padding:42px 0 58px}.section{padding:62px 0}
+  .story-row{padding:16px 0;gap:26px}.product-crop{height:285px}
+  .crop-input .product-actual{object-position:50% 26%}.crop-history .product-actual{object-position:50% 84%}
+  .workbench-shot .shot-window{height:430px}.workbench-shot .product-actual{object-position:50% 38%}
+  .film-section{padding:54px 0}
+}
