@@ -1,25 +1,67 @@
 name: public site smoke
 on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/public-site-smoke.yml]
   workflow_run:
-    workflows: ['pages build and deployment']
+    workflows: ['managed quality']
     types: [completed]
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
   public:
-    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main')
+    if: github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository)
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     strategy:
       matrix:
         browser: [chromium, webkit]
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          persist-credentials: false
       - uses: actions/setup-python@v7
         with:
           python-version: '3.13'
       - run: python -m pip install '.[test]'
       - run: python -m playwright install --with-deps ${{ matrix.browser }}
+      - name: Verify deployed bytes before checking the public page
+        run: |
+          python - <<'PY'
+          import hashlib, json, pathlib, subprocess, time, urllib.request
+          class NoRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self, *args, **kwargs):
+                  raise ValueError('Redirect refused')
+          opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), NoRedirect())
+          root = pathlib.Path('docs')
+          names = ('index.html', 'index.ja.html', 'home.css', 'home.js', 'portfolio.js', 'preflight-preview.json')
+          expected = {name: (root / name).read_bytes() for name in names}
+          revision = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
+          matched = False
+          for attempt in range(12):
+              try:
+                  for name, content in expected.items():
+                      url = 'https://forifor.github.io/AISecure/' + name + '?revision=' + revision
+                      request = urllib.request.Request(url, headers={'Cache-Control': 'no-cache'})
+                      with opener.open(request, timeout=5) as response:
+                          received = response.read(len(content) + 1)
+                      if received != content:
+                          raise ValueError('Deployment does not match the tested revision')
+                  matched = True
+                  break
+              except Exception:
+                  print('Published files not yet verified; attempt', attempt + 1)
+                  if attempt < 11:
+                      time.sleep(5)
+          if not matched:
+              raise SystemExit('Public deployment verification failed; browser success must not be claimed.')
+          out = pathlib.Path('/tmp/public-site')
+          out.mkdir(parents=True, exist_ok=True)
+          (out / 'deployed-sources.json').write_text(json.dumps({'commit': revision, 'verified': True, 'sha256': {name: hashlib.sha256(value).hexdigest() for name, value in expected.items()}}, indent=2))
+          print('Public source bytes match the checked-out revision.')
+          PY
       - run: python tools/check_product_presentation.py --public --browser ${{ matrix.browser }} --out /tmp/public-site
       - uses: actions/upload-artifact@v7
         if: always()
