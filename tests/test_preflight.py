@@ -205,7 +205,7 @@ class PreflightTests(unittest.TestCase):
 
     def test_cli_duplicate_history_ids_rejected(self):
         data = {"event_id": "EV-1", "action": "ai.prompt", "destination": URL, "text": "x"}
-        result = subprocess.run([sys.executable, "-m", "aisecure.preflight"], input=json.dumps([data, data]), text=True, capture_output=True)
+        result = subprocess.run([sys.executable, "-m", "aisecure.preflight", "--history"], input=json.dumps([data, data]), text=True, capture_output=True)
         self.assertEqual(result.returncode, 3)
 
 
