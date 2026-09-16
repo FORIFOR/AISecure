@@ -11,7 +11,7 @@
  if(product!=='agent-team')document.querySelectorAll('video,audio').forEach(v=>{let started=false;v.addEventListener('play',()=>{if(!started){event('demo_start');started=true;}document.querySelectorAll('video,audio').forEach(o=>{if(o!==v)o.pause()});});v.addEventListener('ended',()=>event('demo_complete'));});
  document.addEventListener('visibilitychange',()=>{if(document.hidden)document.querySelectorAll('video,audio').forEach(v=>v.pause())});
  const form=document.getElementById('portfolio-form');if(!form)return;
- const status=document.getElementById('portfolio-status');let pending=false,id=crypto.randomUUID(),last='';
+ const status=document.getElementById('portfolio-status');if(typeof crypto.randomUUID!=='function'){status.textContent=words('お問い合わせはHTTPS接続でご利用ください。','Please use HTTPS to send an inquiry.');return;}let pending=false,id=crypto.randomUUID(),last='';
  form.addEventListener('submit',async e=>{
   e.preventDefault();if(pending||!form.reportValidity())return;
   const f=new FormData(form),body={name:String(f.get('name')||'').trim(),email:String(f.get('email')||'').trim(),organization:String(f.get('organization')||'').trim(),useCase:product,message:String(f.get('message')||'').trim(),consent:f.get('consent')==='on',website:String(f.get('website')||''),language};
