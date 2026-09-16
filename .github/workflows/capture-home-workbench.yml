@@ -1,0 +1,27 @@
+name: capture homepage workbench
+on:
+  push:
+    branches: [fix/homepage-product-visual-20260917]
+permissions:
+  contents: write
+jobs:
+  capture:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - run: python -m pip install '.[test]'
+      - run: python -m playwright install --with-deps chromium
+      - run: python tools/check_workbench.py --browser chromium --out /tmp/workbench
+      - name: Commit the real demo-workbench capture
+        run: |
+          cp /tmp/workbench/chromium-1440.png docs/media/workbench-actual.png
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/media/workbench-actual.png
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'docs: capture actual workbench for homepage'
+          git push origin HEAD:${GITHUB_REF_NAME}
