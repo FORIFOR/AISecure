@@ -1,0 +1,59 @@
+name: integrate workbench sources
+on:
+  push:
+    branches: [feat/managed-security-workbench-20260916]
+    paths: [.github/workflows/workbench-apply.yml]
+permissions:
+  contents: write
+jobs:
+  integrate:
+    if: github.repository == 'FORIFOR/AISecure' && github.ref == 'refs/heads/feat/managed-security-workbench-20260916'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - name: Apply only hash-verified sources
+        run: python .workbench-transfer/apply.py
+      - name: Install test dependencies
+        run: python -m pip install '.[test]'
+      - name: Run every test including cryptography options
+        run: |
+          python tools/run_full_tests.py --report /tmp/workbench-quality/tests.json
+          python tools/release_gate.py --self-test
+          python -m pip wheel --no-deps . -w /tmp/workbench-quality/wheels
+      - name: Remove transfer files and refresh manifest
+        run: |
+          rm -rf .workbench-transfer
+          rm .github/workflows/workbench-snapshot.yml .github/workflows/workbench-apply.yml
+          git add -A
+          python - <<'PY'
+          import hashlib, pathlib, subprocess
+          names = subprocess.check_output(['git','ls-files','-z']).decode().split('\0')
+          lines = []
+          for name in sorted(filter(None,names)):
+              if name == 'SHA256SUMS.txt':
+                  continue
+              path = pathlib.Path(name)
+              if path.is_file():
+                  lines.append(hashlib.sha256(path.read_bytes()).hexdigest() + '  ' + name)
+          pathlib.Path('SHA256SUMS.txt').write_text('\n'.join(lines)+'\n')
+          PY
+          sha256sum -c SHA256SUMS.txt > /tmp/workbench-quality/manifest.txt
+          git add SHA256SUMS.txt
+      - name: Commit tested sources to feature branch only
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'feat: add managed text gateway, workbench, posture adapters and verification workflows'
+          git push origin HEAD:feat/managed-security-workbench-20260916
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: workbench-integration-evidence
+          path: /tmp/workbench-quality
+          retention-days: 7
