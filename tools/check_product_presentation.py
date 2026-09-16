@@ -51,6 +51,9 @@ try:
     page.screenshot(path=str(args.out/f'{lang}-{width}.png'),full_page=True)
     if width==1440:page.screenshot(path=str(args.out/f'{lang}-hero.png'))
     assert not page.evaluate('document.documentElement.scrollWidth>innerWidth'),(lang,width,'overflow')
+    if lang=='ja':
+     broken=page.locator('.jp-phrase').evaluate_all("""els => els.filter(el => { const cs=getComputedStyle(el); const lh=parseFloat(cs.lineHeight); const r=el.getBoundingClientRect(); return (Number.isFinite(lh) && r.height > lh*1.45) || r.width > innerWidth - 24; }).map(el=>el.textContent.trim())""")
+     assert not broken,(lang,width,'jp-phrase-wrap',broken)
     for i in range(4):
      page.locator('[data-sample-tab]').nth(i).click()
      assert page.locator('[data-sample-panel]:visible').count()==1
