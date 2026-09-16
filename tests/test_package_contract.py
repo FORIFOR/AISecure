@@ -11,7 +11,7 @@ ROOT=Path(__file__).resolve().parents[1]
 
 class PackageContractTests(unittest.TestCase):
  def test_legacy_web_matches_repository(self):
-  for name in ('index.html','style.css','app.js','i18n.js'):
+  for name in ('index.html','style.css','quiet-cinema.css','app.js','i18n.js'):
    self.assertEqual((ROOT/'web'/name).read_bytes(),(ROOT/'aisecure/legacy_web'/name).read_bytes())
  def test_task_matrix_covers_every_requested_id(self):
   text=(ROOT/'docs/operations/TASK_MATRIX.md').read_text()
