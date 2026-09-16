@@ -1,8 +1,8 @@
-"""Render the two homepages at five widths and test native video playback.
+"""Render the two homepages at five widths and test product media.
 
-Needs Playwright + Chromium. No real inquiry is sent. --offline renders the
-already-local resources in memory when navigation is unavailable; it is not a
-live-site check. Default tests the local HTTP server, not GitHub Pages.
+Needs Playwright + Chromium/WebKit. No real inquiry is sent. --offline renders
+already-local resources when navigation is unavailable; it is not a live-site
+check. Default tests the local HTTP server, not GitHub Pages.
 """
 from pathlib import Path
 import argparse, base64, functools, http.server, json, threading
@@ -36,10 +36,18 @@ try:
       for attr in ['src','href','poster']:
        path=tag.get(attr,'').split('?')[0]
        if path and (root/path).is_file():
-        mime={'.css':'text/css','.js':'text/javascript','.mp4':'video/mp4','.jpg':'image/jpeg','.vtt':'text/vtt'}.get(Path(path).suffix)
+        mime={'.css':'text/css','.js':'text/javascript','.mp4':'video/mp4','.jpg':'image/jpeg','.png':'image/png','.vtt':'text/vtt'}.get(Path(path).suffix)
         if mime:tag[attr]='data:'+mime+';base64,'+base64.b64encode((root/path).read_bytes()).decode()
      page.set_content(str(source),wait_until='load')
     else:page.goto(base+name,wait_until='networkidle')
+    if not args.offline:
+     page.wait_for_function("() => document.querySelectorAll('img.product-actual').length >= 4")
+     product_images=page.locator('img.product-actual')
+     assert product_images.count()>=4,(lang,width,'missing product images')
+     for i in range(product_images.count()):
+      image=product_images.nth(i).evaluate("img => ({w:img.naturalWidth,h:img.naturalHeight,src:img.currentSrc})")
+      assert image['w']>=1200 and image['h']>=1800,(lang,width,image)
+      assert 'workbench-actual.png' in image['src'],(lang,width,image)
     page.screenshot(path=str(args.out/f'{lang}-{width}.png'),full_page=True)
     if width==1440:page.screenshot(path=str(args.out/f'{lang}-hero.png'))
     assert not page.evaluate('document.documentElement.scrollWidth>innerWidth'),(lang,width,'overflow')
@@ -54,7 +62,7 @@ try:
     assert page.locator('.film-splash').is_hidden()
     page.locator('video').evaluate('(v)=>v.pause()')
     assert not errors,errors;assert not posts,posts;assert not bad,bad
-    results.append({'lang':lang,'width':width,'overflow':False,'js_errors':errors,'unsolicited_posts':posts,'http_errors':bad,'video':dimensions})
+    results.append({'lang':lang,'width':width,'product_images_decoded':not args.offline,'overflow':False,'js_errors':errors,'unsolicited_posts':posts,'http_errors':bad,'video':dimensions})
     page.close()
   browser.close()
 finally:server.shutdown()
