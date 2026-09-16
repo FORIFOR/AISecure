@@ -1,14 +1,12 @@
-/* Load the final density/crop pass and swap the malformed legacy bitmap for the
-   CI-captured real workbench screenshot. No product state is fabricated here. */
+/* Bind the CI-captured real workbench image to the semantic crop styles.
+   The HTML points directly at the PNG so the product remains visible before JS. */
 (() => {
   'use strict';
-  const stylesheet=document.createElement('link');
-  stylesheet.rel='stylesheet';stylesheet.href='home-refine.css?v=20260917';
-  document.head.appendChild(stylesheet);
   const actual='media/workbench-actual.png?v=20260917';
-  document.querySelectorAll('img[src*="media/workbench-actual.jpg"]').forEach(img=>{
+  document.querySelectorAll('img[src*="media/workbench-actual."]').forEach(img=>{
     img.classList.add('product-actual');
-    img.src=actual;img.width=1440;img.height=2597;img.decoding='async';
+    if(!img.src.includes('workbench-actual.png'))img.src=actual;
+    img.width=1440;img.height=2597;img.decoding='async';
     img.loading=img.closest('.hero-shot')?'eager':'lazy';
     if(img.closest('.hero-shot'))img.fetchPriority='high';
   });
