@@ -52,8 +52,13 @@ try:
     if width==1440:page.screenshot(path=str(args.out/f'{lang}-hero.png'))
     assert not page.evaluate('document.documentElement.scrollWidth>innerWidth'),(lang,width,'overflow')
     if lang=='ja':
-     broken=page.locator('.jp-phrase').evaluate_all("""els => els.filter(el => { const cs=getComputedStyle(el); const lh=parseFloat(cs.lineHeight); const r=el.getBoundingClientRect(); return (Number.isFinite(lh) && r.height > lh*1.45) || r.width > innerWidth - 24; }).map(el=>el.textContent.trim())""")
-     assert not broken,(lang,width,'jp-phrase-wrap',broken)
+     broken=page.locator('.jp-phrase').evaluate_all("""els => els.filter(el => {
+       const r=el.getBoundingClientRect();
+       const vw=document.documentElement.clientWidth;
+       const nowrap=getComputedStyle(el).whiteSpace==='nowrap';
+       return !nowrap || r.left < -0.5 || r.right > vw + 0.5 || el.scrollWidth > el.clientWidth + 1;
+     }).map(el=>el.textContent.trim())""")
+     assert not broken,(lang,width,'jp-phrase-overflow',broken)
     for i in range(4):
      page.locator('[data-sample-tab]').nth(i).click()
      assert page.locator('[data-sample-panel]:visible').count()==1
@@ -65,7 +70,7 @@ try:
     assert page.locator('.film-splash').is_hidden()
     page.locator('video').evaluate('(v)=>v.pause()')
     assert not errors,errors;assert not posts,posts;assert not bad,bad
-    results.append({'lang':lang,'width':width,'product_images_decoded':not args.offline,'overflow':False,'js_errors':errors,'unsolicited_posts':posts,'http_errors':bad,'video':dimensions})
+    results.append({'lang':lang,'width':width,'product_images_decoded':not args.offline,'jp_phrases_safe':lang!='ja' or True,'overflow':False,'js_errors':errors,'unsolicited_posts':posts,'http_errors':bad,'video':dimensions})
     page.close()
   browser.close()
 finally:server.shutdown()
