@@ -1,3 +1,17 @@
+/* Bind the CI-captured real workbench image to the semantic crop styles.
+   The HTML points directly at the PNG so the product remains visible before JS. */
+(() => {
+  'use strict';
+  const actual='media/workbench-actual.png?v=20260917';
+  document.querySelectorAll('img[src*="media/workbench-actual."]').forEach(img=>{
+    img.classList.add('product-actual');
+    if(!img.src.includes('workbench-actual.png'))img.src=actual;
+    img.width=1440;img.height=2597;img.decoding='async';
+    img.loading=img.closest('.hero-shot')?'eager':'lazy';
+    if(img.closest('.hero-shot'))img.fetchPriority='high';
+  });
+})();
+
 (() => {
   'use strict';
   const ja = document.documentElement.lang === 'ja';
