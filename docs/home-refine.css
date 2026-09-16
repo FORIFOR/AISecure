@@ -6,8 +6,10 @@
 
 /* Japanese display copy is composed as graphic typography: wrap only between phrases. */
 html[lang="ja"] .jp-heading,
-html[lang="ja"] .jp-copy{line-break:strict;overflow-wrap:normal;text-wrap:balance}
+html[lang="ja"] .jp-copy,
+html[lang="ja"] .jp-hero-title{line-break:strict;overflow-wrap:normal;text-wrap:balance}
 html[lang="ja"] .jp-phrase{display:inline-block;white-space:nowrap}
+html[lang="ja"] .jp-hero-title .jp-phrase{display:block}
 html[lang="ja"] .jp-heading .jp-phrase+.jp-phrase{margin-left:.12em}
 html[lang="ja"] .jp-stack .jp-phrase{display:block;margin-left:0}
 html[lang="ja"] .jp-line{display:block}
@@ -69,6 +71,7 @@ html[lang="ja"] p{line-break:strict;text-wrap:pretty}
 
 @media (max-width:600px){
   .hero{padding:44px 0 34px}.hero-grid{gap:24px}.hero .lead{max-width:none}.shot-window{height:360px}
+  html[lang="ja"] .jp-hero-title{font-size:clamp(36px,11.8vw,46px)!important;line-height:1.08}
   .hero-shot .product-actual{object-position:50% 25%}
   .signature-section{padding:44px 0 54px}.signature-section .signature-head h2{font-size:30px;max-width:11ch}
   .signature-section .signature-head p:last-child{font-size:13px}.section{padding:58px 0}
