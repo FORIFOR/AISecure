@@ -1,3 +1,19 @@
+/* Load the final density/crop pass and swap the malformed legacy bitmap for the
+   CI-captured real workbench screenshot. No product state is fabricated here. */
+(() => {
+  'use strict';
+  const stylesheet=document.createElement('link');
+  stylesheet.rel='stylesheet';stylesheet.href='home-refine.css?v=20260917';
+  document.head.appendChild(stylesheet);
+  const actual='media/workbench-actual.png?v=20260917';
+  document.querySelectorAll('img[src*="media/workbench-actual.jpg"]').forEach(img=>{
+    img.classList.add('product-actual');
+    img.src=actual;img.width=1440;img.height=2597;img.decoding='async';
+    img.loading=img.closest('.hero-shot')?'eager':'lazy';
+    if(img.closest('.hero-shot'))img.fetchPriority='high';
+  });
+})();
+
 (() => {
   'use strict';
   const ja = document.documentElement.lang === 'ja';
