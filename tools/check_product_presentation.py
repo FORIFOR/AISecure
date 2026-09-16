@@ -1,4 +1,4 @@
-"""Render the two homepages at four widths and test native video playback.
+"""Render the two homepages at five widths and test native video playback.
 
 Needs Playwright + Chromium. No real inquiry is sent. --offline renders the
 already-local resources in memory when navigation is unavailable; it is not a
@@ -21,7 +21,7 @@ try:
  with sync_playwright() as p:
   browser=getattr(p,args.browser).launch(headless=True,**({'executable_path':'/usr/bin/chromium'} if args.offline else {}))
   for lang,name in [('ja','index.ja.html'),('en','index.html')]:
-   for width in [320,390,768,1440]:
+   for width in [320,390,768,1024,1440]:
     page=browser.new_page(viewport={'width':width,'height':1000},reduced_motion='reduce')
     errors=[];posts=[];bad=[]
     page.on('pageerror',lambda e:errors.append(str(e)))
