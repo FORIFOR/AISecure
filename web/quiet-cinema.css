@@ -1,0 +1,14 @@
+/* Quiet Cinema: quiet investigation surface, one dark case stage, evidence always legible. */
+:root{--qc-paper:#f6f5f0;--qc-ink:#20251f;--qc-muted:#62675f;--qc-stage:#171a17;--qc-stage-line:#303530;--qc-accent:#8f3f32;--bg:var(--qc-paper);--ink:var(--qc-ink);--shadow:none}
+body{background:var(--qc-paper);color:var(--qc-ink)}
+.sidebar{background:#f1f0eb;border-right-color:#d8dad2}
+.topbar{background:color-mix(in srgb,var(--qc-paper) 94%,white 6%);backdrop-filter:none}
+main{padding-top:38px}
+.page-heading h1{font-size:clamp(30px,3vw,42px);font-weight:560;letter-spacing:-.04em;max-width:18ch}
+.page-heading .subtitle{font-size:14px;line-height:1.85;max-width:50em}
+.stats-grid{gap:12px}.stat{box-shadow:none;border-color:#d8dad2;background:#fffefa;border-radius:10px}.stat-value{font-size:34px}
+.content-grid{gap:22px}.incident-card{background:var(--qc-stage);color:#f4f2ec;border:1px solid var(--qc-stage-line);border-top:1px solid var(--qc-stage-line);border-radius:16px}
+.incident-card .card-pad{padding:28px}.incident-card .incident-title{color:#f4f2ec;font-size:clamp(23px,2.4vw,34px);line-height:1.5}.incident-card .incident-description,.incident-card .muted{color:#bbc2ba}.incident-card .pill.neutral{background:#2a2f2b;color:#d9ded8}.incident-card .pill.danger{background:#5a2a25;color:#ffd7d1}.incident-card .path-node{background:#202420;border-color:#343a35;color:#f0eee8}.incident-card .path-node small{color:#b9c0b9}.incident-card .path-number{background:#171a17;border-color:#454c46;color:#d9ded8}.incident-card .caution{background:#2b2621;color:#e7c5a8}.incident-card .card-actions{border-top-color:#343a35}.incident-card .button.primary{background:#f4f2ec;color:#20251f;border-color:#f4f2ec}
+.brief-card,.card,.plan-card{box-shadow:none;border-color:#d8dad2;border-radius:12px}.brief-card{background:#fffefa}.lower-grid{gap:22px}.finding-row.selected{background:#efeee8}.finding-row:hover{background:#f3f2ed}.status-banner{background:#efeee8;border-color:#d8dad2}.button{border-radius:8px}.dialog{border-radius:12px;box-shadow:0 30px 80px #1114}.dialog::backdrop{background:#101310b8;backdrop-filter:none}
+@media(max-width:900px){.content-grid,.lower-grid{grid-template-columns:1fr!important}.incident-card{border-radius:12px}.incident-card .card-pad{padding:22px}}
+@media(prefers-reduced-motion:reduce){button{transition:none!important}}
