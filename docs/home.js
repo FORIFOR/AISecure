@@ -31,3 +31,17 @@
     }
   });
 })();
+
+/* Product film: user initiated, with an accessible static-poster cover. */
+(() => {
+ 'use strict';
+ const video=document.getElementById('product-film');
+ const cover=document.querySelector('.film-splash');
+ if(!video)return;
+ if(cover){cover.classList.add('enabled');video.addEventListener('play',()=>{cover.hidden=true;});}
+ document.querySelectorAll('[data-play-film]').forEach(link=>link.addEventListener('click',async()=>{
+  const status=document.getElementById('film-status');
+  try{if(video.ended)video.currentTime=0;await video.play();if(status)status.textContent='';}
+  catch{if(cover)cover.hidden=true;if(status)status.textContent=document.documentElement.lang==='ja'?'映像内の再生ボタンを押してください。':'Use the play control on the video.';}
+ }));
+})();
