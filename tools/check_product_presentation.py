@@ -9,15 +9,17 @@ import argparse, base64, functools, http.server, json, threading
 from playwright.sync_api import sync_playwright
 
 parser=argparse.ArgumentParser();parser.add_argument('--offline',action='store_true')
+parser.add_argument('--browser', choices=['chromium','webkit'], default='chromium')
+parser.add_argument('--public', action='store_true')
 parser.add_argument('--out',type=Path,default=Path('/tmp/aisecure-presentation-check'))
 args=parser.parse_args();args.out.mkdir(parents=True,exist_ok=True)
 root=Path(__file__).resolve().parents[1]/'docs'
 server=http.server.ThreadingHTTPServer(('127.0.0.1',0),functools.partial(http.server.SimpleHTTPRequestHandler,directory=str(root)))
 threading.Thread(target=server.serve_forever,daemon=True).start()
-base=f'http://127.0.0.1:{server.server_port}/';results=[]
+base='https://forifor.github.io/AISecure/' if args.public else f'http://127.0.0.1:{server.server_port}/';results=[]
 try:
  with sync_playwright() as p:
-  browser=p.chromium.launch(headless=True,executable_path='/usr/bin/chromium' if args.offline else None,args=['--no-sandbox'])
+  browser=getattr(p,args.browser).launch(headless=True,**({'executable_path':'/usr/bin/chromium'} if args.offline else {}))
   for lang,name in [('ja','index.ja.html'),('en','index.html')]:
    for width in [320,390,768,1440]:
     page=browser.new_page(viewport={'width':width,'height':1000},reduced_motion='reduce')
@@ -56,6 +58,6 @@ try:
     page.close()
   browser.close()
 finally:server.shutdown()
-report={'mode':'offline-local-resources' if args.offline else 'local-http','results':results}
+report={'mode':'public-github-pages' if args.public else 'offline-local-resources' if args.offline else 'local-http','browser':args.browser,'results':results}
 (args.out/'report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
 print(json.dumps(report,ensure_ascii=False))

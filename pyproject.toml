@@ -1,12 +1,24 @@
 [project]
 name = "ai-secure-local-prototype"
-version = "0.3.0"
-description = "Evidence-linked local security triage with a signed, separately operated response gateway."
+version = "0.4.0a1"
+description = "Local managed text gateway, evidence workbench and security triage prototype."
 requires-python = ">=3.11"
 dependencies = []
 
 [project.optional-dependencies]
 production = ["cryptography>=43,<47"]
+workbench = ["cryptography>=43,<47", "uvicorn>=0.30,<1"]
+test = ["cryptography>=43,<47", "uvicorn>=0.30,<1", "playwright>=1.51,<2"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["aisecure*"]
+
+[tool.setuptools.package-data]
+aisecure = ["workbench_web/*.html", "workbench_web/*.css", "workbench_web/*.js", "legacy_web/*.html", "legacy_web/*.css", "legacy_web/*.js", "connectors/profiles/*.json"]

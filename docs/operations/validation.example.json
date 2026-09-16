@@ -1,0 +1,101 @@
+{
+  "scope": "organization_production",
+  "evidence": [
+    {
+      "gate": "backup_restore",
+      "status": "not_run",
+      "environment": "unknown",
+      "reviewer": "",
+      "sha256": "",
+      "executed_at": ""
+    },
+    {
+      "gate": "classification_review",
+      "status": "not_run",
+      "environment": "unknown",
+      "reviewer": "",
+      "sha256": "",
+      "executed_at": ""
+    },
+    {
+      "gate": "dlp_device_e2e",
+      "status": "not_run",
+      "environment": "unknown",
+      "reviewer": "",
+      "sha256": "",
+      "executed_at": ""
+    },
+    {
+      "gate": "egress_e2e",
+      "status": "not_run",
+      "environment": "unknown",
+      "reviewer": "",
+      "sha256": "",
+      "executed_at": ""
+    },
+    {
+      "gate": "identity_roles",
+      "status": "not_run",
+      "environment": "unknown",
+      "reviewer": "",
+      "sha256": "",
+      "executed_at": ""
+    },
+    {
+      "gate": "independent_security_review",
+      "status": "not_run",
+      "environment": "unknown",
+      "reviewer": "",
+      "sha256": "",
+      "executed_at": ""
+    },
+    {
+      "gate": "key_rotation",
+      "status": "not_run",
+      "environment": "unknown",
+      "reviewer": "",
+      "sha256": "",
+      "executed_at": ""
+    },
+    {
+      "gate": "normal_business_evaluation",
+      "status": "not_run",
+      "environment": "unknown",
+      "reviewer": "",
+      "sha256": "",
+      "executed_at": ""
+    },
+    {
+      "gate": "okta_restore",
+      "status": "not_run",
+      "environment": "unknown",
+      "reviewer": "",
+      "sha256": "",
+      "executed_at": ""
+    },
+    {
+      "gate": "provider_e2e",
+      "status": "not_run",
+      "environment": "unknown",
+      "reviewer": "",
+      "sha256": "",
+      "executed_at": ""
+    },
+    {
+      "gate": "retention_deletion",
+      "status": "not_run",
+      "environment": "unknown",
+      "reviewer": "",
+      "sha256": "",
+      "executed_at": ""
+    },
+    {
+      "gate": "vpn_device_e2e",
+      "status": "not_run",
+      "environment": "unknown",
+      "reviewer": "",
+      "sha256": "",
+      "executed_at": ""
+    }
+  ]
+}

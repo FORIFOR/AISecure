@@ -1,0 +1,9 @@
+.git
+__pycache__
+*.sqlite3
+*.key
+*.pem
+.env*
+private-state
+docs/media
+docs/screenshots
