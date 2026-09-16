@@ -18,7 +18,15 @@ jobs:
         with:
           python-version: '3.13'
       - name: Apply only hash-verified sources
-        run: python .workbench-transfer/apply.py
+        run: |
+          cp .github/workflows/managed-quality.yml /tmp/managed-quality.yml
+          cp .github/workflows/package-artifacts.yml /tmp/package-artifacts.yml
+          cp .github/workflows/public-site-smoke.yml /tmp/public-site-smoke.yml
+          rm .github/workflows/managed-quality.yml .github/workflows/package-artifacts.yml .github/workflows/public-site-smoke.yml
+          python .workbench-transfer/apply.py
+          cmp /tmp/managed-quality.yml .github/workflows/managed-quality.yml
+          cmp /tmp/package-artifacts.yml .github/workflows/package-artifacts.yml
+          cmp /tmp/public-site-smoke.yml .github/workflows/public-site-smoke.yml
       - name: Install test dependencies
         run: python -m pip install '.[test]'
       - name: Run every test including cryptography options
