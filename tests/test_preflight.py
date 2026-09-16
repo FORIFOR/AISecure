@@ -25,6 +25,7 @@ class PreflightTests(unittest.TestCase):
         self.assertEqual(report["decision"], "allow")
         self.assertEqual(report["execution_state"], "not_executed")
         self.assertFalse(report["llm_used"])
+        self.assertEqual(evaluate(replace(BASE, text="x" * MAX_TEXT_BYTES), POLICY).decision, "allow")
 
     def test_allowed_calls_exact_immutable_request_once(self):
         send = Mock(return_value="transport-result")
