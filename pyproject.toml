@@ -5,6 +5,10 @@ description = "Local managed text gateway, evidence workbench and security triag
 requires-python = ">=3.11"
 dependencies = []
 
+[project.scripts]
+aisecure = "aisecure.__main__:main"
+aisecure-workbench = "aisecure.workbench:main"
+
 [project.optional-dependencies]
 production = ["cryptography>=43,<47"]
 workbench = ["cryptography>=43,<47", "uvicorn>=0.30,<1"]
