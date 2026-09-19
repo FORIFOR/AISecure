@@ -258,10 +258,15 @@ def _run_bounded(command, *, input, timeout, env, cwd=None, max_output=MAX_TEXT*
         stderr=subprocess.DEVNULL,env=env,cwd=cwd,start_new_session=os.name!='nt')
     expired=threading.Event()
     def kill():
+        """Never raises: a failed kill must not mask the bound/timeout error."""
         try:
             if os.name!='nt':os.killpg(process.pid,signal.SIGKILL)
             else:process.kill()
-        except ProcessLookupError:pass
+            return
+        except ProcessLookupError:return
+        except OSError:pass  # Darwin can refuse killpg; still stop the direct child.
+        try:process.kill()
+        except OSError:pass
     def expire():expired.set();kill()
     def write():
         try:process.stdin.write(input);process.stdin.close()
