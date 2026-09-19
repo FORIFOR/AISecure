@@ -1,0 +1,82 @@
+{
+  "build": "0.4.0a2.dev0",
+  "source_commit": "dce7804ee6a25237ea16819fe72738dae2813988",
+  "source_artifact": {
+    "run_id": 35337994755,
+    "artifact_id": 10543966447,
+    "zip_sha256": "2c728178761f0cc5f06e4d4c07452aa965a18868d55b389a9de82b86070cee5b"
+  },
+  "executed_locally": {
+    "new_python_tests": {
+      "run": 121,
+      "passed": 121,
+      "failed": 0,
+      "skipped": 0,
+      "includes_local_http_receiver_tests": 3
+    },
+    "new_browser_protocol_node_tests": {
+      "run": 7,
+      "passed": 7,
+      "failed": 0,
+      "note": "protocol validation only, not extension installation or live upload control"
+    },
+    "existing_available_regression": {
+      "run": 306,
+      "passed": 299,
+      "failed": 0,
+      "skipped": 7,
+      "skipped_reason": "example logs are absent from the upstream source distribution",
+      "excluded_modules": [
+        "test_home_product_image",
+        "test_homepage",
+        "test_package_contract",
+        "test_product_presentation"
+      ],
+      "excluded_reason": "upstream source distribution omits homepage/media/docs/build examples; full upstream checkout is required"
+    },
+    "initial_unfiltered_source_distribution_suite": {
+      "run": 321,
+      "failures": 1,
+      "errors": 14,
+      "skipped": 7,
+      "reason": "missing source distribution assets, before any code edits"
+    },
+    "real_local_http_console": {
+      "status": "root_200_verified"
+    },
+    "real_browser_console_e2e": {
+      "status": "blocked_by_environment",
+      "detail": "Chromium returns ERR_BLOCKED_BY_ADMINISTRATOR for local console navigation; browser policy not bypassed"
+    }
+  },
+  "environment": {
+    "python": "3.13.5",
+    "pypdf": "5.9.0",
+    "defusedxml": "0.7.1",
+    "cryptography": "46.0.4",
+    "uvicorn": "0.48.0",
+    "httpx": "0.28.1"
+  },
+  "declared_pypdf": "pypdf>=6.19,<7",
+  "declared_dependency_retest": "not_run: environment cannot download the declared newer version",
+  "deployment_gates": {
+    "github_push": "not_performed_available_connector_read_only",
+    "github_ci": "not_run",
+    "podman_image_build_and_isolation": "not_run",
+    "real_openai_project_file_delivery": "not_run",
+    "chatgpt_claude_gemini_automatic_browser_enforcement": "not_implemented",
+    "native_host_installation_per_os": "not_run",
+    "managed_chrome_content_analysis_agent": "not_implemented",
+    "image_ocr_semantic_classification": "not_implemented",
+    "native_document_preserving_redaction": "not_implemented",
+    "real_fortios_policy_change_and_recovery": "not_run",
+    "vpn_listener_and_all_path_containment": "not_implemented_or_verified",
+    "automatic_firmware_remediation": "not_implemented",
+    "other_vpn_vendors": "not_implemented",
+    "organization_sso_rbac_rollout": "not_implemented",
+    "real_log_precision_recall_latency": "not_measured",
+    "independent_security_review": "not_run"
+  },
+  "production_ready": false,
+  "whole_device_protected": false
+}

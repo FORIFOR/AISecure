@@ -1,3 +1,25 @@
+## Integrated control extension — evaluation build
+
+The additional `0.4.0a2.dev0` control workbench covers document preflight,
+VPN posture and narrowly approved response, cross-source analytics, and compact
+encrypted audit metadata. It does **not** provide blanket browser DLP or proven
+VPN containment. The browser companion is an explicit preflight checker only.
+
+```sh
+python -m pip install '.[control]'
+python -m aisecure.control --demo
+```
+
+[日本語の起動・運用手順](docs/operations/CONTROL_ALPHA.md) ·
+[All requirements and remaining gates](docs/operations/CONTROL_SCOPE.md) ·
+[Recorded validation](docs/operations/CONTROL_VALIDATION.json)
+
+The source changes are not a production certification. Read the remaining gates,
+especially actual browser enforcement, image/OCR coverage, device validation,
+and the declared dependency-version retest. The older workbench below is retained.
+
+---
+
 # AI Secure
 
 **Inspect before sending. Keep the reasons and delivery state together. A local workbench for developers.**
