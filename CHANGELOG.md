@@ -1,3 +1,13 @@
+# 0.4.0a2 — integrated control extension (2026-09-19)
+
+- Added document preflight for Office and PDF, including hidden sheets, speaker notes, macros, embedded OLE and the parts that refuse to decode. Anything the scanner could not read stays unreadable rather than becoming clean.
+- Added VPN posture assessment and a FortiOS response adapter limited to one pre-registered accept rule, bound to two Ed25519 approvals, a state hash, three emergency-stop checks, and a rollback that needs fresh approval. Changing a policy is not containment, and the adapter is untested against a real device.
+- Added cross-source correlation over VPN, authentication, file access and egress, plus single-transfer, low-volume-repeat and MAD-deviation analysis against a fixed baseline.
+- Added compact pseudonymised, encrypted audit metadata with JSONL export, a unified local console separating demo, managed and explicit external-AI modes, and an explicit browser preflight companion with a Native Messaging host. The companion does not claim automatic blocking.
+- Fixed six defects found while verifying the above on a second platform. The control tests had been recorded as "121 passed" but produced 21 failures and 16 errors on macOS with the declared `pypdf>=6.19`: `setrlimit` was guarded by `except ImportError` alone, so Darwin's `ValueError` killed the scanner on import and every document inspection degraded — closed, but never executed. `kill()` could raise `EPERM` out of a `finally` block, masking the real error and leaving the scanner alive. `httpx`, `defusedxml` and `pypdf` were undeclared where the suites needed them, which broke both the dependency-free workflow and the required quality job. `control-alpha.yml` ran `ubuntu-latest` only, so none of this was reachable by CI.
+- Extended the control CI matrix to macOS and Python 3.14, and added `tools/update_manifest.py` so `SHA256SUMS.txt` covers every tracked file and drift fails the required quality job. The manifest had been stale since before this release.
+- Not delivered, and not claimed: automatic blocking inside the ChatGPT, Claude and Gemini UIs, OCR and image semantics, layout-preserving redaction, real-device VPN containment and recovery, organisation SSO/RBAC, real-log precision and recall, and independent security review. See `docs/operations/CONTROL_SCOPE.md`.
+
 # 0.4.0a1 — managed text workbench (2026-09-16)
 
 - Added an opt-in fixed-endpoint OpenAI text transport, administrator-signed classification claims, an encrypted metadata journal, durable dispatch reservations, and a loopback ASGI workbench. Default demo has no external AI traffic.

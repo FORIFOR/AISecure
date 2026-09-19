@@ -1,10 +1,44 @@
 {
-  "build": "0.4.0a2.dev0",
-  "source_commit": "dce7804ee6a25237ea16819fe72738dae2813988",
-  "source_artifact": {
-    "run_id": 35337994755,
-    "artifact_id": 10543966447,
-    "zip_sha256": "2c728178761f0cc5f06e4d4c07452aa965a18868d55b389a9de82b86070cee5b"
+  "build": "0.4.0a2",
+  "source_commit": "0fa058e969dedd01e441f0a50dd5b54b9385c259",
+  "based_on": "dce7804ee6a25237ea16819fe72738dae2813988",
+  "scope": "automated synthetic tests and CI. Not live enterprise validation.",
+  "continuous_integration": {
+    "status": "green",
+    "pull_request": 25,
+    "workflows": [
+      "tests",
+      "managed quality",
+      "package artifacts",
+      "control alpha contracts",
+      "public site smoke"
+    ],
+    "control_alpha_contracts_matrix": {
+      "os": [
+        "ubuntu-latest",
+        "macos-latest"
+      ],
+      "python": [
+        "3.11",
+        "3.13",
+        "3.14"
+      ],
+      "jobs": 12,
+      "passed": 12
+    },
+    "checks_on_pull_request": {
+      "total": 25,
+      "passed": 25,
+      "failed": 0
+    }
+  },
+  "required_quality_job": {
+    "command": "tools/run_full_tests.py",
+    "policy": "a skipped test is a failure in this job",
+    "run": 454,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
   },
   "executed_locally": {
     "new_python_tests": {
@@ -20,48 +54,82 @@
       "failed": 0,
       "note": "protocol validation only, not extension installation or live upload control"
     },
-    "existing_available_regression": {
-      "run": 306,
-      "passed": 299,
+    "full_suite": {
+      "run": 454,
+      "passed": 454,
       "failed": 0,
-      "skipped": 7,
-      "skipped_reason": "example logs are absent from the upstream source distribution",
-      "excluded_modules": [
-        "test_home_product_image",
-        "test_homepage",
-        "test_package_contract",
-        "test_product_presentation"
-      ],
-      "excluded_reason": "upstream source distribution omits homepage/media/docs/build examples; full upstream checkout is required"
+      "skipped": 0
     },
-    "initial_unfiltered_source_distribution_suite": {
-      "run": 321,
-      "failures": 1,
-      "errors": 14,
-      "skipped": 7,
-      "reason": "missing source distribution assets, before any code edits"
+    "dependency_free_suite": {
+      "run": 334,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 47,
+      "note": "the control extra is optional, so tests/control yields rather than failing the zero-dependency workflow"
     },
     "real_local_http_console": {
-      "status": "root_200_verified"
+      "status": "verified",
+      "observed": {
+        "no_token": 401,
+        "query_string_token": 403,
+        "forged_host": 403,
+        "bearer_token": 200,
+        "root": 200
+      }
     },
     "real_browser_console_e2e": {
-      "status": "blocked_by_environment",
-      "detail": "Chromium returns ERR_BLOCKED_BY_ADMINISTRATOR for local console navigation; browser policy not bypassed"
+      "status": "not_run",
+      "detail": "managed Chromium policy blocked local console navigation in the authoring environment; the policy was not bypassed"
     }
   },
+  "defects_found_and_fixed_during_verification": [
+    {
+      "id": "A",
+      "detail": "worker.py guarded setrlimit with except ImportError only; Darwin raises ValueError on RLIMIT_AS, so the scanner died on import and every Office/PDF inspection degraded",
+      "security_effect": "failed closed (block became review, approved bundles became prevented_in_gateway); document preflight did not execute",
+      "status": "fixed"
+    },
+    {
+      "id": "B",
+      "detail": "_run_bounded's kill() let killpg raise EPERM out of the finally block, masking the reported ControlError and leaving the scanner process alive",
+      "security_effect": "no bypass; resource exhaustion and a masked error",
+      "status": "fixed"
+    },
+    {
+      "id": "C",
+      "detail": "httpx was required by tests/control/test_service_native.py but declared in no extra",
+      "status": "fixed"
+    },
+    {
+      "id": "D",
+      "detail": "the new tests broke the deliberately dependency-free tests workflow (339 run, 6 errors) on every Python version",
+      "status": "fixed"
+    },
+    {
+      "id": "E",
+      "detail": "the test extra lacked defusedxml and pypdf, so the required quality job never executed the control tests",
+      "status": "fixed"
+    },
+    {
+      "id": "CI",
+      "detail": "control-alpha.yml ran ubuntu-latest only, so A and B were unreachable by CI",
+      "status": "fixed: the matrix now covers macOS and Python 3.14"
+    }
+  ],
   "environment": {
-    "python": "3.13.5",
-    "pypdf": "5.9.0",
+    "os": "Darwin 25.6.0",
+    "python": "3.14.6",
+    "pypdf": "6.19.0",
     "defusedxml": "0.7.1",
-    "cryptography": "46.0.4",
-    "uvicorn": "0.48.0",
+    "cryptography": "46.0.7",
+    "uvicorn": "0.53.0",
     "httpx": "0.28.1"
   },
   "declared_pypdf": "pypdf>=6.19,<7",
-  "declared_dependency_retest": "not_run: environment cannot download the declared newer version",
+  "declared_dependency_retest": "completed: verified against pypdf 6.19.0, the declared floor",
   "deployment_gates": {
-    "github_push": "not_performed_available_connector_read_only",
-    "github_ci": "not_run",
+    "github_push": "completed",
+    "github_ci": "completed: 25 of 25 checks pass, including macOS and Python 3.14",
     "podman_image_build_and_isolation": "not_run",
     "real_openai_project_file_delivery": "not_run",
     "chatgpt_claude_gemini_automatic_browser_enforcement": "not_implemented",
