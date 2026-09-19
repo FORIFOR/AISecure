@@ -1,0 +1,30 @@
+name: control alpha contracts
+on:
+  push:
+    paths: ['aisecure/**', 'tests/**', 'browser/aisecure/**', 'pyproject.toml', '.github/workflows/control-alpha.yml']
+  pull_request:
+    paths: ['aisecure/**', 'tests/**', 'browser/aisecure/**', 'pyproject.toml', '.github/workflows/control-alpha.yml']
+permissions:
+  contents: read
+jobs:
+  contracts:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python: ['3.11', '3.13', '3.14']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '${{ matrix.python }}'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: python -m pip install '.[control]' httpx
+      - run: python -m unittest discover -s tests/control -t . -v
+      - run: node --test browser/aisecure/protocol.test.js
+      - run: python -m unittest discover -s tests -v
+# This workflow does NOT certify real devices, browser DLP enforcement, OCR,
+# the Podman image, retained data deletion, recovery or independent security review.

@@ -1,6 +1,6 @@
 [project]
 name = "ai-secure-local-prototype"
-version = "0.4.0a1"
+version = "0.4.0a2.dev0"
 description = "Local managed text gateway, evidence workbench and security triage prototype."
 requires-python = ">=3.11"
 dependencies = []
@@ -8,11 +8,14 @@ dependencies = []
 [project.scripts]
 aisecure = "aisecure.__main__:main"
 aisecure-workbench = "aisecure.workbench:main"
+aisecure-control = "aisecure.control.__main__:main"
+aisecure-control-admin = "aisecure.control.admin:main"
 
 [project.optional-dependencies]
+control = ["cryptography>=43,<47", "uvicorn>=0.30,<1", "defusedxml>=0.7.1,<1", "pypdf>=6.19,<7"]
 production = ["cryptography>=43,<47"]
 workbench = ["cryptography>=43,<47", "uvicorn>=0.30,<1"]
-test = ["cryptography>=43,<47", "uvicorn>=0.30,<1", "playwright>=1.51,<2"]
+test = ["cryptography>=43,<47", "uvicorn>=0.30,<1", "playwright>=1.51,<2", "httpx>=0.27,<1", "defusedxml>=0.7.1,<1", "pypdf>=6.19,<7"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -25,4 +28,4 @@ build-backend = "setuptools.build_meta"
 include = ["aisecure*"]
 
 [tool.setuptools.package-data]
-aisecure = ["workbench_web/*.html", "workbench_web/*.css", "workbench_web/*.js", "legacy_web/*.html", "legacy_web/*.css", "legacy_web/*.js", "connectors/profiles/*.json"]
+aisecure = ["control/web/*.html", "control/web/*.css", "control/web/*.js", "workbench_web/*.html", "workbench_web/*.css", "workbench_web/*.js", "legacy_web/*.html", "legacy_web/*.css", "legacy_web/*.js", "connectors/profiles/*.json"]

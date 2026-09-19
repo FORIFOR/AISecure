@@ -207,7 +207,7 @@ class Evidence:
                     return {**result, 'replayed': True}
                 for event in self.db.execute('SELECT seq,payload FROM journal'):
                     prior_event = json.loads(self.cipher.decrypt(event['payload'], f"event:{event['seq']}"))
-                    if prior_event.get('kind') == 'text_request' and prior_event.get('request_id') == request_id:
+                    if prior_event.get('kind') in {'text_request', 'bundle_request', 'response_request'} and prior_event.get('request_id') == request_id:
                         raise GatewayError('送信予約の記録が不整合です。再送しません。')
                 # Reserve capacity for both intent and result, including concurrent requests.
                 count = self.db.execute('SELECT count(*) FROM journal').fetchone()[0]
