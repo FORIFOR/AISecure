@@ -15,7 +15,7 @@ aisecure-control-admin = "aisecure.control.admin:main"
 control = ["cryptography>=43,<47", "uvicorn>=0.30,<1", "defusedxml>=0.7.1,<1", "pypdf>=6.19,<7"]
 production = ["cryptography>=43,<47"]
 workbench = ["cryptography>=43,<47", "uvicorn>=0.30,<1"]
-test = ["cryptography>=43,<47", "uvicorn>=0.30,<1", "playwright>=1.51,<2", "httpx>=0.27,<1"]
+test = ["cryptography>=43,<47", "uvicorn>=0.30,<1", "playwright>=1.51,<2", "httpx>=0.27,<1", "defusedxml>=0.7.1,<1", "pypdf>=6.19,<7"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
