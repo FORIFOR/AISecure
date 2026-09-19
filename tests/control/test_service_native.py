@@ -1,4 +1,10 @@
 import asyncio,io,json,struct,secrets,unittest
+
+try:
+    import httpx
+except ImportError as exc:  # pragma: no cover - httpx ships in the test extra only
+    raise unittest.SkipTest("httpx が未インストールです: pip install '.[test]'") from exc
+
 from aisecure.control.service import App
 from aisecure.control.bundles import BundleGateway,sign_bundle
 from aisecure.control.native import handle,read_message,write_message
@@ -11,7 +17,6 @@ class ServiceTests(unittest.IsolatedAsyncioTestCase):
         self.store=Store().__enter__();self.private,self.public=keypair();self.token='a'*40;self.collector='b'*40
         self.g=BundleGateway(self.store.audit,self.public,'demo',DemoTransport(),'org')
         self.app=App(self.g,self.token,8878,collector_token=self.collector,organization='org',demo=True)
-        import httpx
         self.client=httpx.AsyncClient(transport=httpx.ASGITransport(app=self.app),base_url='http://127.0.0.1:8878')
     async def asyncTearDown(self):await self.client.aclose();self.store.__exit__()
     def auth(self,collector=False):return {'Authorization':'Bearer '+(self.collector if collector else self.token)}
