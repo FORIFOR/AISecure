@@ -1,6 +1,6 @@
 [project]
 name = "ai-secure-local-prototype"
-version = "0.4.0a2.dev0"
+version = "0.4.0a2"
 description = "Local managed text gateway, evidence workbench and security triage prototype."
 requires-python = ">=3.11"
 dependencies = []

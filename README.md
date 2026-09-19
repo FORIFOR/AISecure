@@ -1,9 +1,14 @@
-## Integrated control extension — evaluation build
+## Integrated control extension — 0.4.0a2
 
-The additional `0.4.0a2.dev0` control workbench covers document preflight,
-VPN posture and narrowly approved response, cross-source analytics, and compact
-encrypted audit metadata. It does **not** provide blanket browser DLP or proven
-VPN containment. The browser companion is an explicit preflight checker only.
+The `0.4.0a2` control workbench covers document preflight, VPN posture and
+narrowly approved response, cross-source analytics, and compact encrypted audit
+metadata. It does **not** provide blanket browser DLP or proven VPN containment.
+The browser companion is an explicit preflight checker only.
+
+Verified on Ubuntu and macOS across Python 3.11, 3.13 and 3.14, against the
+declared `pypdf>=6.19`: 454 tests, no failures and no skips in the required
+quality job. That is an automated synthetic result, not live enterprise
+validation — the gates below still stand.
 
 ```sh
 python -m pip install '.[control]'

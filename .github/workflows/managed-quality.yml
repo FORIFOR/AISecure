@@ -18,6 +18,7 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
       - run: python -m pip install '.[test]'
+      - run: python tools/update_manifest.py --check
       - run: python tools/run_full_tests.py --report /tmp/quality/tests.json
       - run: python tools/release_gate.py --self-test
       - run: python -m pip wheel . --no-deps -w /tmp/wheels
