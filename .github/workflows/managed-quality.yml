@@ -40,6 +40,21 @@ jobs:
           python-version: '3.13'
       - run: python -m pip install '.[test]'
       - run: python -m playwright install --with-deps ${{ matrix.browser }}
+      - uses: actions/setup-node@v4
+        if: matrix.browser == 'chromium'
+        with:
+          node-version: '22'
+      - name: Install control browser test runtime
+        if: matrix.browser == 'chromium'
+        run: |
+          npm install --prefix /tmp/control-browser --no-save --ignore-scripts playwright@1.62.1
+          node /tmp/control-browser/node_modules/playwright/cli.js install --with-deps chromium
+      - name: Check control document flow
+        if: matrix.browser == 'chromium'
+        env:
+          NODE_PATH: /tmp/control-browser/node_modules
+          AISECURE_PYTHON: python
+        run: node tools/check_control_browser.cjs /tmp/quality/control
       - run: python tools/check_workbench.py --browser ${{ matrix.browser }} --out /tmp/quality/workbench
       - run: python tools/check_product_presentation.py --browser ${{ matrix.browser }} --out /tmp/quality/site
       - uses: actions/upload-artifact@v7

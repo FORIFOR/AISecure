@@ -1,0 +1,243 @@
+{
+  "cases": 60,
+  "positives": 40,
+  "negatives": 20,
+  "detected": 12,
+  "missed": 28,
+  "false_positives": 2,
+  "recall": 0.3,
+  "precision": 0.8571,
+  "false_positive_rate": 0.1,
+  "per_category": {
+    "benign_business": {
+      "total": 3,
+      "detected": 0
+    },
+    "benign_classified_word": {
+      "total": 1,
+      "detected": 0
+    },
+    "benign_code": {
+      "total": 1,
+      "detected": 0
+    },
+    "benign_date": {
+      "total": 1,
+      "detected": 0
+    },
+    "benign_english": {
+      "total": 1,
+      "detected": 0
+    },
+    "benign_id": {
+      "total": 1,
+      "detected": 0
+    },
+    "benign_jp_text": {
+      "total": 1,
+      "detected": 0
+    },
+    "benign_measure": {
+      "total": 1,
+      "detected": 0
+    },
+    "benign_numbers": {
+      "total": 3,
+      "detected": 0
+    },
+    "benign_phone_like": {
+      "total": 1,
+      "detected": 1
+    },
+    "benign_placeholder": {
+      "total": 1,
+      "detected": 1
+    },
+    "benign_public": {
+      "total": 1,
+      "detected": 0
+    },
+    "benign_spec": {
+      "total": 1,
+      "detected": 0
+    },
+    "benign_url": {
+      "total": 1,
+      "detected": 0
+    },
+    "benign_word": {
+      "total": 2,
+      "detected": 0
+    },
+    "credential_aws": {
+      "total": 2,
+      "detected": 2
+    },
+    "credential_azure": {
+      "total": 1,
+      "detected": 0
+    },
+    "credential_db": {
+      "total": 1,
+      "detected": 1
+    },
+    "credential_github": {
+      "total": 1,
+      "detected": 1
+    },
+    "credential_google": {
+      "total": 1,
+      "detected": 0
+    },
+    "credential_jwt": {
+      "total": 1,
+      "detected": 0
+    },
+    "credential_kv_en": {
+      "total": 2,
+      "detected": 2
+    },
+    "credential_kv_ja": {
+      "total": 2,
+      "detected": 0
+    },
+    "credential_openai": {
+      "total": 1,
+      "detected": 0
+    },
+    "credential_private_key": {
+      "total": 1,
+      "detected": 1
+    },
+    "credential_slack": {
+      "total": 1,
+      "detected": 0
+    },
+    "credential_stripe": {
+      "total": 1,
+      "detected": 0
+    },
+    "evasion_at_notation": {
+      "total": 1,
+      "detected": 0
+    },
+    "evasion_base64": {
+      "total": 1,
+      "detected": 0
+    },
+    "evasion_fullwidth": {
+      "total": 1,
+      "detected": 1
+    },
+    "evasion_homoglyph": {
+      "total": 1,
+      "detected": 0
+    },
+    "evasion_space": {
+      "total": 1,
+      "detected": 0
+    },
+    "evasion_spelled": {
+      "total": 1,
+      "detected": 0
+    },
+    "evasion_split": {
+      "total": 1,
+      "detected": 0
+    },
+    "evasion_zero_width": {
+      "total": 1,
+      "detected": 0
+    },
+    "pii_address_name": {
+      "total": 2,
+      "detected": 0
+    },
+    "pii_bank": {
+      "total": 1,
+      "detected": 0
+    },
+    "pii_credit_card": {
+      "total": 2,
+      "detected": 0
+    },
+    "pii_dob": {
+      "total": 1,
+      "detected": 0
+    },
+    "pii_email": {
+      "total": 2,
+      "detected": 2
+    },
+    "pii_employee": {
+      "total": 1,
+      "detected": 0
+    },
+    "pii_health_insurance": {
+      "total": 1,
+      "detected": 0
+    },
+    "pii_landline": {
+      "total": 2,
+      "detected": 0
+    },
+    "pii_mobile": {
+      "total": 2,
+      "detected": 2
+    },
+    "pii_mynumber": {
+      "total": 2,
+      "detected": 0
+    },
+    "pii_passport": {
+      "total": 1,
+      "detected": 0
+    }
+  },
+  "missed_ids": [
+    "S04",
+    "S05",
+    "S06",
+    "S07",
+    "S08",
+    "S12",
+    "S13",
+    "S15",
+    "P05",
+    "P06",
+    "P07",
+    "P08",
+    "P09",
+    "P10",
+    "P11",
+    "P12",
+    "P13",
+    "P14",
+    "P15",
+    "P16",
+    "P17",
+    "E01",
+    "E02",
+    "E03",
+    "E04",
+    "E05",
+    "E06",
+    "E08"
+  ],
+  "false_positive_cases": [
+    {
+      "id": "N11",
+      "rules": [
+        "PII"
+      ]
+    },
+    {
+      "id": "N18",
+      "rules": [
+        "PII"
+      ]
+    }
+  ],
+  "corpus": "synthetic",
+  "is_real_world_measurement": false
+}

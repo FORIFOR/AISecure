@@ -1,0 +1,53 @@
+{
+  "actor": "9c87a6c6cdeb7ddb1b3ca246a779dac1dbcbb8ff6fdd91d3e738d3af31c4bfb3",
+  "classification": "unknown",
+  "counts": {
+    "bytes": 2021,
+    "files": 1,
+    "findings": 2,
+    "units": 1
+  },
+  "coverage": "supported_text_complete",
+  "coverage_note": "登録ポリシーと対応する文字範囲の検査。完全な安全性・マルウェア不在の保証ではありません。",
+  "decision": "review",
+  "delivery_enabled": true,
+  "documents": [
+    {
+      "bytes_scanned": 2021,
+      "coverage": "supported_text_complete",
+      "findings": [
+        {
+          "count": 2,
+          "level": "review",
+          "locations": [
+            "part:5",
+            "part:5"
+          ],
+          "rule": "DOC-CLASS"
+        }
+      ],
+      "format": "xlsx",
+      "input_sha256": "649752b2d173e1aca27d002a1ec4442046d0e4c7424b8e026f856d8f88990227",
+      "malware_scan_performed": false,
+      "network_isolation_verified": false,
+      "ocr_performed": false,
+      "release_authorized": false,
+      "scanner": "documents-1",
+      "units": 1,
+      "verdict": "review"
+    }
+  ],
+  "execution_state": "not_executed",
+  "kind": "document_inspection",
+  "provider": "demo",
+  "release_authorized": false,
+  "report_schema": "aisecure.bundle-report.v1",
+  "request_id": "d466472f25df4957a5f1829f63c8c404",
+  "rules": [
+    "PG-004",
+    "DOC-CLASS"
+  ],
+  "schema": 1,
+  "target": "414ab7bb7de21a14cffd47d2e1b288d9b0ade1bcbcde1e2a599e565aba3062b5",
+  "whole_device_protected": false
+}

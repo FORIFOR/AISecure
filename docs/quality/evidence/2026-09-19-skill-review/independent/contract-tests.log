@@ -1,0 +1,15 @@
+test_private_complete_and_existing_target_preserved (tests.control.test_report_save.SaveReportTests.test_private_complete_and_existing_target_preserved) ... ok
+test_symlink_and_concurrent_publish_do_not_overwrite (tests.control.test_report_save.SaveReportTests.test_symlink_and_concurrent_publish_do_not_overwrite) ... ok
+test_write_or_publish_failure_leaves_no_output (tests.control.test_report_save.SaveReportTests.test_write_or_publish_failure_leaves_no_output) ... ok
+test_bundle_and_prior_working_tree_fixture (tests.control.test_report_schema.SchemaTests.test_bundle_and_prior_working_tree_fixture) ... ok
+test_document_outcomes_and_invalid_contracts (tests.control.test_report_schema.SchemaTests.test_document_outcomes_and_invalid_contracts) ... ok
+test_block_and_unreadable_do_not_pass (tests.control.test_inspection_contract.InspectionContractTests.test_block_and_unreadable_do_not_pass) ... ok
+test_cli_artifact_and_non_overwrite (tests.control.test_inspection_contract.InspectionContractTests.test_cli_artifact_and_non_overwrite) ... ok
+test_editable_sample_is_deterministic_and_inspected (tests.control.test_inspection_contract.InspectionContractTests.test_editable_sample_is_deterministic_and_inspected) ... ok
+test_invalid_input_has_documented_error (tests.control.test_inspection_contract.InspectionContractTests.test_invalid_input_has_documented_error) ... ok
+test_split_secret_and_pii_are_not_exposed_by_preview (tests.control.test_inspection_contract.InspectionContractTests.test_split_secret_and_pii_are_not_exposed_by_preview) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 1.590s
+
+OK

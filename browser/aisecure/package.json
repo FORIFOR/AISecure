@@ -1,1 +1,1 @@
-{"type":"module","private":true,"scripts":{"test":"node --test protocol.test.js"}}
+{"type":"module","private":true,"scripts":{"test":"node --test"}}

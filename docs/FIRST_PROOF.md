@@ -1,34 +1,57 @@
-# AISecure first proof
+# 最初の成功：資料を検査し、結果を保存する
 
-The first proof is the real local Workbench with synthetic input and a demo transport.
+## 画面が開いている場合
 
-```bash
-python -m pip install '.[workbench]'
-aisecure-workbench --demo
+コマンド操作は不要です。「送信せずに検査」を押すと、画面内で結果を読めます。
+初期サンプルは「社外秘」を含むので「保留」が正しい結果です。検査の失敗ではありません。
+この画面は送信前の検査用で、AIによる要約・回答は生成しません。
+「資料と一緒に送る予定の質問・指示」も検査対象です。最初は変更せず試せます。
+JSONの保存は記録が必要なときだけ行います。自分の資料に切り替えた後は、
+検出理由を確認し、必要な修正を元のアプリで行ってから再選択・再検査してください。
+
+## アプリを起動する場合
+
+Python 3.11以上、リポジトリ直下で実行します。
+
+```sh
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install '.[control]'
+python -m aisecure.control --demo
 ```
 
-This path binds to loopback, creates temporary demo keys/state, and uses `DemoTransport`. It does **not** send the sample text to an external AI provider. The temporary evidence store is removed when the process exits.
+Windowsは `.venv\Scripts\activate` で有効化します。Windowsの隔離動作は未検証です。
+起動に必要な依存パッケージの導入にはパッケージ取得が必要です。
+検査時はAIのAPIキー・アカウント・課金が不要です。
 
-## What to verify first
+1. `Open:` のURLをそのまま開く。初画面に架空のExcelセルが表示されます。
+2. 「送信せずに検査」を押す。「社外秘」の `DOC-CLASS` と「保留」、
+   「外部送信していません」を確認する。これが最初の成功です。
+3. 「検査結果をJSONで保存」。保存先で `aisecure-report.json` を開き、
+   `execution_state: not_executed`、検査範囲、資料の `input_sha256` を確認する。
+4. サンプルを `api_key=synthetic-secret-value` に編集し、再検査。
+   架空の秘密情報パターンにより「拒否」になります。編集前の結果は無効になります。
+5. 自分の資料を使うときは入力を切り替え、1〜4件のxlsx/pptx/pdfを選びます。
+   画像・未対応内容は未検査です。検出なしでも安全性や送信許可は証明できません。
 
-1. Load the public sample and confirm it can be checked.
-2. Load the confidential or secret sample and confirm the decision is not silently sent.
-3. Open the reason/evidence view and confirm the decision can be traced to the stored event.
-4. Check the history so `inspection` and any requested send/result remain distinguishable.
+JSONは本文・質問・トークンを含みませんが、検出内容とファイル識別ハッシュを含みます。
+保存先・共有先を確認してください。Ctrl+Cで終了するとデモの鍵・履歴は削除されます。
+保存したJSONは残ります。ブラウザの入力・結果はリロードで失われます。
 
-## What this does not prove
+## 復帰
 
-- It does not prove host-wide DLP, EDR, USB control, personal-cloud blocking, or VPN isolation.
-- It does not prove that an enterprise network prevents bypass around the managed path.
-- It does not inspect every image, PDF, audio file, encrypted archive, or other unsupported attachment format.
-- A demo BLOCK proves the Workbench/preflight path rejected that synthetic request; it is not evidence that every application on the machine was prevented from transmitting data.
+- リロード後の認証画面：ターミナルの起動URLの `#token=` 以降を入力し「再接続」。
+  同じ画面上で再接続すると、編集中の入力を保持します。トークンは保存しません。
+- 質問が空・形式/サイズが不正：入力を直して再検査。自分の資料は合計16MiB以下。
+- 読み取れない資料：結果の「読み取れませんでした」を確認。原本を確認し、
+  対応形式で保存し直してから選択。未検査を「検出なし」と扱わないでください。
+- 接続失敗：起動中のターミナルを確認。必要なら起動し直し、新しいURLで接続。
+  検査は明示的にやり直せます。実送信の結果未確認は同じ扱いにしないでください。
+- ポート使用中：`--port 8879` など空いているポートを指定。
+- `ModuleNotFoundError`：仮想環境を有効化して `python -m pip install '.[control]'`。
+- 実送信の結果未確認：新しいリクエストIDで再送しない。監査ログと接続先を確認。
 
-## Moving beyond the first proof
-
-The general CLI is available as:
-
-```bash
-aisecure --help
-```
-
-Real provider mode is deliberately separate and opt-in. It requires dedicated storage, external keys/tokens and the managed-egress acknowledgement. Do not use a green demo as evidence that a production deployment, endpoint control or VPN response has been verified.
+デモは実スキャナー＋ローカルDemoTransportです。VPNや他社AIサイトの自動保護、
+実OpenAI送信の成功、企業環境の安全性を証明しません。
+旧テキストWorkbenchは `python -m aisecure.workbench --demo`（`.[workbench]`）で利用できます。
+[組み込み契約とCLI](operations/DOCUMENT_CONTRACT.md)も参照してください。

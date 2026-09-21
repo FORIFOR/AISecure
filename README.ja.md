@@ -1,3 +1,31 @@
+# AISecure：資料を外部送信せずに検査し、結果を保存する
+
+編集できる架空のExcel資料で、機密情報の兆候・検査範囲・次の行動を確認できます。
+**「保留」も検査が完了した結果です。送信許可ではありません。**
+
+```sh
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install '.[control]'
+python -m aisecure.control --demo
+```
+
+Python 3.11以上。リポジトリ直下で実行します。Windowsの有効化は `.venv\Scripts\activate`。
+表示されたURLを開き、「送信せずに検査」→理由を確認→「検査結果をJSONで保存」。
+APIキー・クラウド契約は不要です。資料は実際のスキャナーで検査し、外部AIへ送りません。
+停止はCtrl+C。デモの履歴は終了時に削除されるので、必要な結果を先に保存してください。
+
+[初回成功・失敗からの復帰](docs/FIRST_PROOF.md) ·
+[CLI・Pythonの組み込み契約](docs/operations/DOCUMENT_CONTRACT.md) ·
+[合格条件](docs/quality/acceptance.md) · [検証結果](docs/quality/skill-review.md)
+
+この作業ツリーは0.4.0a3.dev0（未公開、0.4.0a2ベース）です。
+新しいレポートAPIはexperimental仕様です。
+OCR・ウイルス検査・端末全体の保護や本番適合を保証しません。
+ローカル子プロセスはネットワーク隔離環境ではありません。
+
+---
+
 # AI Secure / AIセキュア
 
 **AIに渡す前に確認し、判断の根拠と送信結果を追える、ローカルの開発者向けワークベンチ。**

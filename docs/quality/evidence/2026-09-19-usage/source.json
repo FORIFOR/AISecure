@@ -1,0 +1,10 @@
+{
+  "base_revision": "26002d840130e52b07f35dd9c9ea8189d8913ee2",
+  "uncommitted": true,
+  "sha256": {
+    "aisecure/control/web/index.html": "dca490e7edbb87fd812ab5881d16cad0e2279a95ebec2c1d7f7e97f37646864b",
+    "aisecure/control/web/app.js": "2cff4ce4f0bba26998979daba84a3f51e714be74a3f285de18a302e5546bd3d5",
+    "aisecure/control/web/app.css": "14565de23efdea52cd044800b5dcc80934967516e89cd43acf88e082110aacf4",
+    "docs/FIRST_PROOF.md": "13619b18226452ea86177d0b7b2b8c95fe7d681c541fda1e3e673e821fbbc3e1"
+  }
+}

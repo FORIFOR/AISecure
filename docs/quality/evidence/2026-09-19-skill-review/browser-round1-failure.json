@@ -1,0 +1,105 @@
+{
+  "checks": [
+    {
+      "name": "first success, keyboard, saved report and audit match at 360px",
+      "status": "PASS"
+    },
+    {
+      "name": "secret blocks and edits invalidate report at 360px",
+      "status": "PASS"
+    },
+    {
+      "name": "invalid input recovery and in-flight edit protection at 360px",
+      "status": "PASS"
+    },
+    {
+      "name": "network failure retains input and explicit recheck works at 360px",
+      "status": "PASS"
+    },
+    {
+      "name": "malformed document is not treated as no findings at 360px",
+      "status": "PASS"
+    },
+    {
+      "name": "reload authentication recovery at 360px",
+      "status": "PASS"
+    },
+    {
+      "name": "long Japanese, synthetic composition, reduced motion, CSS 200% at 360px",
+      "status": "PASS"
+    },
+    {
+      "name": "first success, keyboard, saved report and audit match at 390px",
+      "status": "PASS"
+    },
+    {
+      "name": "secret blocks and edits invalidate report at 390px",
+      "status": "PASS"
+    },
+    {
+      "name": "invalid input recovery and in-flight edit protection at 390px",
+      "status": "PASS"
+    },
+    {
+      "name": "network failure retains input and explicit recheck works at 390px",
+      "status": "PASS"
+    },
+    {
+      "name": "malformed document is not treated as no findings at 390px",
+      "status": "PASS"
+    },
+    {
+      "name": "reload authentication recovery at 390px",
+      "status": "PASS"
+    },
+    {
+      "name": "long Japanese, synthetic composition, reduced motion, CSS 200% at 390px",
+      "status": "PASS"
+    },
+    {
+      "name": "first success, keyboard, saved report and audit match at 768px",
+      "status": "PASS"
+    },
+    {
+      "name": "secret blocks and edits invalidate report at 768px",
+      "status": "PASS"
+    },
+    {
+      "name": "invalid input recovery and in-flight edit protection at 768px",
+      "status": "PASS"
+    },
+    {
+      "name": "network failure retains input and explicit recheck works at 768px",
+      "status": "PASS"
+    },
+    {
+      "name": "malformed document is not treated as no findings at 768px",
+      "status": "PASS"
+    },
+    {
+      "name": "reload authentication recovery at 768px",
+      "status": "PASS"
+    },
+    {
+      "name": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#result').filter({ hasText: '保留' }) to be visible\u001b[22m\n\n    at /Users/shuhei/Projects/AISecure/tools/check_control_browser.cjs:94:95",
+      "status": "FAIL"
+    },
+    {
+      "name": "demo state removed on shutdown",
+      "status": "PASS"
+    },
+    {
+      "name": "native Japanese IME, browser toolbar 200% zoom, real beginner and competitor comparison",
+      "status": "BLOCKED",
+      "reason": "Synthetic composition/CSS zoom are not native OS input or human evaluation."
+    }
+  ],
+  "environment": {
+    "os": "darwin",
+    "release": "25.6.0",
+    "node": "v26.5.0",
+    "browser": "151.0.7922.34"
+  },
+  "external_requests": [],
+  "errors": []
+}

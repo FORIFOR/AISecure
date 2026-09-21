@@ -1,0 +1,60 @@
+{"id": "S01", "category": "credential_aws", "expect": "detect", "note": "", "parts": ["デプロイ用の鍵は AKIA123456", "7890ABCDEF です。確認してください。"]}
+{"id": "S02", "category": "credential_aws", "expect": "detect", "note": "", "parts": ["AWS_ACCESS_KEY_ID=A", "KIAQQQQWWWWEEEERRRR を .env に入れました。"]}
+{"id": "S03", "category": "credential_github", "expect": "detect", "note": "", "parts": ["リポジトリ用トークン ghp_abcdefghijklmnop", "qrstuvwxyz0123456789 を使ってください。"]}
+{"id": "S04", "category": "credential_slack", "expect": "detect", "note": "", "parts": ["Slack連携のトークンは xoxb-2444444444-2444444", "444-abcdefghijklmnopqrst です。"]}
+{"id": "S05", "category": "credential_google", "expect": "detect", "note": "", "parts": ["Maps の API キー AIzaSyD-1234567890ab", "cdefghijklmnopqrstuvw を貼ります。"]}
+{"id": "S06", "category": "credential_stripe", "expect": "detect", "note": "", "parts": ["決済の秘密鍵 sk_live_51H1234567", "890abcdefghijklmnop を設定しました。"]}
+{"id": "S07", "category": "credential_openai", "expect": "detect", "note": "", "parts": ["OpenAI のキー sk-proj-abcdefghijklmn", "opqrstuvwxyz1234567890 を共有します。"]}
+{"id": "S08", "category": "credential_jwt", "expect": "detect", "note": "", "parts": ["認証ヘッダは eyJhbGciOiJIUzI1NiJ9.eyJzdWI", "iOiIxMjMifQ.QWxsVGhlVGhpbmdz です。"]}
+{"id": "S09", "category": "credential_private_key", "expect": "detect", "note": "", "parts": ["-----BEGIN RSA PRIVATE KEY-----\nMIIEowIB", "AAKCAQEA\n-----END RSA PRIVATE KEY-----"]}
+{"id": "S10", "category": "credential_kv_en", "expect": "detect", "note": "", "parts": ["api_key: 9f8e7d6c5b", "4a3210zyxw を本番に設定しました。"]}
+{"id": "S11", "category": "credential_kv_en", "expect": "detect", "note": "", "parts": ["password = Tr0ub4do", "r&3xample を使い回しています。"]}
+{"id": "S12", "category": "credential_kv_ja", "expect": "detect", "note": "", "parts": ["管理画面のパスワードは Tr0ub4do", "r3xample です。共有します。"]}
+{"id": "S13", "category": "credential_kv_ja", "expect": "detect", "note": "", "parts": ["接続用の秘密鍵は 9f8e7d6c5b", "4a3210zyxw になります。"]}
+{"id": "S14", "category": "credential_db", "expect": "detect", "note": "", "parts": ["postgres://admin:S3cretPassw0r", "d@db.internal.example:5432/prod に接続します。"]}
+{"id": "S15", "category": "credential_azure", "expect": "detect", "note": "", "parts": ["DefaultEndpointsProtocol=https;AccountKey=", "abcdefghijklmnopqrstuvwxyz0123456789ABCD=="]}
+{"id": "P01", "category": "pii_email", "expect": "detect", "text": "担当者の連絡先は tanaka.taro@example.co.jp です。折り返してください。", "note": ""}
+{"id": "P02", "category": "pii_email", "expect": "detect", "text": "問い合わせ一覧: suzuki@example.jp, sato@example.com, takahashi@example.or.jp", "note": ""}
+{"id": "P03", "category": "pii_mobile", "expect": "detect", "text": "緊急連絡先は 090-1234-5678 です。", "note": ""}
+{"id": "P04", "category": "pii_mobile", "expect": "detect", "text": "携帯 08012345678 に連絡してください。", "note": ""}
+{"id": "P05", "category": "pii_landline", "expect": "detect", "text": "本社代表は 03-1234-5678、大阪支社は 06-6543-2100 です。", "note": ""}
+{"id": "P06", "category": "pii_landline", "expect": "detect", "text": "FAX 045-123-4567 へ送付してください。", "note": ""}
+{"id": "P07", "category": "pii_mynumber", "expect": "detect", "text": "個人番号 1234 5678 9012 を申請書に記入しました。", "note": ""}
+{"id": "P08", "category": "pii_mynumber", "expect": "detect", "text": "マイナンバーは 987654321098 です。", "note": ""}
+{"id": "P09", "category": "pii_credit_card", "expect": "detect", "text": "支払いは 4111 1111 1111 1111（有効期限 12/29）でお願いします。", "note": ""}
+{"id": "P10", "category": "pii_credit_card", "expect": "detect", "text": "カード番号 5555555555554444 を登録しました。", "note": ""}
+{"id": "P11", "category": "pii_address_name", "expect": "detect", "text": "送付先: 東京都千代田区丸の内1-1-1 丸の内ビル10F 田中太郎 様", "note": ""}
+{"id": "P12", "category": "pii_address_name", "expect": "detect", "text": "山田花子さん（神奈川県横浜市西区みなとみらい2-3-4）宛に発送します。", "note": ""}
+{"id": "P13", "category": "pii_passport", "expect": "detect", "text": "旅券番号 TK1234567 で渡航手続きを進めます。", "note": ""}
+{"id": "P14", "category": "pii_bank", "expect": "detect", "text": "振込先は 三菱UFJ銀行 新宿支店 普通 1234567 タナカタロウ です。", "note": ""}
+{"id": "P15", "category": "pii_health_insurance", "expect": "detect", "text": "健康保険証 記号 12345678 番号 90 の方の照会です。", "note": ""}
+{"id": "P16", "category": "pii_employee", "expect": "detect", "text": "社員番号 EMP-0001234 田中太郎 の評価シートです。", "note": ""}
+{"id": "P17", "category": "pii_dob", "expect": "detect", "text": "生年月日 1985年3月14日、氏名 佐藤一郎 の本人確認書類です。", "note": ""}
+{"id": "E01", "category": "evasion_zero_width", "expect": "detect", "note": "", "parts": ["鍵は AKIA​12345", "67890ABCDEF です。"]}
+{"id": "E02", "category": "evasion_space", "expect": "detect", "note": "", "parts": ["鍵は AKIA 12345678", "90ABCDEF です。"]}
+{"id": "E03", "category": "evasion_homoglyph", "expect": "detect", "note": "", "parts": ["鍵は АKIA123456", "7890ABCDEF です。"]}
+{"id": "E04", "category": "evasion_split", "expect": "detect", "text": "前半 AKIA12345 後半 67890ABCDEF をつなげてください。", "note": ""}
+{"id": "E05", "category": "evasion_base64", "expect": "detect", "note": "", "parts": ["QUtJQTEyMzQ1Nj", "c4OTBBQkNERUY= をデコードして使ってください。"]}
+{"id": "E06", "category": "evasion_at_notation", "expect": "detect", "note": "", "parts": ["連絡先は tanaka(at)e", "xample.co.jp です。"]}
+{"id": "E07", "category": "evasion_fullwidth", "expect": "detect", "note": "", "parts": ["鍵は ＡＫＩＡ１２３４５６", "７８９０ＡＢＣＤＥＦ です。"]}
+{"id": "E08", "category": "evasion_spelled", "expect": "detect", "text": "メールは tanaka アットマーク example ドット co ドット jp です。", "note": ""}
+{"id": "N01", "category": "benign_business", "expect": "clean", "text": "来週の定例会議の議題をまとめてください。資料は共有フォルダにあります。", "note": ""}
+{"id": "N02", "category": "benign_business", "expect": "clean", "text": "新製品の紹介文を、もう少しやわらかい表現に書き換えてください。", "note": ""}
+{"id": "N03", "category": "benign_business", "expect": "clean", "text": "この英文メールの文法を確認してください。宛先や固有名詞は含みません。", "note": ""}
+{"id": "N04", "category": "benign_public", "expect": "clean", "text": "弊社は2010年設立、従業員数は約500名です。公開済みの会社概要です。", "note": ""}
+{"id": "N05", "category": "benign_code", "expect": "clean", "text": "この Python 関数のテストケースを追加してください。外部通信はありません。", "note": ""}
+{"id": "N06", "category": "benign_numbers", "expect": "clean", "text": "発注番号 20260922-0031 の納期を確認してください。", "note": ""}
+{"id": "N07", "category": "benign_numbers", "expect": "clean", "text": "バージョン 4.11.1 から 5.0.2 への移行手順を教えてください。", "note": ""}
+{"id": "N08", "category": "benign_numbers", "expect": "clean", "text": "売上は前年比 112% で、目標 1,111,111 円に対して達成率は 98% でした。", "note": ""}
+{"id": "N09", "category": "benign_date", "expect": "clean", "text": "2026年9月22日 10:00-11:30 の枠で調整をお願いします。", "note": ""}
+{"id": "N10", "category": "benign_url", "expect": "clean", "text": "https://example.com/docs/getting-started の内容を要約してください。", "note": ""}
+{"id": "N11", "category": "benign_placeholder", "expect": "clean", "text": "サンプルとして user@example.invalid のような形式を説明したいです。", "note": "説明目的のプレースホルダ。現状のパターンでは検出される（許容される誤検知かは要判断）"}
+{"id": "N12", "category": "benign_word", "expect": "clean", "text": "パスワードの管理方法について、一般的なベストプラクティスを教えてください。", "note": ""}
+{"id": "N13", "category": "benign_word", "expect": "clean", "text": "API キーの安全な保管方法を、値を書かずに説明してください。", "note": ""}
+{"id": "N14", "category": "benign_id", "expect": "clean", "text": "課題管理システムのチケット ABC-1234 の状況を整理してください。", "note": ""}
+{"id": "N15", "category": "benign_spec", "expect": "clean", "text": "この仕様書の章立てを見直してください。数値は 10, 20, 30 の3段階です。", "note": ""}
+{"id": "N16", "category": "benign_jp_text", "expect": "clean", "text": "議事録の敬体を常体に統一してください。参加者名は伏せてあります。", "note": ""}
+{"id": "N17", "category": "benign_measure", "expect": "clean", "text": "部材の寸法は 1234-5678 mm 系列で、公差は ±0.5 mm です。", "note": ""}
+{"id": "N18", "category": "benign_phone_like", "expect": "clean", "text": "製品型番 090-1234-5678-A は生産終了しました。", "note": "携帯番号と同じ並びを含む型番。現状のパターンでは検出される"}
+{"id": "N19", "category": "benign_classified_word", "expect": "clean", "text": "社外秘の扱い方について社内規程を要約してください。具体的な内容は含みません。", "note": ""}
+{"id": "N20", "category": "benign_english", "expect": "clean", "text": "Please proofread this paragraph about our open source release notes.", "note": ""}

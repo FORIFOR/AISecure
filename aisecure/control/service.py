@@ -9,6 +9,7 @@ import hmac
 from pathlib import Path
 import secrets
 import time
+from ..gateway import ENDPOINT
 from .common import ControlError,canonical,decode,opaque
 from .analytics import analyze
 from .events import EventStore
@@ -70,13 +71,13 @@ class App:
             events=await asyncio.to_thread(self.events.read)
             analysis=await asyncio.to_thread(analyze,events,risky_assets=self.risky_assets,
                                              baselines=self.baselines,expected_sources=expected)
-            return 200,{'mode':'demo' if self.demo else 'managed','delivery_enabled':self.gateway.delivery_enabled,'analysis':analysis,'vpn':self.posture,
+            return 200,{'mode':'demo' if self.demo else 'managed','delivery_enabled':self.gateway.delivery_enabled,'destination':{'provider':'openai' if self.gateway.live else 'demo' if self.gateway.delivery_enabled else 'disabled','model':self.gateway.model,'endpoint':ENDPOINT if self.gateway.live else None},'analysis':analysis,'vpn':self.posture,
                        'history':self.audit.evidence.history(),'collector_last_seen':self.last_collector,
                        'coverage':{'documents':True,'browser_enforcement':False,'whole_device':False,
                                    'vpn_containment_verified':False,'analysis_scope':'supplied_metadata'},
                        'checkpoint':self.audit.evidence.verify()},'application/json'
         if method=='GET' and path=='/api/audit':return 200,self.audit.export(1000),'application/x-ndjson'
-        if method!='POST' or path not in {'/api/check','/api/send','/api/preview','/api/events','/api/posture','/api/demo'}:
+        if method!='POST' or path not in {'/api/check','/api/send','/api/preview','/api/events','/api/posture','/api/demo','/api/sample'}:
             return 404,{'error':'未対応の操作です。'},'application/json'
         if h.get(b'content-type',b'').split(b';')[0]!=b'application/json' or b'transfer-encoding' in h:
             return 415,{'error':'JSON形式が必要です。'},'application/json'
@@ -98,6 +99,10 @@ class App:
             return 200,result,'application/json'
         finally:self.busy-=1
     def process(self,path,value):
+        if path=='/api/sample':
+            if set(value)!={'text'}:raise ControlError('サンプルの入力項目が不正です。')
+            from .example_document import sample_file
+            return sample_file(value['text'])
         if path=='/api/demo':
             if not self.demo or value:raise ControlError('デモ専用操作です。')
             from .samples import seed

@@ -1,0 +1,80 @@
+
+Processing /tmp/aisecure-skill-wheels/ai_secure_local_prototype-0.4.0a3.dev0-py3-none-any.whl (from ai-secure-local-prototype==0.4.0a3.dev0)
+Collecting cryptography<47,>=43 (from ai-secure-local-prototype==0.4.0a3.dev0->ai-secure-local-prototype==0.4.0a3.dev0)
+  Using cached cryptography-46.0.7-cp311-abi3-macosx_10_9_universal2.whl.metadata (5.7 kB)
+Collecting uvicorn<1,>=0.30 (from ai-secure-local-prototype==0.4.0a3.dev0->ai-secure-local-prototype==0.4.0a3.dev0)
+  Using cached uvicorn-0.53.0-py3-none-any.whl.metadata (6.6 kB)
+Collecting defusedxml<1,>=0.7.1 (from ai-secure-local-prototype==0.4.0a3.dev0->ai-secure-local-prototype==0.4.0a3.dev0)
+  Using cached defusedxml-0.7.1-py2.py3-none-any.whl.metadata (32 kB)
+Collecting pypdf<7,>=6.19 (from ai-secure-local-prototype==0.4.0a3.dev0->ai-secure-local-prototype==0.4.0a3.dev0)
+  Using cached pypdf-6.19.0-py3-none-any.whl.metadata (7.5 kB)
+Collecting cffi>=2.0.0 (from cryptography<47,>=43->ai-secure-local-prototype==0.4.0a3.dev0->ai-secure-local-prototype==0.4.0a3.dev0)
+  Using cached cffi-2.1.1-cp314-cp314-macosx_11_0_arm64.whl.metadata (2.5 kB)
+Collecting click>=7.0 (from uvicorn<1,>=0.30->ai-secure-local-prototype==0.4.0a3.dev0->ai-secure-local-prototype==0.4.0a3.dev0)
+  Using cached click-8.5.0-py3-none-any.whl.metadata (2.6 kB)
+Collecting h11>=0.8 (from uvicorn<1,>=0.30->ai-secure-local-prototype==0.4.0a3.dev0->ai-secure-local-prototype==0.4.0a3.dev0)
+  Using cached h11-0.16.0-py3-none-any.whl.metadata (8.3 kB)
+Collecting pycparser (from cffi>=2.0.0->cryptography<47,>=43->ai-secure-local-prototype==0.4.0a3.dev0->ai-secure-local-prototype==0.4.0a3.dev0)
+  Using cached pycparser-3.0-py3-none-any.whl.metadata (8.2 kB)
+Using cached cryptography-46.0.7-cp311-abi3-macosx_10_9_universal2.whl (7.2 MB)
+Using cached defusedxml-0.7.1-py2.py3-none-any.whl (25 kB)
+Using cached pypdf-6.19.0-py3-none-any.whl (395 kB)
+Using cached uvicorn-0.53.0-py3-none-any.whl (87 kB)
+Using cached cffi-2.1.1-cp314-cp314-macosx_11_0_arm64.whl (184 kB)
+Using cached click-8.5.0-py3-none-any.whl (125 kB)
+Using cached h11-0.16.0-py3-none-any.whl (37 kB)
+Using cached pycparser-3.0-py3-none-any.whl (48 kB)
+Installing collected packages: pypdf, pycparser, h11, defusedxml, click, ai-secure-local-prototype, uvicorn, cffi, cryptography
+
+Successfully installed ai-secure-local-prototype-0.4.0a3.dev0 cffi-2.1.1 click-8.5.0 cryptography-46.0.7 defusedxml-0.7.1 h11-0.16.0 pycparser-3.0 pypdf-6.19.0 uvicorn-0.53.0
+
+{
+  "report_schema": "aisecure.document-report.v1",
+  "input_sha256": "f36625dcc8ac6b4dccd94d99a1e68350b8de1e2d47fc462a48a176ab6a7016cf",
+  "format": "xlsx",
+  "coverage": "supported_text_complete",
+  "verdict": "review",
+  "findings": [
+    {
+      "count": 2,
+      "level": "review",
+      "locations": [
+        "part:5",
+        "part:5"
+      ],
+      "rule": "DOC-CLASS"
+    }
+  ],
+  "units": 1,
+  "bytes_scanned": 2028,
+  "scanner": "documents-1",
+  "ocr_performed": false,
+  "malware_scan_performed": false,
+  "network_isolation_verified": false,
+  "release_authorized": false
+}
+
+usage: aisecure-control [-h] [--demo | --live | --managed] [--port PORT]
+                        [--data-dir DATA_DIR] [--organization ORGANIZATION]
+                        [--source SOURCE] [--baseline-file BASELINE_FILE]
+                        [--worker-image WORKER_IMAGE] [--ack-managed-egress]
+
+資料検査・VPN台帳・高度分析・小さな監査ログ（開発版）
+
+options:
+  -h, --help            show this help message and exit
+  --demo
+  --live
+  --managed
+  --port PORT
+  --data-dir DATA_DIR
+  --organization ORGANIZATION
+  --source SOURCE
+  --baseline-file BASELINE_FILE
+                        管理者が確認した固定基準データ。UIからは更新不可
+  --worker-image WORKER_IMAGE
+                        事前構築・検証したPodmanイメージ@sha256:...
+  --ack-managed-egress
+
+
+[{"name": "ai-secure-local-prototype", "version": "0.4.0a3.dev0"}, {"name": "cffi", "version": "2.1.1"}, {"name": "click", "version": "8.5.0"}, {"name": "cryptography", "version": "46.0.7"}, {"name": "defusedxml", "version": "0.7.1"}, {"name": "h11", "version": "0.16.0"}, {"name": "pip", "version": "26.1.2"}, {"name": "pycparser", "version": "3.0"}, {"name": "pypdf", "version": "6.19.0"}, {"name": "uvicorn", "version": "0.53.0"}]
