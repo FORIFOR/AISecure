@@ -36,6 +36,22 @@ let browser;
    proc.on('exit', () => reject(Error('server exited')));
   });
   const token = new URL(url).hash.slice(7);
+   // The URL is printed before uvicorn binds, so the print is not readiness.
+   // Wait for the port to accept a connection instead of racing it.
+   await new Promise((resolve, reject) => {
+    const net = require('node:net');
+    const deadline = Date.now() + 20000;
+    const attempt = () => {
+     const socket = net.connect({host:'127.0.0.1', port:Number(port)});
+     socket.once('connect', () => { socket.destroy(); resolve(); });
+     socket.once('error', () => {
+      socket.destroy();
+      if (Date.now() > deadline) reject(Error('server never accepted a connection'));
+      else setTimeout(attempt, 200);
+     });
+    };
+    attempt();
+   });
 
    const context = await browser.newContext({viewport:{width,height:1000}, reducedMotion:'reduce', acceptDownloads:true, ...(width===1440 ? {recordVideo:{dir:path.join(out,'video')}} : {})});
    await context.route('**/*',route => { if (!route.request().url().startsWith(base+'/')) {outcome.external_requests.push(route.request().url()); return route.abort();} return route.continue(); });
