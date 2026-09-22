@@ -1,0 +1,163 @@
+running bdist_wheel
+running build
+running build_py
+running egg_info
+writing ai_secure_local_prototype.egg-info/PKG-INFO
+writing dependency_links to ai_secure_local_prototype.egg-info/dependency_links.txt
+writing entry points to ai_secure_local_prototype.egg-info/entry_points.txt
+writing requirements to ai_secure_local_prototype.egg-info/requires.txt
+writing top-level names to ai_secure_local_prototype.egg-info/top_level.txt
+reading manifest file 'ai_secure_local_prototype.egg-info/SOURCES.txt'
+adding license file 'LICENSE'
+writing manifest file 'ai_secure_local_prototype.egg-info/SOURCES.txt'
+installing to build/bdist.macosx-11.0-arm64/wheel
+running install
+running install_lib
+creating build/bdist.macosx-11.0-arm64/wheel
+creating build/bdist.macosx-11.0-arm64/wheel/aisecure
+creating build/bdist.macosx-11.0-arm64/wheel/aisecure/connectors
+copying build/lib/aisecure/connectors/importer.py -> build/bdist.macosx-11.0-arm64/wheel/./aisecure/connectors
+copying build/lib/aisecure/connectors/profile.py -> build/bdist.macosx-11.0-arm64/wheel/./aisecure/connectors
+copying build/lib/aisecure/connectors/__init__.py -> build/bdist.macosx-11.0-arm64/wheel/./aisecure/connectors
+creating build/bdist.macosx-11.0-arm64/wheel/aisecure/connectors/profiles
+copying build/lib/aisecure/connectors/profiles/windows-security-logon-csv.json -> build/bdist.macosx-11.0-arm64/wheel/./aisecure/connectors/profiles
+copying build/lib/aisecure/connectors/profiles/generic-auth-csv.json -> build/bdist.macosx-11.0-arm64/wheel/./aisecure/connectors/profiles
+copying build/lib/aisecure/connectors/profiles/generic-asset-csv.json -> build/bdist.macosx-11.0-arm64/wheel/./aisecure/connectors/profiles
+copying build/lib/aisecure/connectors/profiles/okta-system-log-jsonl.json -> build/bdist.macosx-11.0-arm64/wheel/./aisecure/connectors/profiles
+copying build/lib/aisecure/connectors/profiles/generic-file-access-jsonl.json -> build/bdist.macosx-11.0-arm64/wheel/./aisecure/connectors/profiles
+copying build/lib/aisecure/store.py -> build/bdist.macosx-11.0-arm64/wheel/./aisecure
+copying build/lib/aisecure/gateway.py -> build/bdist.macosx-11.0-arm64/wheel/./aisecure
+copying build/lib/aisecure/server.py -> build/bdist.macosx-11.0-arm64/wheel/./aisecure
+copying build/lib/aisecure/monitor.py -> build/bdist.macosx-11.0-arm64/wheel/./aisecure
+copying build/lib/aisecure/approvals.py -> build/bdist.macosx-11.0-arm64/wheel/./aisecure
+creating build/bdist.macosx-11.0-arm64/wheel/aisecure/legacy_web
+copying build/lib/aisecure/legacy_web/index.html -> build/bdist.macosx-11.0-arm64/wheel/./aisecure/legacy_web
+copying build/lib/aisecure/legacy_web/quiet-cinema.css -> build/bdist.macosx-11.0-arm64/wheel/./aisecure/legacy_web
+copying build/lib/aisecure/legacy_web/style.css -> build/bdist.macosx-11.0-arm64/wheel/./aisecure/legacy_web
+copying build/lib/aisecure/legacy_web/i18n.js -> build/bdist.macosx-11.0-arm64/wheel/./aisecure/legacy_web
+copying build/lib/aisecure/legacy_web/app.js -> build/bdist.macosx-11.0-arm64/wheel/./aisecure/legacy_web
+copying build/lib/aisecure/baseline.py -> build/bdist.macosx-11.0-arm64/wheel/./aisecure
+copying build/lib/aisecure/audit_sink.py -> build/bdist.macosx-11.0-arm64/wheel/./aisecure
+creating build/bdist.macosx-11.0-arm64/wheel/aisecure/providers
+copying build/lib/aisecure/providers/okta.py -> build/bdist.macosx-11.0-arm64/wheel/./aisecure/providers
+copying build/lib/aisecure/providers/__init__.py -> build/bdist.macosx-11.0-arm64/wheel/./aisecure/providers
+copying build/lib/aisecure/providers/fortios_inventory.py -> build/bdist.macosx-11.0-arm64/wheel/./aisecure/providers
+copying build/lib/aisecure/policy.py -> build/bdist.macosx-11.0-arm64/wheel/./aisecure
+copying build/lib/aisecure/__init__.py -> build/bdist.macosx-11.0-arm64/wheel/./aisecure
+copying build/lib/aisecure/rules.py -> build/bdist.macosx-11.0-arm64/wheel/./aisecure
+creating build/bdist.macosx-11.0-arm64/wheel/aisecure/workbench_web
+copying build/lib/aisecure/workbench_web/index.html -> build/bdist.macosx-11.0-arm64/wheel/./aisecure/workbench_web
+copying build/lib/aisecure/workbench_web/app.css -> build/bdist.macosx-11.0-arm64/wheel/./aisecure/workbench_web
+copying build/lib/aisecure/workbench_web/app.js -> build/bdist.macosx-11.0-arm64/wheel/./aisecure/workbench_web
+copying build/lib/aisecure/workbench.py -> build/bdist.macosx-11.0-arm64/wheel/./aisecure
+copying build/lib/aisecure/engine.py -> build/bdist.macosx-11.0-arm64/wheel/./aisecure
+copying build/lib/aisecure/storage.py -> build/bdist.macosx-11.0-arm64/wheel/./aisecure
+copying build/lib/aisecure/evaluate.py -> build/bdist.macosx-11.0-arm64/wheel/./aisecure
+copying build/lib/aisecure/safety.py -> build/bdist.macosx-11.0-arm64/wheel/./aisecure
+copying build/lib/aisecure/demo.py -> build/bdist.macosx-11.0-arm64/wheel/./aisecure
+copying build/lib/aisecure/explain.py -> build/bdist.macosx-11.0-arm64/wheel/./aisecure
+copying build/lib/aisecure/__main__.py -> build/bdist.macosx-11.0-arm64/wheel/./aisecure
+copying build/lib/aisecure/gateway_admin.py -> build/bdist.macosx-11.0-arm64/wheel/./aisecure
+creating build/bdist.macosx-11.0-arm64/wheel/aisecure/control
+copying build/lib/aisecure/control/worker.py -> build/bdist.macosx-11.0-arm64/wheel/./aisecure/control
+copying build/lib/aisecure/control/service.py -> build/bdist.macosx-11.0-arm64/wheel/./aisecure/control
+copying build/lib/aisecure/control/audit.py -> build/bdist.macosx-11.0-arm64/wheel/./aisecure/control
+copying build/lib/aisecure/control/bundles.py -> build/bdist.macosx-11.0-arm64/wheel/./aisecure/control
+copying build/lib/aisecure/control/events.py -> build/bdist.macosx-11.0-arm64/wheel/./aisecure/control
+creating build/bdist.macosx-11.0-arm64/wheel/aisecure/control/web
+copying build/lib/aisecure/control/web/index.html -> build/bdist.macosx-11.0-arm64/wheel/./aisecure/control/web
+copying build/lib/aisecure/control/web/app.css -> build/bdist.macosx-11.0-arm64/wheel/./aisecure/control/web
+copying build/lib/aisecure/control/web/app.js -> build/bdist.macosx-11.0-arm64/wheel/./aisecure/control/web
+copying build/lib/aisecure/control/documents.py -> build/bdist.macosx-11.0-arm64/wheel/./aisecure/control
+copying build/lib/aisecure/control/example_document.py -> build/bdist.macosx-11.0-arm64/wheel/./aisecure/control
+copying build/lib/aisecure/control/__init__.py -> build/bdist.macosx-11.0-arm64/wheel/./aisecure/control
+copying build/lib/aisecure/control/response.py -> build/bdist.macosx-11.0-arm64/wheel/./aisecure/control
+copying build/lib/aisecure/control/native.py -> build/bdist.macosx-11.0-arm64/wheel/./aisecure/control
+copying build/lib/aisecure/control/inspection.py -> build/bdist.macosx-11.0-arm64/wheel/./aisecure/control
+copying build/lib/aisecure/control/admin.py -> build/bdist.macosx-11.0-arm64/wheel/./aisecure/control
+copying build/lib/aisecure/control/common.py -> build/bdist.macosx-11.0-arm64/wheel/./aisecure/control
+copying build/lib/aisecure/control/vpn.py -> build/bdist.macosx-11.0-arm64/wheel/./aisecure/control
+copying build/lib/aisecure/control/inspect_file.py -> build/bdist.macosx-11.0-arm64/wheel/./aisecure/control
+copying build/lib/aisecure/control/analytics.py -> build/bdist.macosx-11.0-arm64/wheel/./aisecure/control
+copying build/lib/aisecure/control/samples.py -> build/bdist.macosx-11.0-arm64/wheel/./aisecure/control
+copying build/lib/aisecure/control/__main__.py -> build/bdist.macosx-11.0-arm64/wheel/./aisecure/control
+copying build/lib/aisecure/responder.py -> build/bdist.macosx-11.0-arm64/wheel/./aisecure
+copying build/lib/aisecure/schema.py -> build/bdist.macosx-11.0-arm64/wheel/./aisecure
+copying build/lib/aisecure/preflight.py -> build/bdist.macosx-11.0-arm64/wheel/./aisecure
+copying build/lib/aisecure/posture.py -> build/bdist.macosx-11.0-arm64/wheel/./aisecure
+running install_egg_info
+Copying ai_secure_local_prototype.egg-info to build/bdist.macosx-11.0-arm64/wheel/./ai_secure_local_prototype-0.4.0a3.dev0-py3.12.egg-info
+running install_scripts
+creating build/bdist.macosx-11.0-arm64/wheel/ai_secure_local_prototype-0.4.0a3.dev0.dist-info/WHEEL
+creating '/tmp/aisecure-quality-wheels/.tmp-y17y2z6o/ai_secure_local_prototype-0.4.0a3.dev0-py3-none-any.whl' and adding 'build/bdist.macosx-11.0-arm64/wheel' to it
+adding 'ai_secure_local_prototype-0.4.0a3.dev0.dist-info/licenses/LICENSE'
+adding 'aisecure/__init__.py'
+adding 'aisecure/__main__.py'
+adding 'aisecure/approvals.py'
+adding 'aisecure/audit_sink.py'
+adding 'aisecure/baseline.py'
+adding 'aisecure/demo.py'
+adding 'aisecure/engine.py'
+adding 'aisecure/evaluate.py'
+adding 'aisecure/explain.py'
+adding 'aisecure/gateway.py'
+adding 'aisecure/gateway_admin.py'
+adding 'aisecure/monitor.py'
+adding 'aisecure/policy.py'
+adding 'aisecure/posture.py'
+adding 'aisecure/preflight.py'
+adding 'aisecure/responder.py'
+adding 'aisecure/rules.py'
+adding 'aisecure/safety.py'
+adding 'aisecure/schema.py'
+adding 'aisecure/server.py'
+adding 'aisecure/storage.py'
+adding 'aisecure/store.py'
+adding 'aisecure/workbench.py'
+adding 'aisecure/connectors/__init__.py'
+adding 'aisecure/connectors/importer.py'
+adding 'aisecure/connectors/profile.py'
+adding 'aisecure/connectors/profiles/generic-asset-csv.json'
+adding 'aisecure/connectors/profiles/generic-auth-csv.json'
+adding 'aisecure/connectors/profiles/generic-file-access-jsonl.json'
+adding 'aisecure/connectors/profiles/okta-system-log-jsonl.json'
+adding 'aisecure/connectors/profiles/windows-security-logon-csv.json'
+adding 'aisecure/control/__init__.py'
+adding 'aisecure/control/__main__.py'
+adding 'aisecure/control/admin.py'
+adding 'aisecure/control/analytics.py'
+adding 'aisecure/control/audit.py'
+adding 'aisecure/control/bundles.py'
+adding 'aisecure/control/common.py'
+adding 'aisecure/control/documents.py'
+adding 'aisecure/control/events.py'
+adding 'aisecure/control/example_document.py'
+adding 'aisecure/control/inspect_file.py'
+adding 'aisecure/control/inspection.py'
+adding 'aisecure/control/native.py'
+adding 'aisecure/control/response.py'
+adding 'aisecure/control/samples.py'
+adding 'aisecure/control/service.py'
+adding 'aisecure/control/vpn.py'
+adding 'aisecure/control/worker.py'
+adding 'aisecure/control/web/app.css'
+adding 'aisecure/control/web/app.js'
+adding 'aisecure/control/web/index.html'
+adding 'aisecure/legacy_web/app.js'
+adding 'aisecure/legacy_web/i18n.js'
+adding 'aisecure/legacy_web/index.html'
+adding 'aisecure/legacy_web/quiet-cinema.css'
+adding 'aisecure/legacy_web/style.css'
+adding 'aisecure/providers/__init__.py'
+adding 'aisecure/providers/fortios_inventory.py'
+adding 'aisecure/providers/okta.py'
+adding 'aisecure/workbench_web/app.css'
+adding 'aisecure/workbench_web/app.js'
+adding 'aisecure/workbench_web/index.html'
+adding 'ai_secure_local_prototype-0.4.0a3.dev0.dist-info/METADATA'
+adding 'ai_secure_local_prototype-0.4.0a3.dev0.dist-info/WHEEL'
+adding 'ai_secure_local_prototype-0.4.0a3.dev0.dist-info/entry_points.txt'
+adding 'ai_secure_local_prototype-0.4.0a3.dev0.dist-info/top_level.txt'
+adding 'ai_secure_local_prototype-0.4.0a3.dev0.dist-info/RECORD'
+removing build/bdist.macosx-11.0-arm64/wheel
+ai_secure_local_prototype-0.4.0a3.dev0-py3-none-any.whl

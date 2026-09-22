@@ -1,0 +1,266 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AISecure experimental bundle inspection report v1",
+  "type": "object",
+  "required": [
+    "report_schema",
+    "request_id",
+    "decision",
+    "execution_state",
+    "documents",
+    "release_authorized",
+    "classification",
+    "coverage",
+    "rules",
+    "kind"
+  ],
+  "properties": {
+    "report_schema": {
+      "const": "aisecure.bundle-report.v1"
+    },
+    "request_id": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{32}$"
+    },
+    "decision": {
+      "enum": [
+        "allow",
+        "review",
+        "block"
+      ]
+    },
+    "execution_state": {
+      "const": "not_executed"
+    },
+    "kind": {
+      "const": "document_inspection"
+    },
+    "classification": {
+      "enum": [
+        "public",
+        "unknown"
+      ]
+    },
+    "coverage": {
+      "enum": [
+        "supported_text_complete",
+        "partial"
+      ]
+    },
+    "rules": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "release_authorized": {
+      "type": "boolean"
+    },
+    "documents": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "required": [
+          "format",
+          "coverage",
+          "verdict",
+          "findings",
+          "units",
+          "bytes_scanned",
+          "scanner",
+          "ocr_performed",
+          "malware_scan_performed",
+          "network_isolation_verified",
+          "release_authorized",
+          "input_sha256"
+        ],
+        "properties": {
+          "format": {
+            "enum": [
+              "xlsx",
+              "pptx",
+              "pdf",
+              "unknown"
+            ]
+          },
+          "coverage": {
+            "enum": [
+              "supported_text_complete",
+              "partial",
+              "unreadable"
+            ]
+          },
+          "verdict": {
+            "enum": [
+              "no_findings",
+              "review",
+              "block"
+            ]
+          },
+          "findings": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "rule",
+                "level",
+                "count",
+                "locations"
+              ],
+              "properties": {
+                "rule": {
+                  "type": "string",
+                  "pattern": "^[A-Z][A-Z0-9-]{1,47}$"
+                },
+                "level": {
+                  "enum": [
+                    "review",
+                    "block"
+                  ]
+                },
+                "count": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "locations": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "maxItems": 5
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "units": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "bytes_scanned": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 16777216
+          },
+          "scanner": {
+            "const": "documents-1"
+          },
+          "ocr_performed": {
+            "const": false
+          },
+          "malware_scan_performed": {
+            "const": false
+          },
+          "network_isolation_verified": {
+            "type": "boolean"
+          },
+          "release_authorized": {
+            "const": false
+          },
+          "input_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "verdict": {
+                  "const": "no_findings"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "coverage": {
+                  "const": "supported_text_complete"
+                },
+                "findings": {
+                  "maxItems": 0
+                }
+              }
+            }
+          }
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "not": {
+    "anyOf": [
+      {
+        "required": [
+          "text"
+        ]
+      },
+      {
+        "required": [
+          "question"
+        ]
+      },
+      {
+        "required": [
+          "token"
+        ]
+      },
+      {
+        "required": [
+          "base64"
+        ]
+      },
+      {
+        "required": [
+          "output"
+        ]
+      },
+      {
+        "required": [
+          "filename"
+        ]
+      }
+    ]
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "decision": {
+            "const": "allow"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "release_authorized": {
+            "const": true
+          },
+          "classification": {
+            "const": "public"
+          },
+          "documents": {
+            "items": {
+              "properties": {
+                "verdict": {
+                  "const": "no_findings"
+                },
+                "coverage": {
+                  "const": "supported_text_complete"
+                }
+              }
+            }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "release_authorized": {
+            "const": false
+          }
+        }
+      }
+    }
+  ]
+}

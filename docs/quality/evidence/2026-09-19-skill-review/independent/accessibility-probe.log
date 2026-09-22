@@ -1,0 +1,1 @@
+PASS empty input sets invalid/description/focus; edit removes invalid/description; pending result busy excludes feedback; completion clears busy

@@ -1,0 +1,138 @@
+{
+  "status": "PASS",
+  "command": "PYTHONPATH=. .venv/bin/python /tmp/aisecure-cold-install.py",
+  "exit_code": 0,
+  "elapsed_seconds": 3.82,
+  "includes": "fresh venv, dependency acquisition from PyPI/cache, actual CLI report, control entry point, schema",
+  "commands": [
+    {
+      "command": [
+        "/Users/shuhei/Projects/AISecure/.venv/bin/python",
+        "-m",
+        "venv",
+        "/var/folders/xn/mdmvpkwd0yx4tcr7rvn_3xv80000gn/T/aisecure-clean-b5_yh574/venv"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0
+    },
+    {
+      "command": [
+        "/var/folders/xn/mdmvpkwd0yx4tcr7rvn_3xv80000gn/T/aisecure-clean-b5_yh574/venv/bin/python",
+        "-m",
+        "pip",
+        "--isolated",
+        "--disable-pip-version-check",
+        "install",
+        "--index-url",
+        "https://pypi.org/simple",
+        "/tmp/aisecure-skill-wheels/ai_secure_local_prototype-0.4.0a3.dev0-py3-none-any.whl[control]"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0
+    },
+    {
+      "command": [
+        "/var/folders/xn/mdmvpkwd0yx4tcr7rvn_3xv80000gn/T/aisecure-clean-b5_yh574/venv/bin/aisecure-inspect",
+        "/var/folders/xn/mdmvpkwd0yx4tcr7rvn_3xv80000gn/T/aisecure-clean-b5_yh574/sample.xlsx"
+      ],
+      "exit_code": 3,
+      "expected_exit_code": 3
+    },
+    {
+      "command": [
+        "/var/folders/xn/mdmvpkwd0yx4tcr7rvn_3xv80000gn/T/aisecure-clean-b5_yh574/venv/bin/aisecure-control",
+        "--help"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0
+    },
+    {
+      "command": [
+        "/var/folders/xn/mdmvpkwd0yx4tcr7rvn_3xv80000gn/T/aisecure-clean-b5_yh574/venv/bin/python",
+        "-c",
+        "from aisecure.control.inspection import report_schema; assert report_schema()['properties']['report_schema']['const']=='aisecure.document-report.v1'"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0
+    },
+    {
+      "command": [
+        "/var/folders/xn/mdmvpkwd0yx4tcr7rvn_3xv80000gn/T/aisecure-clean-b5_yh574/venv/bin/python",
+        "-m",
+        "pip",
+        "--disable-pip-version-check",
+        "list",
+        "--format=json"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0
+    }
+  ],
+  "packages": [
+    {
+      "name": "ai-secure-local-prototype",
+      "version": "0.4.0a3.dev0"
+    },
+    {
+      "name": "cffi",
+      "version": "2.1.1"
+    },
+    {
+      "name": "click",
+      "version": "8.5.0"
+    },
+    {
+      "name": "cryptography",
+      "version": "46.0.7"
+    },
+    {
+      "name": "defusedxml",
+      "version": "0.7.1"
+    },
+    {
+      "name": "h11",
+      "version": "0.16.0"
+    },
+    {
+      "name": "pip",
+      "version": "26.1.2"
+    },
+    {
+      "name": "pycparser",
+      "version": "3.0"
+    },
+    {
+      "name": "pypdf",
+      "version": "6.19.0"
+    },
+    {
+      "name": "uvicorn",
+      "version": "0.53.0"
+    }
+  ],
+  "report": {
+    "report_schema": "aisecure.document-report.v1",
+    "input_sha256": "f36625dcc8ac6b4dccd94d99a1e68350b8de1e2d47fc462a48a176ab6a7016cf",
+    "format": "xlsx",
+    "coverage": "supported_text_complete",
+    "verdict": "review",
+    "findings": [
+      {
+        "count": 2,
+        "level": "review",
+        "locations": [
+          "part:5",
+          "part:5"
+        ],
+        "rule": "DOC-CLASS"
+      }
+    ],
+    "units": 1,
+    "bytes_scanned": 2028,
+    "scanner": "documents-1",
+    "ocr_performed": false,
+    "malware_scan_performed": false,
+    "network_isolation_verified": false,
+    "release_authorized": false
+  }
+}

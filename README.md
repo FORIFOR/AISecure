@@ -1,3 +1,40 @@
+# AISecure — inspect a document before sending it
+
+Start with an editable synthetic spreadsheet, inspect it locally, then save a JSON
+report with the decision, reasons and coverage. A **review** result is a completed
+inspection, not a failure to use the app. No provider account or API key is needed.
+
+```sh
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install '.[control]'
+python -m aisecure.control --demo
+```
+
+Python 3.11+. Run from this repository; on Windows activate `.venv\Scripts\activate`.
+Open the printed URL, click **送信せずに検査**, inspect the **保留** result for the
+editable confidential sample, then **検査結果をJSONで保存**. The UI is Japanese.
+The real scanner runs locally; the demo does not send to an AI or change a VPN.
+Stop with Ctrl+C. Demo history is deleted; downloaded reports remain on your device.
+
+**We measured our own miss rate instead of claiming coverage.** On a 60-case
+labelled corpus the shipped patterns reach recall 0.30, and there are categories
+they detect zero times — mynumber, credit cards, landlines, and every major
+vendor token format: [detection measurement](docs/security/DETECTION_MEASUREMENT.md).
+Read that before trusting a "no findings" result.
+
+[First success and recovery](docs/FIRST_PROOF.md) ·
+[Threat model](docs/security/THREAT_MODEL.md) ·
+[In-page stop for AI sites](docs/operations/BROWSER_ENFORCEMENT.md) ·
+[CLI / Python integration and compatibility](docs/operations/DOCUMENT_CONTRACT.md) ·
+[Acceptance](docs/quality/acceptance.md) · [Local verification](docs/quality/skill-review.md)
+
+This working tree is 0.4.0a3.dev0 (unreleased), based on 0.4.0a2.
+The new document report interface is experimental. Pin a reviewed revision when integrating. No OCR, antivirus, whole-device
+DLP or production certification is claimed. Local workers are not network sandboxes.
+
+---
+
 ## Integrated control extension — 0.4.0a2
 
 The `0.4.0a2` control workbench covers document preflight, VPN posture and
@@ -21,7 +58,7 @@ python -m aisecure.control --demo
 
 The source changes are not a production certification. Read the remaining gates,
 especially actual browser enforcement, image/OCR coverage, device validation,
-and the declared dependency-version retest. The older workbench below is retained.
+and deployment-specific validation. The older workbench below is retained.
 
 ---
 

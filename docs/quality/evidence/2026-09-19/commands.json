@@ -1,0 +1,142 @@
+[
+  {
+    "name": "full-tests",
+    "command": [
+      ".venv/bin/python",
+      "tools/run_full_tests.py",
+      "--report",
+      "docs/quality/evidence/2026-09-19/full-tests.json"
+    ],
+    "exit_code": 0,
+    "duration_seconds": 16.96,
+    "status": "PASS",
+    "evidence": "full-tests.log"
+  },
+  {
+    "name": "release-gate",
+    "command": [
+      ".venv/bin/python",
+      "tools/release_gate.py",
+      "--self-test"
+    ],
+    "exit_code": 0,
+    "duration_seconds": 0.04,
+    "status": "PASS",
+    "evidence": "release-gate.log"
+  },
+  {
+    "name": "protocol",
+    "command": [
+      "node",
+      "--test",
+      "browser/aisecure/protocol.test.js"
+    ],
+    "exit_code": 0,
+    "duration_seconds": 0.09,
+    "status": "PASS",
+    "evidence": "protocol.log"
+  },
+  {
+    "name": "python-compile",
+    "command": [
+      ".venv/bin/python",
+      "-m",
+      "compileall",
+      "-q",
+      "aisecure/control",
+      "examples/control"
+    ],
+    "exit_code": 0,
+    "duration_seconds": 0.04,
+    "status": "PASS",
+    "evidence": "python-compile.log"
+  },
+  {
+    "name": "js-syntax",
+    "command": [
+      "node",
+      "--check",
+      "aisecure/control/web/app.js"
+    ],
+    "exit_code": 0,
+    "duration_seconds": 0.03,
+    "status": "PASS",
+    "evidence": "js-syntax.log"
+  },
+  {
+    "name": "browser",
+    "command": [
+      "node",
+      "tools/check_control_browser.cjs",
+      "docs/quality/evidence/2026-09-19"
+    ],
+    "exit_code": 0,
+    "duration_seconds": 5.43,
+    "status": "PASS",
+    "evidence": "browser.log"
+  },
+  {
+    "name": "dependency-free",
+    "command": [
+      "/opt/homebrew/bin/python3",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests",
+      "-q"
+    ],
+    "exit_code": 0,
+    "duration_seconds": 9.73,
+    "status": "PASS",
+    "evidence": "dependency-free.log"
+  },
+  {
+    "name": "diff-check",
+    "command": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "exit_code": 0,
+    "duration_seconds": 0.02,
+    "status": "PASS",
+    "evidence": "diff-check.log"
+  },
+  {
+    "name": "wheel",
+    "command": [
+      "/Users/shuhei/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+      "-c",
+      "from setuptools.build_meta import build_wheel; print(build_wheel('/tmp/aisecure-quality-wheels'))"
+    ],
+    "exit_code": 0,
+    "status": "PASS",
+    "evidence": "wheel.log",
+    "note": "Rerun after changing only package version to unreleased 0.4.0a3.dev0"
+  },
+  {
+    "name": "package-smoke",
+    "command": [
+      ".venv/bin/python",
+      "-m",
+      "tools.check_control_package",
+      "/tmp/aisecure-quality-wheels/ai_secure_local_prototype-0.4.0a3.dev0-py3-none-any.whl"
+    ],
+    "exit_code": 0,
+    "status": "PASS",
+    "evidence": "package-smoke.log",
+    "note": "Rerun after changing only package version to unreleased 0.4.0a3.dev0"
+  },
+  {
+    "name": "manifest-check",
+    "command": [
+      "python3",
+      "tools/update_manifest.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "status": "PASS",
+    "observed": "SHA256SUMS.txt matches 286 files; newly authored files registered with git intent-to-add; no commit created."
+  }
+]

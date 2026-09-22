@@ -1,0 +1,15 @@
+✔ bounded text accepted (0.590125ms)
+✔ oversized text denied (0.192584ms)
+✔ URL or arbitrary path denied (0.063291ms)
+✔ caller permissions denied (0.087417ms)
+✔ executable extension denied (0.066792ms)
+✔ valid file envelope (0.074958ms)
+✔ no arbitrary actions (0.05275ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 53.882041

@@ -20,6 +20,32 @@ class ServiceTests(unittest.IsolatedAsyncioTestCase):
         self.client=httpx.AsyncClient(transport=httpx.ASGITransport(app=self.app),base_url='http://127.0.0.1:8878')
     async def asyncTearDown(self):await self.client.aclose();self.store.__exit__()
     def auth(self,collector=False):return {'Authorization':'Bearer '+(self.collector if collector else self.token)}
+    async def test_sample_report_matches_scanner_and_has_no_raw_input(self):
+        import base64, hashlib
+        from aisecure.control.inspection import inspect_document
+        sample = await self.client.post('/api/sample', headers=self.auth(), json={'text':'社外秘：架空のデータ'})
+        self.assertEqual(sample.status_code, 200)
+        raw = base64.b64decode(sample.json()['base64'])
+        r = await self.client.post('/api/check', headers=self.auth(), json={'question':'PRIVATEQUESTION','files':[sample.json()],'request_id':'b'*32})
+        self.assertEqual(r.status_code, 200)
+        report = r.json()
+        self.assertEqual(report['report_schema'], 'aisecure.bundle-report.v1')
+        self.assertEqual(report['execution_state'], 'not_executed')
+        self.assertEqual(report['documents'][0]['input_sha256'], hashlib.sha256(raw).hexdigest())
+        sdk = inspect_document(raw, 'xlsx'); sdk.pop('report_schema')
+        self.assertEqual(report['documents'][0], sdk)
+        self.assertNotIn('PRIVATEQUESTION', r.text)
+        self.assertNotIn('架空のデータ', r.text)
+        audit = await self.client.get('/api/audit', headers=self.auth())
+        self.assertEqual(json.loads(audit.text)['request_id'], 'b'*32)
+        self.assertNotIn('PRIVATEQUESTION', audit.text)
+        self.assertNotIn('架空のデータ', audit.text)
+
+    async def test_sample_permissions_and_bounds(self):
+        self.assertEqual((await self.client.post('/api/sample', json={'text':'x'})).status_code, 401)
+        self.assertEqual((await self.client.post('/api/sample', headers=self.auth(True), json={'text':'x'})).status_code, 401)
+        self.assertEqual((await self.client.post('/api/sample', headers=self.auth(), json={'text':'x'*8193})).status_code, 400)
+
     async def test_no_auth(self):self.assertEqual((await self.client.get('/api/state')).status_code,401)
     async def test_other_origin_denied(self):
         r=await self.client.get('/api/state',headers={**self.auth(),'Origin':'https://evil.invalid'});self.assertEqual(r.status_code,403)

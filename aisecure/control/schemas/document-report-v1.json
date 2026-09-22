@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AISecure experimental document report v1",
+  "type": "object",
+  "required": [
+    "format",
+    "coverage",
+    "verdict",
+    "findings",
+    "units",
+    "bytes_scanned",
+    "scanner",
+    "ocr_performed",
+    "malware_scan_performed",
+    "network_isolation_verified",
+    "release_authorized",
+    "input_sha256",
+    "report_schema"
+  ],
+  "properties": {
+    "format": {
+      "enum": [
+        "xlsx",
+        "pptx",
+        "pdf",
+        "unknown"
+      ]
+    },
+    "coverage": {
+      "enum": [
+        "supported_text_complete",
+        "partial",
+        "unreadable"
+      ]
+    },
+    "verdict": {
+      "enum": [
+        "no_findings",
+        "review",
+        "block"
+      ]
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "rule",
+          "level",
+          "count",
+          "locations"
+        ],
+        "properties": {
+          "rule": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9-]{1,47}$"
+          },
+          "level": {
+            "enum": [
+              "review",
+              "block"
+            ]
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "locations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 5
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "units": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "bytes_scanned": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 16777216
+    },
+    "scanner": {
+      "const": "documents-1"
+    },
+    "ocr_performed": {
+      "const": false
+    },
+    "malware_scan_performed": {
+      "const": false
+    },
+    "network_isolation_verified": {
+      "type": "boolean"
+    },
+    "release_authorized": {
+      "const": false
+    },
+    "input_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "report_schema": {
+      "const": "aisecure.document-report.v1"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "verdict": {
+            "const": "no_findings"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "coverage": {
+            "const": "supported_text_complete"
+          },
+          "findings": {
+            "maxItems": 0
+          }
+        }
+      }
+    }
+  ],
+  "additionalProperties": false
+}

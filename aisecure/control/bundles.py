@@ -88,7 +88,8 @@ class BundleGateway:
     def check(self,question,files,request_id,label=None,*,record=True,now=None):
         valid_text(question,request_id)
         data_class=verify_bundle(label,self.public_key,question,files,self.model,request_id,self.organization,now=now)
-        docs=[self.scanner.inspect(data,fmt) for fmt,data in decode_files(files)]
+        decoded=decode_files(files)
+        docs=[self.scanner.inspect(data,fmt) for fmt,data in decoded]
         req=Request('EV-1','ai.prompt',ENDPOINT,question,data_class)
         policy=Policy((Grant('ai.prompt',ENDPOINT,('public',)),))
         result=evaluate(req,policy);decision=result.decision
@@ -103,7 +104,7 @@ class BundleGateway:
             counts={'files':len(docs),'units':sum(d.units for d in docs),'bytes':sum(d.bytes_scanned for d in docs),
                     'findings':sum(sum(f['count'] for f in d.findings) for d in docs)})
         if record:self.audit.evidence.append(entry)
-        return {**entry,'documents':[d.report() for d in docs],
+        return {**entry,'report_schema':'aisecure.bundle-report.v1','documents':[{**d.report(), 'input_sha256':hashlib.sha256(raw).hexdigest()} for d,(_,raw) in zip(docs,decoded)],
                 'coverage_note':'登録ポリシーと対応する文字範囲の検査。完全な安全性・マルウェア不在の保証ではありません。',
                 'classification':data_class,'release_authorized':decision=='allow',
                 'whole_device_protected':False,'delivery_enabled':self.delivery_enabled,
@@ -139,11 +140,17 @@ def redacted_text_preview(files,*,scanner=None):
     No class downgrade, no original changes, no automatic external send. Review
     information loss (formulas, layout, images) and reclassify the final text.
     """
-    reports=[];parts=[]
+    reports=[];parts=[];withheld=False
     for fmt,raw in decode_files(files):
         doc=(scanner or Scanner()).inspect(raw,fmt);reports.append(doc.report())
+        if any(f['rule'] in {'DOC-SECRET','DOC-PII'} for f in doc.findings):
+            # Detection crosses styled XML runs; a regex over extracted lines cannot
+            # reliably redact those bytes. Withhold the whole document instead.
+            parts.append('[本文非表示: 機密・個人情報の完全な伏せ字を保証できません]')
+            withheld=True
+            continue
         text=SECRET.sub('[REDACTED_SECRET]',doc.text)
         text=PERSONAL.sub('[REDACTED_PERSONAL]',text)
         parts.append(text)
     return {'text':'\n\n'.join(parts),'documents':reports,'representation':'lossy_text_only',
-            'original_modified':False,'release_authorized':False,'requires_reclassification':True}
+            'preview_withheld':withheld,'original_modified':False,'release_authorized':False,'requires_reclassification':True}

@@ -1,3 +1,13 @@
+# 0.4.0a3.dev0 — unreleased local document preflight usability and integration
+
+- Added a threat model that names the attacker classes the product is and is not for, and measured the detection boundary instead of describing it: 60 labelled synthetic cases give recall 0.30, precision 0.857. Mynumber, credit cards, landlines, Japanese-language credential labels and every major vendor token format are detected zero times. No pattern was changed to make that number look better.
+- Added best-effort in-page stopping for ChatGPT, Claude and Gemini: a MAIN-world `window.fetch` wrapper inspects the prompt through the existing native host before it leaves, blocks on a secret match without an override, and fails closed when the inspector is unreachable. Verified in Chromium: zero POSTs reached the network when blocked or unbridged. It does not cover XHR, WebSocket, iframes, another browser, or a disabled extension, and it is not a boundary against someone who wants around it.
+- Follow-up: bundled Draft 2020-12 report schemas and compatibility tests; atomic no-clobber private CLI saves; adjacent result/save layout and field-focused errors. Added the user-supplied project quality Skills.
+- Added editable synthetic xlsx input, explicit review/no-send explanations, JSON report download, input invalidation, in-flight edit protection and token recovery to the control UI.
+- Added experimental metadata-only Python inspection API and `aisecure-inspect` CLI with versioned reports, exact-byte SHA-256 identity and non-overwriting output.
+- Fixed a preview disclosure: detection spans styled XML runs, but redaction over extracted lines did not. Secret/PII findings now withhold the entire affected document text.
+- Documented first success, error recovery, permissions, compatibility and measurable acceptance. Verification is local and synthetic; no new production certification or live integration claim.
+
 # 0.4.0a2 — integrated control extension (2026-09-19)
 
 - Added document preflight for Office and PDF, including hidden sheets, speaker notes, macros, embedded OLE and the parts that refuse to decode. Anything the scanner could not read stays unreadable rather than becoming clean.

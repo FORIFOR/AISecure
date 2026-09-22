@@ -1,0 +1,2 @@
+PASS: installed wheel console script inspects real bytes outside repo, exit 3 and valid JSON
+PASS: installed wheel exposes both bundled JSON schemas without network access

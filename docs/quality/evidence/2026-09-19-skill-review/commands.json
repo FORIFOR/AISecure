@@ -1,0 +1,145 @@
+[
+  {
+    "name": "full-tests",
+    "command": [
+      ".venv/bin/python",
+      "tools/run_full_tests.py",
+      "--report",
+      "docs/quality/evidence/2026-09-19-skill-review/full-tests.json"
+    ],
+    "exit_code": 0,
+    "status": "PASS",
+    "evidence": "full-tests.log",
+    "note": "Includes final short-write failure regression"
+  },
+  {
+    "name": "release-gate",
+    "command": [
+      ".venv/bin/python",
+      "tools/release_gate.py",
+      "--self-test"
+    ],
+    "exit_code": 0,
+    "duration_seconds": 0.04,
+    "status": "PASS",
+    "evidence": "release-gate.log"
+  },
+  {
+    "name": "protocol",
+    "command": [
+      "node",
+      "--test",
+      "browser/aisecure/protocol.test.js"
+    ],
+    "exit_code": 0,
+    "duration_seconds": 0.09,
+    "status": "PASS",
+    "evidence": "protocol.log"
+  },
+  {
+    "name": "python-compile",
+    "command": [
+      ".venv/bin/python",
+      "-m",
+      "compileall",
+      "-q",
+      "aisecure/control",
+      "examples/control"
+    ],
+    "exit_code": 0,
+    "duration_seconds": 0.05,
+    "status": "PASS",
+    "evidence": "python-compile.log"
+  },
+  {
+    "name": "dependency-free",
+    "command": [
+      "/opt/homebrew/bin/python3",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests",
+      "-q"
+    ],
+    "exit_code": 0,
+    "duration_seconds": 9.77,
+    "status": "PASS",
+    "evidence": "dependency-free.log"
+  },
+  {
+    "name": "diff-check",
+    "command": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "exit_code": 0,
+    "duration_seconds": 0.06,
+    "status": "PASS",
+    "evidence": "diff-check.log"
+  },
+  {
+    "name": "js-syntax",
+    "command": [
+      "node",
+      "--check",
+      "aisecure/control/web/app.js"
+    ],
+    "exit_code": 0,
+    "status": "PASS",
+    "evidence": "js-syntax.log",
+    "note": "Final artifact after accessibility attributes were refined"
+  },
+  {
+    "name": "wheel",
+    "command": [
+      "/Users/shuhei/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+      "-c",
+      "from setuptools.build_meta import build_wheel; print(build_wheel('/tmp/aisecure-skill-wheels'))"
+    ],
+    "exit_code": 0,
+    "status": "PASS",
+    "evidence": "wheel.log",
+    "note": "Final artifact after accessibility attributes were refined"
+  },
+  {
+    "name": "package-smoke",
+    "command": [
+      ".venv/bin/python",
+      "-m",
+      "tools.check_control_package",
+      "/tmp/aisecure-skill-wheels/ai_secure_local_prototype-0.4.0a3.dev0-py3-none-any.whl"
+    ],
+    "exit_code": 0,
+    "status": "PASS",
+    "evidence": "package-smoke.log",
+    "note": "Final artifact after accessibility attributes were refined"
+  },
+  {
+    "name": "browser",
+    "command": [
+      "node",
+      "tools/check_control_browser.cjs",
+      "docs/quality/evidence/2026-09-19-skill-review"
+    ],
+    "environment": {
+      "NODE_PATH": "/Users/shuhei/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules"
+    },
+    "exit_code": 0,
+    "status": "PASS",
+    "evidence": "browser.log",
+    "note": "Final separate run includes aria-invalid/describedby/busy assertions"
+  },
+  {
+    "name": "manifest-check",
+    "command": [
+      "python3",
+      "tools/update_manifest.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "status": "PASS",
+    "observed": "390 tracked/intent-to-add files match; final update rerun after recording this result"
+  }
+]

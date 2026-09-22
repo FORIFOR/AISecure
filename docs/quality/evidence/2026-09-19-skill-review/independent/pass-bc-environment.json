@@ -1,0 +1,31 @@
+{
+  "date": "2026-09-19",
+  "commit": "26002d840130e52b07f35dd9c9ea8189d8913ee2",
+  "os": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+  "files_sha256": {
+    "aisecure/control/inspect_file.py": "6dadb3fc70f09e97c64e5468845b6d0bc2a28037869b20ddfbb468257a09ccb0",
+    "aisecure/control/inspection.py": "985c981ec30a05ba05506cc91ba6622b7b412127e00600f9f3a31b01eb13c915",
+    "aisecure/control/web/app.js": "d9cdb1951a448119445eec29a5a21dea144033561507c4e884b8eedaf3eafa85",
+    "aisecure/control/web/app.css": "14565de23efdea52cd044800b5dcc80934967516e89cd43acf88e082110aacf4",
+    "aisecure/control/web/index.html": "972cad2c987db42c8dda41575449b31eaa3fa826831c80cc12553fb0658ea65e",
+    "aisecure/control/schemas/document-report-v1.json": "ac0edb9b30b38bce300bc2826d847364f425d5ca67acff1ca8ac17c536f79981",
+    "aisecure/control/schemas/bundle-report-v1.json": "2698f6afba7e3c884998b83e1b419126aa2f93bd773a23fff818a6ae844fdde4"
+  },
+  "commands": [
+    {
+      "command": ".venv/bin/python -m unittest tests.control.test_report_save tests.control.test_report_schema tests.control.test_inspection_contract -v",
+      "exit_code": 0,
+      "log": "contract-tests.log"
+    },
+    {
+      "command": "NODE_PATH=<bundled node_modules> AISECURE_TEST_PORT=19891 node tools/check_control_browser.cjs <independent/current-browser>",
+      "exit_code": 0,
+      "log": "current-browser.log"
+    },
+    {
+      "command": "PYTHONPATH=. .venv/bin/python <independent/probe.py>",
+      "exit_code": 0,
+      "log": "probe.log"
+    }
+  ]
+}

@@ -1,3 +1,11 @@
+> Scope note (0.4.0a3.dev0, unreleased): the older constraints below describe
+> the original triage prototype. For the control document/VPN extension, use
+> [CONTROL_SCOPE](docs/operations/CONTROL_SCOPE.md) and
+> [DOCUMENT_CONTRACT](docs/operations/DOCUMENT_CONTRACT.md). Its narrow signed
+> two-person response adapter is implemented, while organization SSO/RBAC,
+> proven VPN containment and production validation remain unverified.
+> Report schemas validate structure; they do not grant release authorization.
+
 # Security / 脅威モデルと本番移行条件
 
 ## 保護の対象と信頼境界
