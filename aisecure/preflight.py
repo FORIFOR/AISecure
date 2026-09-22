@@ -26,6 +26,11 @@ REVIEW_ACTIONS = frozenset({"agent.execute", "agent.delete", "agent.share", "age
 ID = re.compile(r"EV-[0-9]{1,12}\Z")
 TOOL = re.compile(r"[a-z][a-z0-9_.-]{0,79}\Z")
 SECRET = re.compile(
+    # Explicit heuristic formats, not verification that a key is live. Keep values out of reports.
+    r"(?:パスワード|秘密鍵|API[ \t]*キー|アクセストークン|認証トークン)\s*(?:[:=]|は)\s*[\"'「『]?[!-~]{8,}|"
+    r"(?<![A-Za-z0-9_])(?:xox[baprs]-[A-Za-z0-9-]{10,}|"
+    r"AIza[A-Za-z0-9_-]{20,}|(?:sk|rk)_live_[A-Za-z0-9]{16,}|"
+    r"sk-proj-[A-Za-z0-9_-]{20,}|github_pat_[A-Za-z0-9_]{20,})|"
     r"-----BEGIN (?:[A-Z0-9]+ )*PRIVATE KEY-----|"
     r"\bAKIA[0-9A-Z]{16}\b|\bgh[pousr]_[A-Za-z0-9]{20,}\b|"
     r"(?i:\b(?:api[_-]?key|password|secret|access[_-]?token)\s*[:=]\s*[\"']?[^\s\"']{8,})"
