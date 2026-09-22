@@ -155,8 +155,14 @@ def main(argv=None):
         segments.append(dest)
     vertical_tail = work / 'vertical-tail.mp4'
     encode_card(args.raw_dir / 'endcard-9x16.png', vertical_tail, '1080:1920', 3.0)
+    vertical_silent = work / 'vertical-silent.mp4'
+    concat([*segments, vertical_tail], work / 'vertical.txt', vertical_silent)
+    # Social uploaders reject a video with no audio stream, so carry a silent one.
     vertical = args.out_dir / 'demo-vertical.mp4'
-    concat([*segments, vertical_tail], work / 'vertical.txt', vertical)
+    run(['ffmpeg', '-y', '-i', str(vertical_silent),
+         '-f', 'lavfi', '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100',
+         '-shortest', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '64k',
+         '-movflags', '+faststart', str(vertical)])
 
     poster = args.out_dir / 'demo-poster.jpg'
     run(['ffmpeg', '-y', '-ss', '14.0', '-i', str(desktop), '-frames:v', '1',
