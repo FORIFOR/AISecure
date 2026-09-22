@@ -24,3 +24,4 @@ operator-secrets/
 *.pem
 *.key
 validation.live.json
+.claude/settings.local.json
