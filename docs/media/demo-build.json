@@ -1,0 +1,14 @@
+{
+  "source": "docs/media/demo-raw/raw.webm — real app, no time compression",
+  "demo-desktop.mp4": {
+    "seconds": 27.88,
+    "kib": 2491,
+    "size": "1920x1080"
+  },
+  "demo-vertical.mp4": {
+    "seconds": 23.6,
+    "kib": 1300,
+    "size": "1080x1920"
+  },
+  "poster_kib": 155
+}

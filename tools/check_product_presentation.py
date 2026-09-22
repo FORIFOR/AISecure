@@ -41,9 +41,11 @@ try:
      page.set_content(str(source),wait_until='load')
     else:page.goto(base+name,wait_until='networkidle')
     if not args.offline:
-     page.wait_for_function("() => document.querySelectorAll('img.product-actual').length >= 4")
+     # The hero visual is now the real screen recording, so one capture moved out
+     # of the page. The remaining product images must still be the real ones.
+     page.wait_for_function("() => document.querySelectorAll('img.product-actual').length >= 3")
      product_images=page.locator('img.product-actual')
-     assert product_images.count()>=4,(lang,width,'missing product images')
+     assert product_images.count()>=3,(lang,width,'missing product images')
      for i in range(product_images.count()):
       image=product_images.nth(i).evaluate("img => ({w:img.naturalWidth,h:img.naturalHeight,src:img.currentSrc})")
       assert image['w']>=1200 and image['h']>=1800,(lang,width,image)
@@ -65,8 +67,12 @@ try:
     page.locator('[data-sample-tab]').first.focus();page.keyboard.press('End')
     assert page.locator('[data-sample-tab]').nth(3).get_attribute('aria-selected')=='true'
     page.locator('[data-play-film]').first.click();page.wait_for_timeout(1200)
-    dimensions=page.locator('video').evaluate('(v)=>({w:v.videoWidth,h:v.videoHeight,t:v.currentTime,duration:v.duration})')
-    assert dimensions['w']==1920 and dimensions['h']==1080 and dimensions['t']>0 and dimensions['duration']==18,dimensions
+    dimensions=page.locator('video').evaluate('(v)=>({w:v.videoWidth,h:v.videoHeight,t:v.currentTime,duration:v.duration,src:v.currentSrc})')
+    # The published video must be the recording of the real app, not the older
+    # concept film: check the source as well as the frame size and length.
+    assert dimensions['w']==1920 and dimensions['h']==1080 and dimensions['t']>0,dimensions
+    assert 27.0<dimensions['duration']<29.0,dimensions
+    assert dimensions['src'].endswith('media/demo-desktop.mp4'),dimensions
     assert page.locator('.film-splash').is_hidden()
     page.locator('video').evaluate('(v)=>v.pause()')
     assert not errors,errors;assert not posts,posts;assert not bad,bad

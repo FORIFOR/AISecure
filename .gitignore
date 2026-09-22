@@ -25,3 +25,7 @@ operator-secrets/
 *.key
 validation.live.json
 .claude/settings.local.json
+
+# Video edit intermediates: regenerate with tools/make_endcards.cjs and tools/build_demo_video.py
+docs/media/demo-raw/work/
+docs/media/demo-raw/*.png
