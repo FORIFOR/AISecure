@@ -1,0 +1,46 @@
+{
+  "started": 1790052786525,
+  "marks": [
+    {
+      "name": "ready",
+      "t": 0
+    },
+    {
+      "name": "typed",
+      "t": 5.03
+    },
+    {
+      "name": "check_clicked",
+      "t": 7.48
+    },
+    {
+      "name": "verdict_shown",
+      "t": 7.66
+    },
+    {
+      "name": "report_saved",
+      "t": 17.14
+    }
+  ],
+  "sample": "社外秘：次期モデルの原価内訳と取引先別の掛け率をまとめたメモです。これは架空のサンプルです。",
+  "verdict": "保留\n\n外部送信していません\n\n分類が未確認のため送信は許可されません。結果を保存し、必要なら管理者に相談してください。\n\n資料 1 · xlsx\n\n検査範囲：対応する文字範囲を検査済み（画像・意味の安全性は対象外） / 1単位\n\nDOC-CLASS：検出記録2件（同じ箇所の再検査を含む）。社外秘などの機密表記があります。管理者に分類を確認してください。\n\n判定根拠：PG-004、DOC-CLASS\n\n次の操作：検査範囲と理由を確認してください。記録が必要ならJSONで保存し、送信の可否は管理者に確認してください。",
+  "boxes": {
+    "input": {
+      "x": 209,
+      "y": 349.703125,
+      "width": 495,
+      "height": 704.171875
+    },
+    "result": {
+      "x": 736,
+      "y": -68.296875,
+      "width": 495,
+      "height": 772.046875
+    }
+  },
+  "viewport": {
+    "width": 1440,
+    "height": 810
+  },
+  "note": "Real local server, real Scanner verdict, no mock and no time compression."
+}

@@ -62,3 +62,43 @@ tab styled on its own. Verified locally with Chromium at five widths in both
 languages under `reduce` and `no-preference`: no horizontal overflow, no JS
 errors, no 4xx, no POST, sample tabs and keyboard `End` unchanged, Japanese
 phrases still unwrapped, and nothing left invisible in view.
+
+## 公開サイト — 実動作動画を軸に再構成 2026-09-22
+
+### 参照した実物（実際に開いて撮影、2026-09-22）
+
+| 種別 | URL | 採用する原則 | 真似しない表現 |
+|---|---|---|---|
+| 第一線 | https://linear.app/ | 見出しは1文2行まで。上部に大きな余白。**実UIを大きく見せる** | 装飾のない黒背景そのままの模倣 |
+| 第一線 | https://tailscale.com/ | 製品分類が近い。導線を用途別に分ける | 第一画面をCookieバナーと多段ナビで埋めること |
+| 第一線 | https://www.voiceos.com/ | 機能名でなく成果（何が終わるか）で見出しを作る | 同社のモード名・コピー |
+| 直接競合 | https://aona.ai/solutions/dlp-for-chatgpt/ | 合成例を明示し、保証しないと書く。送信前の瞬間を主役にする | 配色・レイアウト・文言。**「Book a demo」中心の導線** |
+| 直接競合 | https://www.strac.io/blog/chatgpt-dlp-data-loss-prevention | 具体的な事故のパターンを言語化する | 記事を製品ページの代わりにすること |
+
+**Aonaは既に「合成例」と明記し、保証しないと書いている。** したがって「正直であること」は
+差別化にならない。残る差別化は2つだけで、サイトはこれを第一画面に置く。
+
+1. **商談を経ずに3分で動く**（競合2社はいずれも Book a demo が主導線）
+2. **自分の見逃し率0.30を数値で公開している**（5件調べて、公開している例は見つからなかった）
+
+### 決めたこと
+
+第一画面は「誰向けか／何ができるか／**実際の結果**／次の操作」を1画面に収める。
+実際の結果は静止画ではなく**実アプリの画面収録**で見せる（`docs/site/VIDEO.md`）。
+数値は実測4つだけを置く（0.19秒・外部送信0件・再現率0.30・MIT）。
+主CTAは「3分で試す」1つ。GitHubと導入手順は副導線に下げる。
+
+測定セクション `#proof` では、弱い数字（マイナンバー等0件）を良い数字と同じ大きさで出す。
+赤で強調するのは検出できない範囲であって、検出できた件数ではない。
+
+### 評価ループ（実ブラウザ・2言語×5幅×reduce/no-preference＝20通り）
+
+- ラウンド1: 日本語の `.jp-phrase` が320pxで溢れた → 文節を短く分割。数値4つが1行に
+  収まらず孤立 → 2×2グリッドへ。再実行で20/20合格。
+- ラウンド2: **導入手順が動画と別のアプリを案内していた**（`.[workbench]` /
+  `aisecure.workbench`）。動画は `aisecure.control`。`.[control]` に修正し、
+  `python -m aisecure.control --help` が exit 0 で起動することを確認。
+  併せて開始セクションの主CTAをGitHubからコマンド取得に変更（主CTAは1つ）。
+
+未達・未実施: 人間の利用試験、実ユーザーの表示速度、Safari/Windowsでの目視、
+X（API未接続のため配布未実施）。

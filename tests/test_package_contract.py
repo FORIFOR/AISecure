@@ -17,9 +17,13 @@ class PackageContractTests(unittest.TestCase):
   text=(ROOT/'docs/operations/TASK_MATRIX.md').read_text()
   for group,count in [('A',8),('B',5),('C',5),('D',7),('E',7)]:
    for n in range(1,count+1):self.assertIn(f'| {group}{n} |',text)
- def test_installation_opens_real_workbench(self):
+ def test_published_quickstart_matches_the_recorded_app(self):
+  # The homepage recording shows aisecure.control, so the published command must
+  # start that app, not the older workbench.
   for name in ['docs/index.html','docs/index.ja.html','README.md','README.ja.md']:
-   text=(ROOT/name).read_text();self.assertIn('python -m aisecure.workbench --demo',text)
+   text=(ROOT/name).read_text();self.assertIn('python -m aisecure.control --demo',text)
+  for name in ['docs/index.html','docs/index.ja.html']:
+   self.assertNotIn('aisecure.workbench --demo',(ROOT/name).read_text())
  def test_synthetic_examples_are_runnable_and_not_actual_cve(self):
   with tempfile.TemporaryDirectory() as temp:
    out=Path(temp)/'synthetic'
