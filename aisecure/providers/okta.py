@@ -41,6 +41,14 @@ class _NoRedirect(HTTPRedirectHandler):
 
 
 @dataclass(frozen=True)
+class SessionClearReceipt:
+    """Transient evidence binding; never persist a raw provider request ID."""
+
+    requested_at: datetime
+    request_id: str | None
+
+
+@dataclass(frozen=True)
 class OktaConfig:
     """Connection settings; ``token`` must come from a secret manager/env var."""
 
@@ -178,7 +186,7 @@ class OktaClient:
             url = next_url
         raise OktaError("Okta System Logのページ数が上限を超えました。")
 
-    def clear_user_sessions(self, user_id: str) -> datetime:
+    def clear_user_sessions(self, user_id: str) -> SessionClearReceipt:
         try:
             self.emergency_stop.assert_clear()
         except EmergencyStopError as exc:
@@ -187,10 +195,15 @@ class OktaClient:
             raise ValidationError("実操作の対象は検証済みOktaユーザーID（00uで始まる値）に限定します。")
         requested_at = datetime.now(timezone.utc)
         url = self._url(f"/api/v1/users/{user_id}/sessions", {"oauthTokens": "false"})
-        status, _, _ = self._request("DELETE", url)
+        status, _, headers = self._request("DELETE", url)
         if status not in {200, 202, 204}:
             raise OktaError(f"Oktaセッション失効がHTTP {status}で拒否されました。")
-        return requested_at - timedelta(seconds=2)
+        request_id = headers.get("X-Okta-Request-Id")
+        if (type(request_id) is not str or
+                re.fullmatch(r"[A-Za-z0-9_.:-]{1,256}", request_id) is None):
+            request_id = None
+        # Missing correlation does not mean the accepted action did not happen.
+        return SessionClearReceipt(requested_at, request_id)
 
     @staticmethod
     def _targets_user(event: dict, user_id: str) -> bool:
@@ -199,13 +212,40 @@ class OktaClient:
             targets = [targets]
         return isinstance(targets, list) and any(isinstance(target, dict) and target.get("id") == user_id for target in targets)
 
-    def verify_session_clear(self, user_id: str, since: datetime) -> bool:
+    @classmethod
+    def _matches_clear(cls, event: dict, user_id: str, receipt: SessionClearReceipt,
+                       until: datetime) -> bool:
+        """Require positive, current, exact-request evidence, not just a log hit.
+
+        The two-second clock allowance is bounded and cannot substitute for the
+        request-ID match. This observes the IdP event, not downstream containment.
+        """
+        if (type(event) is not dict or event.get("eventType") != "user.session.clear"
+                or not cls._targets_user(event, user_id)):
+            return False
+        outcome = event.get("outcome")
+        debug = event.get("debugContext")
+        if type(outcome) is not dict or outcome.get("result") != "SUCCESS" or type(debug) is not dict:
+            return False
+        data = debug.get("debugData")
+        if type(data) is not dict or data.get("requestId") != receipt.request_id:
+            return False
+        try:
+            published = parse_time(event.get("published"))
+        except (TypeError, ValueError, AttributeError):
+            return False
+        return receipt.requested_at - timedelta(seconds=2) <= published <= until
+
+    def verify_session_clear(self, user_id: str, receipt: SessionClearReceipt) -> bool:
+        if (type(receipt) is not SessionClearReceipt or not receipt.request_id
+                or receipt.requested_at.tzinfo is None):
+            return False
         deadline = time.monotonic() + self.config.verification_timeout
-        expression = f'eventType eq "user.session.clear" and target.id eq "{user_id}"'
+        expression = f'eventType eq "user.session.clear" and target.id eq "{user_id}" and outcome.result eq "SUCCESS"'
         while True:
             now = datetime.now(timezone.utc)
-            events = self.system_log(since=since, until=now, filter_expression=expression)
-            if any(event.get("eventType") == "user.session.clear" and self._targets_user(event, user_id) for event in events):
+            events = self.system_log(since=receipt.requested_at - timedelta(seconds=2), until=now, filter_expression=expression)
+            if any(self._matches_clear(event, user_id, receipt, now) for event in events):
                 return True
             remaining = deadline - time.monotonic()
             if remaining <= 0:
@@ -231,12 +271,19 @@ class OktaSessionResponder:
         if plan.get("action") != "revoke_session":
             raise OktaError("Oktaアダプターが許可する操作はrevoke_sessionだけです。")
         user_id = context.get("provider_target")
-        since = self.client.clear_user_sessions(user_id)
-        if not self.client.verify_session_clear(user_id, since):
-            return {"status": "failed", "executed": False, "adapter": self.adapter_name,
-                    "provider": "okta", "verification": "user.session.clear not observed"}
-        return {"status": "verified", "executed": True, "adapter": self.adapter_name,
-                "provider": "okta", "verification": "user.session.clear"}
+        receipt = self.client.clear_user_sessions(user_id)
+        try:
+            verified = self.client.verify_session_clear(user_id, receipt)
+        except (OktaError, ValidationError):
+            # Read failure after an accepted write cannot prove non-execution.
+            verified = False
+        return {"status": "verified" if verified else "delivery_unknown",
+                "executed": True if verified else None, "action_accepted": True,
+                "adapter": self.adapter_name, "provider": "okta",
+                "verification": "user.session.clear correlated SUCCESS" if verified else "matching successful event not observed",
+                "verification_scope": "okta_idp_sessions_only",
+                "oauth_tokens_revoked": False, "application_sessions_verified": False,
+                "containment_verified": False, "automatic_retry": False}
 
 
 class OktaSystemLogCollector:

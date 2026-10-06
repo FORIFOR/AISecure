@@ -25,6 +25,7 @@ class OktaHandler(BaseHTTPRequestHandler):
     log_calls = 0
     emit_clear = True
     log_events = None
+    last_clear_at = None
 
     def log_message(self, *_args):
         pass
@@ -39,7 +40,9 @@ class OktaHandler(BaseHTTPRequestHandler):
             self.end_headers()
             return
         type(self).clear_calls += 1
+        type(self).last_clear_at = datetime.now(timezone.utc).isoformat()
         self.send_response(204)
+        self.send_header("X-Okta-Request-Id", "synthetic-clear-request")
         self.end_headers()
 
     def do_GET(self):
@@ -50,7 +53,10 @@ class OktaHandler(BaseHTTPRequestHandler):
         type(self).log_calls += 1
         events = type(self).log_events
         if events is None and type(self).emit_clear:
-            events = [{"eventType": "user.session.clear", "target": [{"id": USER_ID}]}]
+            events = [{"eventType": "user.session.clear", "target": [{"id": USER_ID}],
+                       "outcome": {"result": "SUCCESS"},
+                       "published": type(self).last_clear_at,
+                       "debugContext": {"debugData": {"requestId": "synthetic-clear-request"}}}]
         events = events or []
         body = json.dumps(events).encode("utf-8")
         self.send_response(200)
@@ -78,6 +84,7 @@ class OktaResponderTests(unittest.TestCase):
         OktaHandler.log_calls = 0
         OktaHandler.emit_clear = True
         OktaHandler.log_events = None
+        OktaHandler.last_clear_at = None
 
     def responder(self, verification_timeout=0.5):
         return OktaSessionResponder(OktaConfig(
@@ -93,15 +100,18 @@ class OktaResponderTests(unittest.TestCase):
         result = self.responder().execute(self.plan(), {"provider_target": USER_ID})
         self.assertEqual(result["status"], "verified")
         self.assertTrue(result["executed"])
-        self.assertEqual(result["verification"], "user.session.clear")
+        self.assertEqual(result["verification"], "user.session.clear correlated SUCCESS")
+        self.assertFalse(result["containment_verified"])
+        self.assertFalse(result["oauth_tokens_revoked"])
         self.assertEqual(OktaHandler.clear_calls, 1)
         self.assertGreaterEqual(OktaHandler.log_calls, 1)
 
     def test_missing_system_log_event_is_not_success(self):
         OktaHandler.emit_clear = False
         result = self.responder(verification_timeout=0.5).execute(self.plan(), {"provider_target": USER_ID})
-        self.assertEqual(result["status"], "failed")
-        self.assertFalse(result["executed"])
+        self.assertEqual(result["status"], "delivery_unknown")
+        self.assertIsNone(result["executed"])
+        self.assertTrue(result["action_accepted"])
         self.assertEqual(OktaHandler.clear_calls, 1)
 
     def test_emergency_stop_blocks_session_clear(self):

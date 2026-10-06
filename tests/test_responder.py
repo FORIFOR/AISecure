@@ -140,7 +140,7 @@ class ResponderTests(unittest.TestCase):
         with self.assertRaises(ResponderError):
             self.store.execute_approved(self.pid, self.sid, responder, "provider-session-42")
         self.assertIsNone(CaptureHandler.payload)
-        self.assertEqual(self.store.state()["proposals"][0]["status"], "failed")
+        self.assertEqual(self.store.state()["proposals"][0]["status"], "delivery_unknown")
 
     def test_real_webhook_rejects_non_loopback_http(self):
         with self.assertRaises(ValidationError):
@@ -154,7 +154,7 @@ class ResponderTests(unittest.TestCase):
         CaptureHandler.response_status = "unknown"
         with self.assertRaises(ResponderError):
             self.store.execute_approved(self.pid, self.sid, self.responder(), "provider-session-42")
-        self.assertEqual(self.store.state()["proposals"][0]["status"], "failed")
+        self.assertEqual(self.store.state()["proposals"][0]["status"], "delivery_unknown")
 
     def test_responder_must_echo_the_current_request(self):
         self.store.approve_for_execution(
@@ -163,7 +163,7 @@ class ResponderTests(unittest.TestCase):
         CaptureHandler.response_request_id = "different-request"
         with self.assertRaises(ResponderError):
             self.store.execute_approved(self.pid, self.sid, self.responder(), "provider-session-42")
-        self.assertEqual(self.store.state()["proposals"][0]["status"], "failed")
+        self.assertEqual(self.store.state()["proposals"][0]["status"], "delivery_unknown")
 
     def test_malformed_provider_result_fails_closed(self):
         self.store.approve_for_execution(
@@ -177,8 +177,9 @@ class ResponderTests(unittest.TestCase):
                 return None
 
         result = self.store.execute_approved(self.pid, self.sid, MalformedResponder(), "provider-session-42")
-        self.assertEqual(result, {"status": "failed", "executed": False})
-        self.assertEqual(self.store.state()["proposals"][0]["status"], "failed")
+        self.assertEqual(result, {"status": "delivery_unknown", "executed": None,
+                                  "snapshot_current": True, "automatic_retry": False})
+        self.assertEqual(self.store.state()["proposals"][0]["status"], "delivery_unknown")
 
 
 if __name__ == "__main__":

@@ -23,6 +23,10 @@ they detect zero times — mynumber, credit cards, landlines, and every major
 vendor token format: [detection measurement](docs/security/DETECTION_MEASUREMENT.md).
 Read that before trusting a "no findings" result.
 
+[Enterprise adoption gates and incident coverage](docs/security/ENTERPRISE_READINESS.md):
+the local alpha is not approved for unattended enterprise response. Recent
+response-boundary fixes do not establish complete breach prevention.
+
 [First success and recovery](docs/FIRST_PROOF.md) ·
 [Threat model](docs/security/THREAT_MODEL.md) ·
 [In-page stop for AI sites](docs/operations/BROWSER_ENFORCEMENT.md) ·
