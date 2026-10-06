@@ -14,10 +14,13 @@ import os
 from pathlib import PurePosixPath
 import re
 import subprocess
+import struct
 import sys
 import unicodedata
 import zipfile
+import zlib
 from defusedxml import ElementTree as ET
+from xml.etree.ElementTree import TreeBuilder
 from .common import ControlError, canonical, decode
 from ..preflight import SECRET, PERSONAL
 
@@ -104,6 +107,96 @@ def failure(fmt, size, rule, level='review'):
     return Inspection(fmt, 'unreadable', ({'rule': rule, 'level': level, 'count': 1,
                                           'locations': []},), 0, size)
 
+
+def _office_envelope(data, archive, items):
+    """Account for supported ZIP framing; do not interpret unknown metadata.
+
+    zipfile can read prefixed/concatenated archives, trailing bytes and truncated
+    comments. Those bytes still leave with a raw upload, so readable XML alone
+    cannot establish complete supported-text coverage for that envelope.
+    """
+    footer = len(data) - 22 - len(archive.comment)
+    if footer < 0 or data[footer:footer + 4] != b'PK\x05\x06':
+        return False
+    _, disk, central_disk, disk_count, count, central_size, central_offset, comment_size = struct.unpack_from('<4s4H2LH', data, footer)
+    if (disk or central_disk or disk_count != count or count != len(items)
+            or comment_size != len(archive.comment) or central_offset + central_size != footer):
+        return False  # Includes unsupported ZIP64/multi-disk framing.
+    cursor = 0
+    for item in sorted(items, key=lambda value: value.header_offset):
+        offset = item.header_offset
+        if offset != cursor or offset + 30 > central_offset:
+            return False
+        fields = struct.unpack_from('<4s5H3L2H', data, offset)
+        signature, _, flags, method, _, _, crc, compressed, expanded, name_size, extra_size = fields
+        if (signature != b'PK\x03\x04' or flags != item.flag_bits or method != item.compress_type
+                or flags & ~(0x800 | 8 | 6) or extra_size or item.extra or item.comment):
+            return False
+        expected_name = item.orig_filename.encode('utf-8' if flags & 0x800 else 'cp437')
+        if data[offset + 30:offset + 30 + name_size] != expected_name:
+            return False
+        body_start = offset + 30 + name_size + extra_size
+        cursor = body_start + item.compress_size
+        if cursor > central_offset:
+            return False
+        payload = data[body_start:cursor]
+        if method == zipfile.ZIP_DEFLATED:
+            decoder = zlib.decompressobj(-15)
+            decoded = decoder.decompress(payload, item.file_size + 1)
+            if not decoder.eof or decoder.unused_data or decoder.unconsumed_tail:
+                return False
+        else:
+            decoded = payload
+        if len(decoded) != item.file_size or zlib.crc32(decoded) & 0xffffffff != item.CRC:
+            return False
+        if flags & 8:  # Bounded ordinary data descriptor, optional signature.
+            if (crc, compressed, expanded) not in ((0, 0, 0), (item.CRC, item.compress_size, item.file_size)):
+                return False
+            if data[cursor:cursor + 4] == b'PK\x07\x08':
+                cursor += 4
+            if cursor + 12 > central_offset:
+                return False
+            if struct.unpack_from('<3L', data, cursor) != (item.CRC, item.compress_size, item.file_size):
+                return False
+            cursor += 12
+        elif (crc, compressed, expanded) != (item.CRC, item.compress_size, item.file_size):
+            return False
+    if cursor != central_offset or archive.comment:
+        return False
+    for item in items:  # Account for every central-directory field as well.
+        if cursor + 46 > footer:
+            return False
+        fields = struct.unpack_from('<4s6H3L5H2L', data, cursor)
+        signature, _, _, flags, method, _, _, crc, compressed, expanded, name_size, extra_size, comment_size, disk, _, _, offset = fields
+        if (signature != b'PK\x01\x02' or disk or extra_size or comment_size
+                or (flags, method, crc, compressed, expanded, offset) !=
+                (item.flag_bits, item.compress_type, item.CRC, item.compress_size, item.file_size, item.header_offset)):
+            return False
+        expected_name = item.orig_filename.encode('utf-8' if flags & 0x800 else 'cp437')
+        if data[cursor + 46:cursor + 46 + name_size] != expected_name:
+            return False
+        cursor += 46 + name_size + extra_size + comment_size
+    return cursor == footer
+
+
+def _office_xml(raw, builder, location):
+    """Use the existing hardened parser, flagging text it normally discards."""
+    class CoverageTreeBuilder(TreeBuilder):
+        def comment(self, text):
+            builder.add('DOC-XML-COMMENT-UNINSPECTED', 'review', location)
+            builder.partial = True
+            return super().comment(text)
+
+        def pi(self, target, text):
+            builder.add('DOC-XML-PI-UNINSPECTED', 'review', location)
+            builder.partial = True
+            return super().pi(target, text)
+
+    parser = ET.XMLParser(target=CoverageTreeBuilder(), forbid_dtd=True,
+                          forbid_entities=True, forbid_external=True)
+    parser.feed(raw)
+    return parser.close()
+
 def _office(data: bytes, fmt: str) -> Inspection:
     b = Builder(fmt, len(data))
     with zipfile.ZipFile(io.BytesIO(data)) as z:
@@ -111,7 +204,7 @@ def _office(data: bytes, fmt: str) -> Inspection:
         if not items or len(items) > MAX_PARTS: raise ControlError('展開項目の上限です。')
         names, total = set(), 0
         for item in items:
-            name = item.filename
+            name = item.orig_filename  # ZipInfo.filename can truncate at NUL.
             path = PurePosixPath(name)
             if ('\\' in name or '\x00' in name or name.startswith('/') or
                     '..' in path.parts or ':' in name or any(ord(c)<32 for c in name) or
@@ -124,6 +217,11 @@ def _office(data: bytes, fmt: str) -> Inspection:
                     item.file_size > max(1, item.compress_size) * 1000 or
                     item.compress_type not in (zipfile.ZIP_STORED, zipfile.ZIP_DEFLATED)):
                 raise ControlError('展開サイズまたは圧縮形式が許可範囲外です。')
+        # Run framing/decompression accounting only after the declared expansion
+        # budget; actual output is independently capped to each declared size+1.
+        if not _office_envelope(data, z, items):
+            b.add('DOC-ARCHIVE-UNINSPECTED', 'review', 'archive:structure')
+            b.partial = True
         required = 'xl/workbook.xml' if fmt == 'xlsx' else 'ppt/presentation.xml'
         if required not in z.namelist() or '[Content_Types].xml' not in z.namelist() or '_rels/.rels' not in z.namelist():
             return failure(fmt, len(data), 'DOC-FORMAT-MISMATCH', 'block')
@@ -140,16 +238,19 @@ def _office(data: bytes, fmt: str) -> Inspection:
                 office_refs[0].attrib.get('TargetMode','Internal')!='Internal'):
             return failure(fmt,len(data),'DOC-FORMAT-MISMATCH','block')
         for idx, item in enumerate(items):
-            if item.is_dir(): continue
             name = item.filename.lower()
             location = f'part:{idx+1}'  # no original path / sheet title in audit
+            if item.is_dir():
+                if item.file_size:
+                    b.add('DOC-BINARY-UNINSPECTED', 'review', location); b.partial=True
+                continue
             if ACTIVE.search(name): b.add('DOC-ACTIVE-CONTENT', 'block', location); b.partial=True
             if '/media/' in name:
                 b.add('DOC-IMAGE-UNINSPECTED', 'review', location); b.partial=True
             if name.endswith(('.xml','.rels')):
                 with z.open(item) as f: raw = f.read(MAX_PART + 1)
                 if len(raw) > MAX_PART: raise ControlError('展開上限です。')
-                root = ET.fromstring(raw)
+                root = _office_xml(raw, b, location)
                 nodes = list(root.iter())
                 if len(nodes) > 100000: raise ControlError('XML要素の上限です。')
                 b.cross_text(''.join(root.itertext()),location)
@@ -192,6 +293,16 @@ def _pdf(data: bytes) -> Inspection:
     if reader.is_encrypted: return failure('pdf', len(data), 'DOC-ENCRYPTED')
     if not 0 < len(reader.pages) <= MAX_PAGES:
         return failure('pdf',len(data),'DOC-PAGE-LIMIT')
+    # Only actual page-content streams enter the text extractor below. Other
+    # streams (including XMP, font programs and custom payloads) are not scanned.
+    page_streams = set()
+    for page in reader.pages:
+        content = page.get('/Contents')
+        if isinstance(content, IndirectObject): content = content.get_object()
+        values = content if isinstance(content, ArrayObject) else [content]
+        for value in values:
+            if isinstance(value, IndirectObject): value = value.get_object()
+            if isinstance(value, StreamObject): page_streams.add(id(value))
     seen, walked = set(), 0
     def walk(obj, depth=0):
         nonlocal walked
@@ -202,6 +313,8 @@ def _pdf(data: bytes) -> Inspection:
             if identity in seen: return
             seen.add(identity); obj = obj.get_object()
         if isinstance(obj, TextStringObject): b.put(str(obj),'pdf:metadata'); return
+        if isinstance(obj, StreamObject) and id(obj) not in page_streams:
+            b.add('DOC-PDF-STREAM-UNINSPECTED','review','pdf:structure'); b.partial=True
         if isinstance(obj, DictionaryObject):
             for key, value in obj.items():
                 if str(key) in {'/JS','/JavaScript','/Launch','/OpenAction','/AA','/EmbeddedFiles','/XFA','/RichMedia'}:
@@ -224,8 +337,15 @@ def _pdf(data: bytes) -> Inspection:
     for number, page in enumerate(reader.pages,1):
         b.units += 1
         content=page.get_contents()
-        if content is not None and len(content.get_data()) > MAX_PART:
-            raise ControlError('PDF内容ストリームの上限です。')
+        if content is not None:
+            raw_content = content.get_data()
+            if len(raw_content) > MAX_PART:
+                raise ControlError('PDF内容ストリームの上限です。')
+            if b'%' in raw_content:
+                # PDF text/operation extraction discards lexical comments. A
+                # percent may also be literal text: conservatively require
+                # review rather than add another PDF lexical parser here.
+                b.add('DOC-PDF-LEXICAL-UNINSPECTED','review',f'page:{number}'); b.partial=True
         text=page.extract_text() or ''
         b.put(text, f'page:{number}')
         if not text.strip():

@@ -96,3 +96,27 @@ retains the resulting report. Exact final counts and CI links are in the PR.
 This improves the trustworthiness of a synthetic pilot result. It adds no
 provider enforcement, no evidence-authenticity assertion, and no production
 certification. Real deployment gates remain open.
+
+## Follow-on: document coverage boundaries (same PR)
+
+Baseline `ceccf23033c58b9c506e200c1b6b97adf44df318` was inspected for unsupported,
+encrypted, truncated and partial extraction. Existing negative tests already
+covered encrypted/blank/image PDFs, unsupported extensions and worker failures.
+The uncovered cases were raw Office ZIP bytes omitted by member iteration,
+discarded XML comments/PIs, and reachable PDF streams omitted from extraction.
+When the scanner incorrectly returned complete coverage, a public-signed bundle
+could be authorized; the bundle already correctly denied explicit partial input.
+
+Local reproduction used actual stdlib ZIP behavior and an explicitly substituted
+XML parser, plus a mocked PDF reader. It is control-flow evidence, not validation
+against the declared parsers. The new ZIP envelope function was separately
+exercised with real stdlib ZIP/zlib data: supported stored/deflated packages and
+ordinary descriptors remain accepted; omitted envelope cases are rejected.
+
+`tests/control/test_partial_coverage.py` adds generated xlsx/pptx/PDF fixtures,
+real-worker assertions, the public metadata report, and signed-bundle capture
+transports. It tests comments, extra fields, unreferenced content, concatenation,
+truncation, DEFLATE tails, directory payloads, UTF-8/UTF-16 XML, DTDs, PDF metadata
+and custom streams, as well as supported-file positives. No customer file or
+external provider is used. Declared-parser results must be taken from the final
+exact-revision CI record in the PR, not the local substituted-parser checks.
