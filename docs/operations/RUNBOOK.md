@@ -101,4 +101,8 @@ WebKit試験はSafari/iPhone実機の試験ではありません。フォーム�
 `python tools/release_gate.py docs/operations/validation.example.json` は必ず不足を報告します。
 実環境と独立レビューの証拠を別途保管し、そのハッシュ・担当・日時を持つ台帳で判定してください。
 このゲートは書類の完全性だけを検査し、証拠の真正性・本番安全性を認証しません。
+`environment` が文字列でない、空白だけ、不正な制御文字を含む場合は入力エラーです。
+`demo` / `synthetic` / `mock` / `unknown` は大小文字・前後空白の違いがあっても
+実環境の証拠には数えません。任意の環境名を記入するだけで証拠の真正性が証明される
+わけではありません。担当者が参照元を照合する必要があります。
 署名付き配布物は `package-artifacts.yml` の成功と実attestationを確認し、コード追加だけで「署名済み」と主張しません。

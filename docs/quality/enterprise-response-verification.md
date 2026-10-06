@@ -68,3 +68,31 @@ reconciliation override is supplied. Trusted in-process callers and unsigned
 local compatibility paths are not SSO/RBAC boundaries. Separate stores/other
 clients can still perform actions independently. Actual Okta request/log mapping
 and all production deployment gates remain unverified.
+
+## Follow-on: synthetic pilot evidence (same PR)
+
+Baseline commit `447736113e1ca70d91d0086e379c2b612d77e4cd` reproduced two false
+passes: `tools/check_control.py` returned success after the entire control suite
+was skipped; the release gate accepted null/boolean/numeric/blank environments
+and case variants of synthetic labels as real-environment evidence.
+
+The local checker now consumes explicit test counts/status, rejects skipped,
+empty, missing and inconsistent evidence, and checks Node TAP counts too. A
+separate review caught an unexpected-success regression in the new structured
+runner; preserving unittest's `wasSuccessful()` and explicit expected/unexpected
+counts closes that case. Subprocesses inherit only a small OS/locale/temp
+environment, with no provider credentials or arbitrary Python/Node options.
+The runner has fixed synthetic suites, no live/installation option, repository
+root provenance, and atomic private reports that cannot replace prior evidence.
+
+Local observation: actual checker now exits 1 with `BLOCKED` and
+`local_checks_passed=false` when the control dependency is absent; its separate
+Node protocol stage still records 7 passed. New dependency-free regressions
+cover malformed evidence, placeholders, CLI statuses, credential-environment
+removal, report races/symlinks and unchanged supported success cases. The
+configured managed-quality workflow also runs this same safe pilot command and
+retains the resulting report. Exact final counts and CI links are in the PR.
+
+This improves the trustworthiness of a synthetic pilot result. It adds no
+provider enforcement, no evidence-authenticity assertion, and no production
+certification. Real deployment gates remain open.
