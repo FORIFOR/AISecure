@@ -7,18 +7,25 @@ proof of enforcement. Unsupported version schemes remain unknown.
 from __future__ import annotations
 import argparse
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 import hashlib
 import json
 from pathlib import Path
 import re
 import time
+from urllib.parse import urlsplit
 
 from .gateway import GatewayError, PinnedHTTPS
 from .schema import read_json
 
 CVE = re.compile(r'CVE-\d{4}-\d{4,8}\Z')
 OPAQUE = re.compile(r'[A-Za-z0-9][A-Za-z0-9_.-]{0,79}\Z')
+SOURCE_KINDS = frozenset({'official_notice','vendor_advisory','authenticated_export',
+                          'sbom','package_manifest','user_supplied','inference','unknown'})
+CLAIM_CONFIDENCE = frozenset({'confirmed','inferred','unknown'})
+CLAIM_TIMESTAMP = re.compile(r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)\Z')
+MAX_TIMELINE_ROWS = 1000
+MAX_ADVISORY_COMPARISONS = 100000
 
 
 def normalize_dlp(value: dict, digest) -> dict:
@@ -93,6 +100,107 @@ def iso_time(value):
         raise GatewayError('タイムゾーン付きの取得日時が必要です。') from None
 
 
+def _reference(value):
+    """Bounded citation only. It is never fetched or used to infer authority."""
+    if value in (None, ''): return None
+    if (type(value) is not str or len(value)>2048 or any(ord(c)<32 or c.isspace() or ord(c)==127 for c in value)
+            or '\\' in value):
+        raise GatewayError('根拠の参照形式が不正です。')
+    if re.fullmatch(r'sha256:[a-f0-9]{64}',value): return value
+    try:
+        parts=urlsplit(value)
+        if (parts.scheme!='https' or not parts.hostname or parts.username is not None or parts.password is not None
+                or (parts.port is not None and not 1<=parts.port<=65535)):
+            raise ValueError
+    except ValueError:
+        raise GatewayError('根拠はHTTPS参照またはsha256識別子で指定してください。') from None
+    return value
+
+
+def _date_claim(value, now, *, observation=False):
+    """Preserve supplied precision; never invent midnight/timezone for a date."""
+    if value in (None, ''): return None
+    if type(value) is not str or len(value)>40:
+        raise GatewayError('根拠日時の形式が不正です。')
+    if re.search(r'[.,]\d{7,}',value):
+        raise GatewayError('根拠日時の小数はマイクロ秒までです。精度を推測して丸めません。')
+    try:
+        if not observation and re.fullmatch(r'\d{4}-\d{2}-\d{2}',value):
+            # An unzoned notice date may be tomorrow relative to UTC. Reject
+            # only dates beyond the latest possible current local date.
+            if date.fromisoformat(value)>datetime.fromtimestamp(now+14*3600,timezone.utc).date(): raise ValueError
+        else:
+            if not CLAIM_TIMESTAMP.fullmatch(value): raise ValueError
+            moment=datetime.fromisoformat(value.replace('Z','+00:00'))
+            if moment.tzinfo is None or moment.timestamp()>now+60: raise ValueError
+    except ValueError:
+        raise GatewayError('根拠日時は有効な日付またはタイムゾーン付き日時で、未来ではない値が必要です。') from None
+    return value
+
+
+def _provenance(value, now):
+    if value is None: value={}
+    allowed={'source_kind','reference','observed_at','claimed_confidence'}
+    if type(value) is not dict or not set(value)<=allowed:
+        raise GatewayError('根拠情報の項目が不正です。')
+    kind=value.get('source_kind');confidence=value.get('claimed_confidence')
+    if kind in (None,''): kind='unknown'
+    if confidence in (None,''): confidence='unknown'
+    if type(kind) is not str or kind not in SOURCE_KINDS or type(confidence) is not str or confidence not in CLAIM_CONFIDENCE:
+        raise GatewayError('根拠の種類または申告確度が不正です。')
+    return {'source_kind':kind,'reference':_reference(value.get('reference')),
+            'observed_at':_date_claim(value.get('observed_at'),now,observation=True),
+            'claimed_confidence':confidence,'evidence_authenticity_verified':False}
+
+
+def _context(value, now, *, asset):
+    if value is None: value={}
+    dates={'reported_version_applied_at'} if asset else {'published_at','fix_available_at'}
+    allowed=dates|{'provenance'}|({'service_provider','shared_incident_reference'} if asset else set())
+    if type(value) is not dict or not set(value)<=allowed:
+        raise GatewayError('資産・勧告の補足情報の項目が不正です。')
+    result={'provenance':_provenance(value.get('provenance'),now)}
+    for field in sorted(dates): result[field]=_date_claim(value.get(field),now)
+    if asset:
+        provider=value.get('service_provider')
+        if type(provider) is str and not provider.strip(): provider=None
+        if provider is not None and (type(provider) is not str or not 1<=len(provider)<=200 or any(ord(c)<32 or ord(c)==127 for c in provider)):
+            raise GatewayError('申告された委託先の形式が不正です。')
+        result.update(service_provider=provider,shared_incident_reference=_reference(value.get('shared_incident_reference')))
+    return result
+
+
+def _date_order(left, right):
+    if left is None or right is None: return 'unknown'
+    if any(re.search(r'[.,]\d{7,}',v) for v in (left,right)): return 'unknown'
+    left_date=bool(re.fullmatch(r'\d{4}-\d{2}-\d{2}',left))
+    right_date=bool(re.fullmatch(r'\d{4}-\d{2}-\d{2}',right))
+    if not left_date and (not CLAIM_TIMESTAMP.fullmatch(left) or not CLAIM_TIMESTAMP.fullmatch(right)): return 'unknown'
+    if left_date != right_date: return 'unknown'  # No invented precision/timezone.
+    first,second=(date.fromisoformat(left),date.fromisoformat(right)) if left_date else (
+        datetime.fromisoformat(left.replace('Z','+00:00')),datetime.fromisoformat(right.replace('Z','+00:00')))
+    return 'before' if first<second else 'after' if first>second else 'same'
+
+
+def _timeline(asset, asset_context, advisory, advisory_context, inventory_observed_at):
+    applied=asset_context['reported_version_applied_at']
+    published=advisory_context['published_at'];available=advisory_context['fix_available_at']
+    order=_date_order(applied,available);published_order=_date_order(published,available)
+    inventory_order=_date_order(applied,inventory_observed_at)
+    issues=[]
+    if inventory_order=='after': issues.append('application_after_inventory_observation')
+    version,fixed=numeric_version(asset['version']),numeric_version(advisory['fixed'])
+    if order=='before' and version is not None and fixed is not None and version==fixed:
+        issues.append('reported_fixed_version_predates_fix_availability')
+    return {'published_at':published,'fix_available_at':available,
+            'reported_version':asset['version'],'reported_version_applied_at':applied,
+            'published_vs_fix_available':published_order,
+            'version_application_vs_fix_available':order,
+            'version_application_vs_inventory_observation':inventory_order,
+            'status':'inconsistent' if issues else 'unknown' if None in (published,available,applied) or 'unknown' in (order,published_order,inventory_order) else 'no_inconsistency_detected',
+            'issues':issues,'patch_state_verified':False,'causality_assessed':False,'negligence_assessed':False}
+
+
 def assess(inventory: dict, advisories: dict, kev: dict, *, now: int | None = None) -> dict:
     now = int(time.time()) if now is None else now
     if type(inventory) is not dict or set(inventory) != {'observed_at','assets'} or type(inventory['assets']) is not list or len(inventory['assets']) > 2000:
@@ -111,17 +219,22 @@ def assess(inventory: dict, advisories: dict, kev: dict, *, now: int | None = No
         if type(v) is not dict or type(v.get('cveID')) is not str or not CVE.fullmatch(v['cveID']):
             raise GatewayError('KEVのCVE識別子が不正です。')
         cves.add(v['cveID'])
-    by_product=defaultdict(list)
+    by_product=defaultdict(list);advisory_contexts=[]
     for v in advisories['advisories']:
-        if type(v) is not dict or set(v)!={'vendor','product','cve','introduced','fixed','source'}:
+        required={'vendor','product','cve','introduced','fixed','source'}
+        if type(v) is not dict or not required<=set(v) or not set(v)<=required|{'context'}:
             raise GatewayError('脆弱性台帳の項目が不正です。')
-        if (any(type(v[k]) is not str or not 1<=len(v[k])<=200 for k in v)
+        if (any(type(v[k]) is not str or not 1<=len(v[k])<=200 for k in required)
                 or not CVE.fullmatch(v['cve']) or not v['source'].startswith('https://')):
             raise GatewayError('脆弱性台帳の値が不正です。')
-        by_product[(v['vendor'].casefold(),v['product'].casefold())].append(v)
-    results=[]; ids=set()
+        context=_context(v.get('context'),now,asset=False);index=len(advisory_contexts)
+        advisory_contexts.append({'vendor':v['vendor'],'product':v['product'],'cve':v['cve'],
+                                  'legacy_source':v['source'],**context})
+        by_product[(v['vendor'].casefold(),v['product'].casefold())].append((index,v,context))
+    results=[]; ids=set();timeline_rows=0;comparisons=0;comparison_budget_exceeded=False
     for a in inventory['assets']:
-        if type(a) is not dict or set(a)!={'id','vendor','product','version','internet_exposed','privileged_path','sensitive_path'}:
+        required={'id','vendor','product','version','internet_exposed','privileged_path','sensitive_path'}
+        if type(a) is not dict or not required<=set(a) or not set(a)<=required|{'context'}:
             raise GatewayError('資産情報の項目が不正です。')
         if type(a['id']) is not str or not OPAQUE.fullmatch(a['id']) or a['id'] in ids:
             raise GatewayError('資産IDは一意の仮名識別子にしてください。')
@@ -130,6 +243,7 @@ def assess(inventory: dict, advisories: dict, kev: dict, *, now: int | None = No
             raise GatewayError('製品情報が不正です。')
         for k in ('internet_exposed','privileged_path','sensitive_path'):
             if a[k] is not None and type(a[k]) is not bool: raise GatewayError('公開・到達性はtrue/false/nullです。')
+        context=_context(a.get('context'),now,asset=True)
         reasons=[]; matches=[]; unknown=False
         version=numeric_version(a['version'])
         candidates=by_product[(a['vendor'].casefold(),a['product'].casefold())]
@@ -138,19 +252,42 @@ def assess(inventory: dict, advisories: dict, kev: dict, *, now: int | None = No
         if now-advtime>172800 or now-kevtime>172800: reasons.append('脆弱性情報が48時間より古く、更新が必要です。');unknown=True
         if any(a[k] is None for k in ('internet_exposed','privileged_path','sensitive_path')):
             reasons.append('公開面または到達性が未確認です。');unknown=True
-        for v in candidates:
+        timelines=[];timelines_omitted=0
+        limited=len(candidates)>MAX_ADVISORY_COMPARISONS-comparisons
+        if limited:
+            unknown=True;comparison_budget_exceeded=True
+            reasons.append('照合上限のため、この資産の版数範囲を評価していません。入力を分割して確認してください。')
+        else:
+            comparisons+=len(candidates)
+        for index,v,advisory_context in (() if limited else candidates):
+            if a.get('context') or v.get('context'):
+                if timeline_rows<MAX_TIMELINE_ROWS:
+                    timelines.append({'advisory_context_index':index,**_timeline(a,context,v,advisory_context,inventory['observed_at'])})
+                    timeline_rows+=1
+                else:
+                    timelines_omitted+=1
             low,high=numeric_version(v['introduced']),numeric_version(v['fixed'])
             if None in (version,low,high) or low>=high:
                 unknown=True;reasons.append('版数の比較方式が未対応です。ベンダー情報を確認してください。');continue
             if low<=version<high:
-                matches.append({'cve':v['cve'],'known_exploited':v['cve'] in cves,'fixed':v['fixed'],'source':v['source']})
+                matches.append({'cve':v['cve'],'known_exploited':v['cve'] in cves,'fixed':v['fixed'],'source':v['source'],
+                                'advisory_context_index':index})
         urgent=bool(matches) and a['internet_exposed'] is True and (any(v['known_exploited'] for v in matches) or a['sensitive_path'] is True)
         results.append({'asset_id':a['id'],'priority':'P1' if urgent else 'P2',
             'status':'affected' if matches else 'unknown' if unknown else 'no_match_in_supplied_ranges',
             'matches':matches,'reasons':list(dict.fromkeys(reasons)), 'action_executed':False,
+            'asset_context':{'vendor':a['vendor'],'product':a['product'],'reported_version':a['version'],**context},
+            'supplied_timelines':timelines,
+            'timeline_coverage':'limited' if limited or timelines_omitted else 'supplied_contexts' if timelines else 'not_supplied',
+            'timelines_omitted':timelines_omitted,'advisories_not_assessed':len(candidates) if limited else 0,
             'next_steps':['管理者がベンダー情報と実機を照合し、接続制限・修正・復旧手順を承認してください。']})
     return {'findings':results,'scope':'supplied_inventory_and_advisories_only',
-            'live_device_verified':False,'kev_absence_is_not_safe':True}
+            'live_device_verified':False,'kev_absence_is_not_safe':True,
+            'evidence_schema':'aisecure.posture-evidence.v1','advisory_contexts':advisory_contexts,
+            'source_references_fetched':False,'intrusion_confirmed':False,'negligence_assessed':False,
+            'shared_incident_links_verified':False,'comparison_budget_exceeded':comparison_budget_exceeded,
+            'evidence_limits':{'max_timeline_rows':MAX_TIMELINE_ROWS,'max_advisory_comparisons':MAX_ADVISORY_COMPARISONS,
+                               'advisory_comparisons_performed':comparisons}}
 
 
 def refresh_kev(target: Path):
