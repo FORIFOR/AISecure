@@ -2,8 +2,12 @@
 
 対象: `aisecure/preflight.py` の `SECRET` / `PERSONAL`（NFKC正規化後に照合）。
 コーパス: [corpus.jsonl](corpus.jsonl) 60件（陽性40・陰性20）。
-再現: `python -m tools.measure_detection --out docs/security/detection-measurement.json`
-結果: [detection-measurement.json](detection-measurement.json)
+再現: `python -m tools.measure_detection --out /tmp/aisecure-detection-new.json`
+当時の結果（上書きしない）: [detection-measurement.json](detection-measurement.json)
+
+v2は新しい保存先を指定する。元の数値を保持しつつ、コーパスSHA・ソース情報を追記する。
+従来のcorpus: syntheticは、同梱入力ではbundled_synthetic、指定入力では
+custom_unverifiedに変わる。ラベル等の不正入力を拒否し、既存レポートは置き換えない。
 
 ## 前提 — この数字が意味しないこと
 

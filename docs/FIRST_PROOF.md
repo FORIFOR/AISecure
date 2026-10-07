@@ -78,3 +78,6 @@ python tools/check_control.py --output /tmp/aisecure-pilot-new.json
 
 合格しても、確認範囲は同梱の合成データだけです。実組織のIdP・VPN、端末DLP、OCR、
 SSO/RBAC、復旧、独立監査を確認したことにはなりません。
+
+顧客との評価の進め方・受け入れ条件・中止/復帰は
+[最初のローカル評価](operations/LOCAL_PILOT.md)を参照してください。
