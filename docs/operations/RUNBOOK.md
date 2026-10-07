@@ -65,6 +65,84 @@ python -m aisecure.workbench --demo --inventory inventory.json \
 
 上の画面は台帳を再読込して表示できますが、デモでは外部AIへ送信しません。実機の接続制限や隔離は別工程です。
 
+### 任意の根拠・委託先・日時の申告（オフライン）
+
+既存の資産・勧告の必須項目はそのまま使えます。各レコードへ任意の `context` を追加すると、
+`aisecure.posture assess` と既存の読み取り専用評価JSONに根拠が残ります。
+下記は追加部分だけを示した架空例です。実際の事故・製品・CVEとの対応を主張するものではありません。
+
+資産の `context`:
+
+```json
+{
+  "provenance": {
+    "source_kind": "authenticated_export",
+    "reference": "https://evidence.example.invalid/inventory/synthetic-1",
+    "observed_at": "2026-10-06T12:00:00Z",
+    "claimed_confidence": "confirmed"
+  },
+  "service_provider": "Example shared provider",
+  "shared_incident_reference": "https://provider.example.invalid/incidents/synthetic-1",
+  "reported_version_applied_at": "2026-09-11"
+}
+```
+
+勧告の `context`:
+
+```json
+{
+  "provenance": {
+    "source_kind": "vendor_advisory",
+    "reference": "https://vendor.example.invalid/advisory/synthetic-1",
+    "observed_at": "2026-10-06T12:00:00Z",
+    "claimed_confidence": "confirmed"
+  },
+  "published_at": "2026-09-12",
+  "fix_available_at": "2026-09-10"
+}
+```
+
+- `source_kind`: `official_notice` / `vendor_advisory` / `authenticated_export` / `sbom` /
+  `package_manifest` / `user_supplied` / `inference` / `unknown`
+- `claimed_confidence`: `confirmed` / `inferred` / `unknown`。入力者の申告です。
+  `official_notice` や `confirmed` を指定しても、AISecureが真正性を確認した意味にはなりません。
+- 未入力・null・空文字の種類/確度は `unknown`、参照/日時/委託先はnull。
+  不明な版数は従来どおり `unknown` で、製品名や委託先から推測しません。
+- `reference` と `shared_incident_reference` はHTTPS参照または `sha256:` + 小文字64桁の識別子。
+  認証情報付きURL、制御文字、空白、不正な形式は拒否します。参照先を取得・検証する処理はありません。
+  HTTPSであることは出典の正しさを保証しません。
+- `service_provider` と `shared_incident_reference` は申告を保存するだけです。
+  委託先の関与を検証せず、同じ事故リンクから事故件数を集計したり因果関係を判定したりしません。
+- `reported_version_applied_at` はその資産の `version` を適用したという申告日時です。
+  全CVEへの修正適用日や実機の修正済み証明として扱いません。
+
+任意日時は `YYYY-MM-DD`、または `YYYY-MM-DDTHH:MM:SS[.ffffff]Z` / `±HH:MM` 形式です。
+小数は1〜6桁で、超過精度を丸めません。`provenance.observed_at` はタイムゾーン付き日時が必要です。
+不正な日付・型・制御文字・タイムゾーンなし日時は拒否します。
+現在より60秒を超える未来の日時、現在のUTC+14の日付より先の申告日も拒否します。
+日付だけでは観測した時刻・タイムゾーンや既に発生した事実を確定できません。
+日付と日時の混在は `unknown` とし、午前0時やタイムゾーンを補完しません。
+元の精度を保存し、新しい根拠日時を付けても台帳全体の古さをリセットしません。
+
+出力の `evidence_schema` は `aisecure.posture-evidence.v1`。
+各 `asset_context` と共通 `advisory_contexts` に申告値を保存し、照合したCVEと時系列は
+`advisory_context_index` で勧告へ対応付けます。版数範囲に一致しない場合も根拠を残します。
+追加のJSON項目を許容する利用側で試してください。画面上の専用入力・表示や新しい収集器は追加していません。
+
+`supplied_timelines` は「適用申告が台帳の観測後」「申告版数が修正版そのものなのに公開修正の提供前」
+という矛盾候補を `inconsistent` として示します。修正提供より後の勧告公開は矛盾としません。
+不明な日時や比較できない精度は `unknown`。比較できた項目に矛盾がない場合の
+`no_inconsistency_detected` も、修正済み・侵入なし・適切な管理の証明にはなりません。
+先行提供などの背景を一次資料で確認してください。侵入の原因や更新怠慢は判定しません。
+`evidence_authenticity_verified` / `patch_state_verified` / `causality_assessed` /
+`negligence_assessed` などの検証フラグはfalseのままです。
+
+出力膨張を防ぐため時系列は合計1,000行まで。省略件数と `timeline_coverage: limited` を明記します。
+版数範囲の比較は合計100,000件までで、上限により未評価の資産は `unknown`、
+`advisories_not_assessed` に未評価件数を出します。入力を分割して評価してください。
+根拠未入力の旧台帳から大量の空時系列を作りません。これらはローカルの申告情報照合であり、
+ホストの指紋収集・自動スキャン・参照URLへの接続・実機の変更は行いません。
+
 ## 5. 封じ込めと復旧
 
 既存の[二者承認](../APPROVALS.md)、[レスポンダー](../RESPONDER.md)、[Okta](../OKTA.md)の経路を使います。
@@ -101,4 +179,8 @@ WebKit試験はSafari/iPhone実機の試験ではありません。フォーム�
 `python tools/release_gate.py docs/operations/validation.example.json` は必ず不足を報告します。
 実環境と独立レビューの証拠を別途保管し、そのハッシュ・担当・日時を持つ台帳で判定してください。
 このゲートは書類の完全性だけを検査し、証拠の真正性・本番安全性を認証しません。
+`environment` が文字列でない、空白だけ、不正な制御文字を含む場合は入力エラーです。
+`demo` / `synthetic` / `mock` / `unknown` は大小文字・前後空白の違いがあっても
+実環境の証拠には数えません。任意の環境名を記入するだけで証拠の真正性が証明される
+わけではありません。担当者が参照元を照合する必要があります。
 署名付き配布物は `package-artifacts.yml` の成功と実attestationを確認し、コード追加だけで「署名済み」と主張しません。

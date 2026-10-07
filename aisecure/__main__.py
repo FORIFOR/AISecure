@@ -49,7 +49,7 @@ def _store(args, config):
     return Store(args.data_dir, config, master_key=_storage_key(args))
 
 
-def _approval_assertions(args) -> list[dict] | None:
+def _approval_assertions(args, audience: str) -> list[dict] | None:
     paths = (args.approval_keys, args.primary_approval, args.secondary_approval)
     supplied = any(path is not None for path in paths)
     if not supplied and not args.require_attested_approvals:
@@ -58,7 +58,8 @@ def _approval_assertions(args) -> list[dict] | None:
         raise ValueError("署名付き承認には--approval-keys、--primary-approval、--secondary-approvalの3つが必要です。")
     from .approvals import verify_pair
     return verify_pair(args.primary_approval, args.secondary_approval, args.approval_keys,
-                       args.proposal_id, args.snapshot_id)
+                       args.proposal_id, args.snapshot_id,
+                       expected_provider_target=args.provider_target, expected_audience=audience)
 
 
 def _add_approval_options(parser):
@@ -377,6 +378,7 @@ def main():
                 sys.exit(2)
         elif args.command == "execute":
             from .responder import ResponderConfig, SignedWebhookResponder
+            from .approvals import responder_audience
             secret_text = os.environ.get(args.secret_env)
             if not secret_text:
                 raise ValueError(f"署名鍵の環境変数が未設定です: {args.secret_env}")
@@ -386,16 +388,20 @@ def main():
                 allowed_actions=frozenset(args.allow_action),
                 emergency_stop_file=args.emergency_stop_file,
             ))
-            approval_assertions = _approval_assertions(args)
+            audience = responder_audience(responder)
+            approval_assertions = _approval_assertions(args, audience)
             store.approve_for_execution(
                 args.proposal_id, args.snapshot_id, args.confirm, args.second_confirm,
                 args.reason, args.primary_operator, args.secondary_operator, args.provider_target,
-                approval_assertions,
+                approval_assertions, responder_audience=audience,
             )
             result = store.execute_approved(args.proposal_id, args.snapshot_id, responder, args.provider_target)
             _write(None, _dump(result), "")
+            if result.get("status") != "verified" or result.get("executed") is not True:
+                raise SystemExit(2)
         elif args.command == "execute-okta":
             from .providers.okta import OktaConfig, OktaSessionResponder
+            from .approvals import responder_audience
             token = os.environ.get(args.token_env)
             if not token:
                 raise ValueError(f"Oktaトークンの環境変数が未設定です: {args.token_env}")
@@ -404,14 +410,17 @@ def main():
                 verification_timeout=args.verification_timeout,
                 emergency_stop_file=args.emergency_stop_file,
             ))
-            approval_assertions = _approval_assertions(args)
+            audience = responder_audience(responder)
+            approval_assertions = _approval_assertions(args, audience)
             store.approve_for_execution(
                 args.proposal_id, args.snapshot_id, args.confirm, args.second_confirm,
                 args.reason, args.primary_operator, args.secondary_operator, args.provider_target,
-                approval_assertions,
+                approval_assertions, responder_audience=audience,
             )
             result = store.execute_approved(args.proposal_id, args.snapshot_id, responder, args.provider_target)
             _write(None, _dump(result), "")
+            if result.get("status") != "verified" or result.get("executed") is not True:
+                raise SystemExit(2)
     finally:
         store.close()
 

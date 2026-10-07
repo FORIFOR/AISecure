@@ -97,6 +97,10 @@ class Store:
         proposal_columns = {row["name"] for row in self.db.execute("PRAGMA table_info(proposals)")}
         if "approved_target_hmac" not in proposal_columns:
             self.db.execute("ALTER TABLE proposals ADD COLUMN approved_target_hmac TEXT")
+        if "approved_audience_hmac" not in proposal_columns:
+            self.db.execute("ALTER TABLE proposals ADD COLUMN approved_audience_hmac TEXT")
+        if "approval_expires_at" not in proposal_columns:
+            self.db.execute("ALTER TABLE proposals ADD COLUMN approval_expires_at TEXT")
         if os.name != "nt":
             db_path.chmod(0o600)
         mode = "encrypted" if self.encrypted else "plaintext"
@@ -122,6 +126,9 @@ class Store:
 
     def _target_hmac(self, target: str) -> str:
         return hmac.new(self.audit_key, ("provider-target\0" + target).encode("utf-8"), hashlib.sha256).hexdigest()
+
+    def _audience_hmac(self, audience: str) -> str:
+        return hmac.new(self.audit_key, ("responder-audience\0" + audience).encode("utf-8"), hashlib.sha256).hexdigest()
 
     @staticmethod
     def _validate_provider_target(target: str) -> None:
@@ -166,7 +173,8 @@ class Store:
     @staticmethod
     def _validate_approval_assertions(assertions: list[dict] | None, proposal_id: str,
                                       snapshot_id: str, action: str,
-                                      primary_operator: str, secondary_operator: str) -> None:
+                                      primary_operator: str, secondary_operator: str,
+                                      provider_target: str, responder_audience: str | None) -> str | None:
         if assertions is None:
             return
         if not isinstance(assertions, list) or len(assertions) != 2:
@@ -174,20 +182,33 @@ class Store:
         expected = {"primary": primary_operator.strip(), "secondary": secondary_operator.strip()}
         seen_roles = set()
         seen_operators = set()
+        expirations = []
         for claim in assertions:
             if not isinstance(claim, dict):
                 raise ValidationError("承認証明の形式が不正です。")
             role, operator = claim.get("role"), claim.get("approver")
-            if role not in expected or role in seen_roles or operator != expected[role]:
+            if not isinstance(role, str) or role not in expected or role in seen_roles or operator != expected[role]:
                 raise ValidationError("承認証明の役割または承認者がCLIの指定と一致しません。")
             if operator in seen_operators or claim.get("proposal_id") != proposal_id or claim.get("snapshot_id") != snapshot_id:
                 raise ValidationError("承認証明が現在の計画に対応していないか、承認者が重複しています。")
             if claim.get("action") != action or claim.get("decision") != "approve":
                 raise ValidationError("承認証明の操作または決定が現在の計画と一致しません。")
+            if (type(claim.get("schema_version")) is not int or claim["schema_version"] != 2
+                    or claim.get("provider_target") != provider_target
+                    or type(responder_audience) is not str or not responder_audience
+                    or claim.get("audience") != responder_audience):
+                raise ValidationError("対象と実行先に対応する新しい署名付き承認が必要です。")
+            issued, expires = parse_time(claim.get("issued_at")), parse_time(claim.get("expires_at"))
+            now = utcnow()
+            if (expires <= now or expires <= issued or expires > issued + timedelta(minutes=15)
+                    or issued < now - timedelta(minutes=5) or issued > now + timedelta(minutes=2)):
+                raise ValidationError("署名付き承認の期限が切れているか、時刻が不正です。")
+            expirations.append(expires)
             seen_roles.add(role)
             seen_operators.add(operator)
         if seen_roles != set(expected):
             raise ValidationError("primaryとsecondaryの承認証明がそろっていません。")
+        return iso(min(expirations))
 
     def _record_rule_config(self):
         """A threshold change alters what is detected, so it is entered as evidence."""
@@ -356,6 +377,11 @@ class Store:
     def propose(self, sid: str, fid: str) -> dict:
         with self.transaction():
             f = self.get_finding(sid, fid)
+            unresolved = self.db.execute(
+                "SELECT id FROM proposals WHERE finding_id=? AND status IN ('executing','delivery_unknown') LIMIT 1",
+                (fid,)).fetchone()
+            if unresolved:
+                raise ConflictError("前回の実操作の結果が未確認です。プロバイダー側で照合してから新しい対応を判断してください。")
             now = utcnow()
             existing = self.db.execute("SELECT * FROM proposals WHERE snapshot_id=? AND finding_id=? AND status='pending' ORDER BY created_at DESC LIMIT 1", (sid, fid)).fetchone()
             if existing and parse_time(existing["expires_at"]) > now:
@@ -398,7 +424,8 @@ class Store:
                               secondary_confirmation: str, reason: str,
                               primary_operator: str, secondary_operator: str,
                               provider_target: str | None = None,
-                              approval_assertions: list[dict] | None = None) -> dict:
+                              approval_assertions: list[dict] | None = None, *,
+                              responder_audience: str | None = None) -> dict:
         """Record two explicit approvals without contacting the responder.
 
         The responder remains a separate trust boundary.  Names are only used
@@ -429,8 +456,11 @@ class Store:
             if parse_time(row["expires_at"]) <= utcnow():
                 raise ConflictError("承認期限の5分を過ぎています。計画を作り直してください。")
             expected = plan_for(self.get_finding(expected_snapshot, row["finding_id"]))
-            self._validate_approval_assertions(approval_assertions, proposal_id, expected_snapshot,
-                                               expected["action"], primary_operator, secondary_operator)
+            approval_expires = self._validate_approval_assertions(
+                approval_assertions, proposal_id, expected_snapshot,
+                expected["action"], primary_operator, secondary_operator, provider_target, responder_audience)
+            if approval_expires is not None:
+                approval_expires = iso(min(parse_time(approval_expires), parse_time(row["expires_at"])))
             if self._unprotect(row["body"], self._proposal_aad(row["id"])) != canonical(expected):
                 raise IntegrityError("計画と現行ポリシーの内容が一致しません。")
             self._audit("plan.approved", {
@@ -440,11 +470,16 @@ class Store:
                 "secondary_operator_hmac": hmac.new(self.audit_key, secondary_operator.strip().encode(), hashlib.sha256).hexdigest(),
                 "reason_hmac": hmac.new(self.audit_key, reason.strip().encode(), hashlib.sha256).hexdigest(),
                 "provider_target_hmac": self._target_hmac(provider_target),
+                "responder_audience_hmac": self._audience_hmac(responder_audience) if approval_assertions is not None else None,
+                "approval_schema_version": 2 if approval_assertions is not None else None,
+                "approval_expires_at": approval_expires,
                 "identity_attested": approval_assertions is not None,
                 "reason_plaintext_saved": False,
             })
-            self.db.execute("UPDATE proposals SET status='approved', approved_target_hmac=? WHERE id=?",
-                            (self._target_hmac(provider_target), proposal_id))
+            self.db.execute("UPDATE proposals SET status='approved', approved_target_hmac=?, approved_audience_hmac=?, approval_expires_at=? WHERE id=?",
+                            (self._target_hmac(provider_target),
+                             self._audience_hmac(responder_audience) if approval_assertions is not None else None,
+                             approval_expires, proposal_id))
             return {"proposal_id": proposal_id, "status": "approved", "execution_mode": "real"}
 
     def execute_approved(self, proposal_id: str, expected_snapshot: str,
@@ -464,10 +499,38 @@ class Store:
             approved_target = row["approved_target_hmac"]
             if not isinstance(approved_target, str) or not hmac.compare_digest(approved_target, self._target_hmac(provider_target)):
                 raise ConflictError("承認時に確認した対象IDと実行対象が一致しません。再承認が必要です。")
+            approved_audience = row["approved_audience_hmac"]
+            if approved_audience is not None:
+                if row["approval_expires_at"] is None or parse_time(row["approval_expires_at"]) <= utcnow():
+                    raise ConflictError("署名付き承認の期限が切れています。新しい計画と二者承認が必要です。")
+                from .approvals import responder_audience
+                actual_audience = responder_audience(responder)
+                if not hmac.compare_digest(approved_audience, self._audience_hmac(actual_audience)):
+                    raise ConflictError("署名付き承認の実行先と接続先が一致しません。再承認が必要です。")
+            else:
+                # Old schema-1 attestations never approved an actual destination.
+                # Keep historical evidence, but never execute that old approval.
+                for event in self.db.execute("SELECT * FROM audit WHERE action='plan.approved'"):
+                    payload = self._audit_payload(event)
+                    if payload.get("proposal_id") == proposal_id and payload.get("identity_attested") is True:
+                        raise ConflictError("旧形式の署名付き承認は実行できません。対象と実行先を含む新しい承認が必要です。")
             finding = self.get_finding(expected_snapshot, row["finding_id"])
             expected = plan_for(finding)
             if self._unprotect(row["body"], self._proposal_aad(row["id"])) != canonical(expected):
                 raise IntegrityError("計画と現行ポリシーの内容が一致しません。")
+            # The dispatch reservation also checks sibling proposals. Otherwise
+            # P2 could be approved before P1 becomes unknown, or a new snapshot
+            # could create a fresh ID for the same unresolved external action.
+            for unresolved in self.db.execute(
+                    "SELECT * FROM proposals WHERE id<>? AND status IN ('executing','delivery_unknown')",
+                    (proposal_id,)):
+                same_action_target = (
+                    unresolved["approved_target_hmac"] == approved_target
+                    and (unresolved["approved_audience_hmac"] == approved_audience
+                         or unresolved["approved_audience_hmac"] is None or approved_audience is None)
+                    and self._proposal_plan(unresolved).get("action") == expected["action"])
+                if unresolved["finding_id"] == row["finding_id"] or same_action_target:
+                    raise ConflictError("同じ対象の実操作が進行中または未確認です。再送せずプロバイダー側で照合してください。")
             plan = {**expected, "execution_mode": "real", "automatic_execution": False}
             context = {"proposal_id": proposal_id, "snapshot_id": expected_snapshot,
                        "evidence_ids": finding.get("evidence_ids", []),
@@ -479,29 +542,34 @@ class Store:
             result = responder.execute(plan, context)
         except Exception as exc:
             with self.transaction():
-                self.db.execute("UPDATE proposals SET status='failed' WHERE id=? AND status='executing'", (proposal_id,))
-                self._audit("plan.failed", {"proposal_id": proposal_id, "error_type": type(exc).__name__})
+                self.db.execute("UPDATE proposals SET status='delivery_unknown' WHERE id=? AND status='executing'", (proposal_id,))
+                self._audit("plan.delivery_unknown", {"proposal_id": proposal_id, "executed": None,
+                                                     "automatic_retry": False, "error_type": type(exc).__name__})
             if isinstance(exc, ResponderError):
                 raise
-            raise ResponderError("実行先の処理に失敗しました。") from exc
+            raise ResponderError("実行結果は未確認です。自動再試行せずプロバイダー側で照合してください。") from None
 
         with self.transaction():
-            if self.snapshot()[0] != expected_snapshot:
-                self.db.execute("UPDATE proposals SET status='failed' WHERE id=? AND status='executing'", (proposal_id,))
-                self._audit("plan.failed", {"proposal_id": proposal_id, "error_type": "stale_snapshot_after_response"})
-                return {"status": "failed", "executed": False, "adapter": responder.adapter_name}
+            # A refresh cannot undo a completed external action or turn it into
+            # proof of non-execution. Keep the outcome bound to the old snapshot.
+            snapshot_current = self.snapshot()[0] == expected_snapshot
             safe_result = result if isinstance(result, dict) else {}
-            final_status = "verified" if safe_result.get("status") == "verified" and safe_result.get("executed") is True else "failed"
+            if safe_result.get("status") == "verified" and safe_result.get("executed") is True:
+                final_status, executed = "verified", True
+            elif safe_result.get("status") == "failed" and safe_result.get("executed") is False:
+                final_status, executed = "failed", False
+            else:
+                final_status, executed = "delivery_unknown", None
             self.db.execute("UPDATE proposals SET status=? WHERE id=? AND status='executing'", (final_status, proposal_id))
-            audit_result = {"proposal_id": proposal_id, "executed": final_status == "verified",
-                            "adapter": responder.adapter_name}
+            audit_result = {"proposal_id": proposal_id, "executed": executed,
+                            "adapter": responder.adapter_name, "snapshot_current": snapshot_current,
+                            "snapshot_id": expected_snapshot, "automatic_retry": False}
             # Provider responses are outside this process's trust boundary.
             # Preserve only small, allowlisted post-action metadata in the audit.
             for key, limit in (("provider", 80), ("verification", 160)):
                 value = safe_result.get(key)
                 if isinstance(value, str) and 1 <= len(value) <= limit and not any(ord(c) < 32 for c in value):
                     audit_result[key] = value
-            self._audit("plan.verified" if final_status == "verified" else "plan.failed", audit_result)
-        if final_status != "verified":
-            return {**safe_result, "status": "failed", "executed": False}
-        return safe_result
+            self._audit("plan." + final_status, audit_result)
+        return {**safe_result, "status": final_status, "executed": executed,
+                "snapshot_current": snapshot_current, "automatic_retry": False}

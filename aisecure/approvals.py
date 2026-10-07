@@ -2,8 +2,8 @@
 
 AISecure does not implement an identity provider.  A deployment can instead
 configure an SSO/RBAC gateway to issue two Ed25519-signed approval documents;
-this module verifies their binding to the exact proposal, snapshot and action
-before the local store records the approval.
+this module verifies their binding to the exact proposal, snapshot, action,
+provider target and responder audience before the local store records approval.
 """
 from __future__ import annotations
 
@@ -13,6 +13,7 @@ import re
 from datetime import timedelta
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit, urlunsplit
 
 from .schema import canonical, identifier, object_keys, parse_time, read_json, utcnow, ValidationError
 
@@ -21,6 +22,70 @@ MAX_APPROVAL_BYTES = 32 * 1024
 MAX_KEYS_BYTES = 32 * 1024
 ROLES = {"primary", "secondary"}
 DECISION = "approve"
+SCHEMA_VERSION = 2
+
+
+def canonical_responder_audience(url: str, *, origin_only: bool = False) -> str:
+    """Canonical endpoint identity, without guessing a tenant or target.
+
+    Okta audiences are origins; webhook audiences retain the complete path.
+    Only scheme/host case, default ports and the empty webhook path normalize.
+    Paths (including escapes, case and trailing slashes) are otherwise exact.
+    """
+    if (not isinstance(url, str) or not 1 <= len(url) <= 2048
+            or any(ord(c) <= 32 or ord(c) == 127 for c in url)
+            or any(c in url for c in ("\\", "?", "#"))):
+        raise ValidationError("承認証明の実行先URLが不正です。")
+    try:
+        parts = urlsplit(url)
+        hostname, port = parts.hostname, parts.port
+    except ValueError as exc:
+        raise ValidationError("承認証明の実行先URLが不正です。") from exc
+    if (not hostname or not hostname.isascii() or parts.username is not None
+            or parts.password is not None or parts.netloc.endswith(":")
+            or (port is not None and not 1 <= port <= 65535)):
+        raise ValidationError("承認証明の実行先URLが不正です。")
+    if parts.scheme != "https" and not (
+            parts.scheme == "http" and hostname in {"127.0.0.1", "::1", "localhost"}):
+        raise ValidationError("承認証明の実行先にはHTTPSが必要です。")
+    if origin_only and parts.path not in {"", "/"}:
+        raise ValidationError("Oktaの承認対象には組織のoriginだけを指定してください。")
+    if re.fullmatch(r"[a-z0-9.:-]+", hostname) is None:
+        raise ValidationError("承認証明の実行先ホストが不正です。")
+    host = f"[{hostname}]" if ":" in hostname else hostname
+    default_port = 443 if parts.scheme == "https" else 80
+    if port is not None and port != default_port:
+        host += f":{port}"
+    path = "" if origin_only else parts.path or "/"
+    return urlunsplit((parts.scheme, host, path, "", ""))
+
+
+def responder_audience(responder: Any) -> str:
+    """Read the actual configured endpoint of a supported execution adapter."""
+    from .providers.okta import OktaSessionResponder
+    from .responder import SignedWebhookResponder
+
+    if isinstance(responder, OktaSessionResponder):
+        return canonical_responder_audience(responder.client.config.base_url, origin_only=True)
+    if isinstance(responder, SignedWebhookResponder):
+        return canonical_responder_audience(responder.config.url)
+    raise ValidationError("署名付き承認の実行先を確認できないレスポンダーです。")
+
+
+def _validate_binding(provider_target: Any, audience: Any) -> None:
+    if (not isinstance(provider_target, str) or not 1 <= len(provider_target) <= 160
+            or any(ord(c) < 32 for c in provider_target)):
+        raise ValidationError("承認証明には検証済みの対象IDが必要です。")
+    if not isinstance(audience, str):
+        raise ValidationError("承認証明には実行先audienceが必要です。")
+    # Both supported forms are canonical: an origin with no path, or a full
+    # webhook endpoint. Do not normalize a signed claim into a different claim.
+    try:
+        origin_only = not urlsplit(audience).path
+    except ValueError as exc:
+        raise ValidationError("承認証明の実行先URLが不正です。") from exc
+    if audience != canonical_responder_audience(audience, origin_only=origin_only):
+        raise ValidationError("承認証明のaudienceは正規化済みの実行先URLが必要です。")
 
 
 def _b64url(value: str, expected_length: int) -> bytes:
@@ -53,12 +118,19 @@ def load_public_keys(path: str | Path) -> dict[str, bytes]:
     return keys
 
 
-def _validate_claim(payload: Any, expected_proposal: str, expected_snapshot: str) -> dict:
+def _validate_claim(payload: Any, expected_proposal: str, expected_snapshot: str,
+                    expected_provider_target: str, expected_audience: str) -> dict:
     if not isinstance(payload, dict):
         raise ValidationError("承認証明のpayloadが不正です。")
-    object_keys(payload, {"schema_version", "proposal_id", "snapshot_id", "action", "approver", "role", "decision", "issued_at", "expires_at", "nonce"})
-    if payload["schema_version"] != 1 or payload["decision"] != DECISION or payload["role"] not in ROLES:
+    object_keys(payload, {"schema_version", "proposal_id", "snapshot_id", "action", "provider_target", "audience", "approver", "role", "decision", "issued_at", "expires_at", "nonce"})
+    if type(payload["schema_version"]) is not int or payload["schema_version"] != SCHEMA_VERSION:
+        raise ValidationError("承認証明にはschema_version=2が必要です。旧形式は再発行してください。")
+    if (payload["decision"] != DECISION or not isinstance(payload["role"], str)
+            or payload["role"] not in ROLES):
         raise ValidationError("承認証明の決定または役割が不正です。")
+    _validate_binding(payload["provider_target"], payload["audience"])
+    if payload["provider_target"] != expected_provider_target or payload["audience"] != expected_audience:
+        raise ValidationError("承認証明の対象IDまたは実行先が現在の設定と一致しません。")
     if payload["proposal_id"] != expected_proposal or payload["snapshot_id"] != expected_snapshot:
         raise ValidationError("承認証明が現在の計画または入力に対応していません。")
     try:
@@ -78,16 +150,18 @@ def _validate_claim(payload: Any, expected_proposal: str, expected_snapshot: str
     except (TypeError, ValueError) as exc:
         raise ValidationError("承認証明の時刻が不正です。") from exc
     now = utcnow()
-    if issued < now - timedelta(minutes=5) or issued > now + timedelta(minutes=2) or expires <= now or expires > issued + timedelta(minutes=15):
+    if issued < now - timedelta(minutes=5) or issued > now + timedelta(minutes=2) or expires <= now or expires <= issued or expires > issued + timedelta(minutes=15):
         raise ValidationError("承認証明の有効期限が切れているか、時刻が不正です。")
     return payload
 
 
 def verify_approval(path: str | Path, public_keys: dict[str, bytes], expected_proposal: str,
-                    expected_snapshot: str, expected_role: str) -> dict:
+                    expected_snapshot: str, expected_role: str, *,
+                    expected_provider_target: str, expected_audience: str) -> dict:
     """Verify one signed approval and return only its validated payload."""
-    if expected_role not in ROLES:
+    if not isinstance(expected_role, str) or expected_role not in ROLES:
         raise ValidationError("承認証明の役割が不正です。")
+    _validate_binding(expected_provider_target, expected_audience)
     try:
         document = read_json(Path(path).read_bytes(), MAX_APPROVAL_BYTES)
     except (OSError, ValueError, RecursionError) as exc:
@@ -95,7 +169,8 @@ def verify_approval(path: str | Path, public_keys: dict[str, bytes], expected_pr
     if not isinstance(document, dict):
         raise ValidationError("承認証明の形式が不正です。")
     object_keys(document, {"payload", "signature"})
-    claim = _validate_claim(document["payload"], expected_proposal, expected_snapshot)
+    claim = _validate_claim(document["payload"], expected_proposal, expected_snapshot,
+                            expected_provider_target, expected_audience)
     if claim["role"] != expected_role or claim["approver"] not in public_keys:
         raise ValidationError("承認証明の役割または承認者が許可されていません。")
     signature = _b64url(document["signature"], 64)
@@ -110,18 +185,22 @@ def verify_approval(path: str | Path, public_keys: dict[str, bytes], expected_pr
         Ed25519PublicKey.from_public_bytes(public_keys[claim["approver"]]).verify(
             signature, canonical(claim).encode("utf-8")
         )
-    except InvalidSignature as exc:
+    except (InvalidSignature, TypeError, ValueError) as exc:
         raise ValidationError("承認証明の署名検証に失敗しました。") from exc
     return claim
 
 
 def verify_pair(primary_path: str | Path, secondary_path: str | Path, keys_path: str | Path,
-                expected_proposal: str, expected_snapshot: str) -> list[dict]:
+                expected_proposal: str, expected_snapshot: str, *,
+                expected_provider_target: str, expected_audience: str) -> list[dict]:
     keys = load_public_keys(keys_path)
-    primary = verify_approval(primary_path, keys, expected_proposal, expected_snapshot, "primary")
-    secondary = verify_approval(secondary_path, keys, expected_proposal, expected_snapshot, "secondary")
-    if primary["approver"] == secondary["approver"]:
-        raise ValidationError("承認証明には異なる2名の承認者が必要です。")
-    if primary["action"] != secondary["action"]:
-        raise ValidationError("2件の承認証明の操作が一致しません。")
+    primary = verify_approval(primary_path, keys, expected_proposal, expected_snapshot, "primary",
+                              expected_provider_target=expected_provider_target, expected_audience=expected_audience)
+    secondary = verify_approval(secondary_path, keys, expected_proposal, expected_snapshot, "secondary",
+                                expected_provider_target=expected_provider_target, expected_audience=expected_audience)
+    if (primary["approver"] == secondary["approver"]
+            or keys[primary["approver"]] == keys[secondary["approver"]]):
+        raise ValidationError("承認証明には異なる公開鍵を持つ2名の承認者が必要です。")
+    if any(primary[field] != secondary[field] for field in ("action", "provider_target", "audience")):
+        raise ValidationError("2件の承認証明の操作・対象ID・実行先が一致しません。")
     return [primary, secondary]

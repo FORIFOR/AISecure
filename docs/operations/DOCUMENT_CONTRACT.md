@@ -70,6 +70,38 @@ means complete semantic, image or malware coverage. Unknown future verdicts,
 schemas or coverage values must fail closed; consumers may ignore additive fields.
 Do not depend on counts staying constant across scanner upgrades.
 
+### Uninspected container content
+
+For xlsx/pptx, readable XML does not make the complete raw ZIP upload inspected.
+Archive/member comments, extra fields (including local-only fields), prefixed or
+concatenated archives, unreferenced gaps/members, trailing or truncated-comment
+data, nonempty directory entries, and unused bytes after a DEFLATE stream now
+require review. Supported ordinary ZIP framing is accounted from its first
+member through its central directory and end record, with bounded decompression
+and size/CRC checks. Unsupported ZIP64/multi-disk or ambiguous framing stays
+partial/unreadable; no alternate-format parser or bypass is provided.
+
+The existing hardened XML parser flags lexical XML comments and processing
+instructions as uninspected, including outside the root and UTF-16 inputs. DTDs,
+entities and external references are forbidden. Cell comments/notes represented
+as ordinary XML elements retain their existing text inspection. XML declarations
+and literal comment examples inside CDATA are not automatically marked partial.
+The parser callback behavior follows [Python's TreeBuilder API](https://docs.python.org/3/library/xml.etree.elementtree.html#treebuilder-objects)
+and the [existing defusedxml implementation](https://github.com/tiran/defusedxml/blob/v0.7.1/defusedxml/ElementTree.py).
+
+For PDFs, only actual page-content streams enter the text extractor. Other
+reachable streams, including XMP metadata, embedded font programs and custom
+payloads, require review rather than being silently treated as covered. No new
+XMP, font, OCR or malware parser is added. Percent-containing decoded page streams
+also require review because the text/operation extractor can discard PDF lexical
+comments. This intentionally includes literal percentages until that ambiguity
+is independently resolved; it is not a malicious-content classification.
+This conservative change can increase
+review rates for legitimate files; a review is an unknown-coverage result, not a
+malicious-file finding. The byte counter describes supplied file size, not proof
+of semantic inspection of every byte. A signed public classification cannot
+override partial/unreadable coverage in the bundle gateway.
+
 ## Local HTTP / browser
 
 Only `127.0.0.1:PORT`; no proxy, public server or multi-tenant contract. Use

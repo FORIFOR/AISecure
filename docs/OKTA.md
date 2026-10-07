@@ -2,7 +2,11 @@
 
 AISecureには、明示承認された `revoke_session` をOktaへ送る限定アダプターがあります。対象は、承認者がOkta管理画面で確認して指定した **OktaユーザーID（`00u...`）** だけです。AISecure内部の仮名化されたactorやメールアドレスから対象を推測しません。
 
-`DELETE /api/v1/users/{userId}/sessions?oauthTokens=false` が成功しただけでは完了とせず、Okta System Logに同じユーザーを対象とする `user.session.clear` が現れた場合だけ `verified` と記録します。検証時間内に確認できなければ `failed` です。Oktaのこの操作はユーザーのIdPセッションをすべて消すため、業務影響と復旧担当を事前に確認してください。
+`DELETE /api/v1/users/{userId}/sessions?oauthTokens=false` の受付だけでは完了としません。応答の `X-Okta-Request-Id` とログの `debugContext.debugData.requestId`、対象ユーザー、`user.session.clear`、`outcome.result=SUCCESS`、実行時刻のすべてが一致した場合だけ `verified` と記録します。ログ時刻は要求の2秒前からその照会開始までを許容し、要求ID照合の代わりには使いません。遅延ログは照会を繰り返して確認します。
+
+要求ID不足、空ログ、古い／失敗ログ、照会の403・429・タイムアウト・ページ上限などは、受付後の結果を `delivery_unknown`、`executed=null` として残します。「実行されなかった」とは断定しません。再送はせず、同じ未確認操作の別計画による実行も拒否します。ログ遅延を含む未確認結果の照合・解除を行う運用機能は未実装です。DBを直接書き換えて解除せず、導入ゲートとして扱ってください。
+
+この証拠が示すのは今回の要求に対応するIdPセッション消去イベントだけです。OAuthアクセストークン／リフレッシュトークンの失効、各アプリのセッション終了、ネットワーク遮断は確認していません。結果は `verification_scope=okta_idp_sessions_only`、`containment_verified=false` を明示します。業務影響と復旧担当を事前に確認してください。CLIは未確認・失敗結果のJSONを出力した後、終了コード2を返します。
 
 ## 必要な設定
 
@@ -47,4 +51,10 @@ API tokenを使う場合は `--auth-scheme SSWS` を追加します。検証待�
 
 これは自動遮断ではありません。計画・スナップショットの一致、5分の期限、二者の明示確認、対象ID指定が必要です。必要なら `--emergency-stop-file ./STOP` を追加してください。ファイルが存在する、または確認できない場合はOkta APIへ送信しません。現行CLIの承認者名は二つの異なるラベルであることを確認するだけなので、本番ではSSO/RBACで認証済みの本人性と職務分離を実装・検証してください。
 
-参考: [Okta System Log query](https://developer.okta.com/docs/reference/system-log-query/)、[Okta OAuth scopes](https://developer.okta.com/docs/api/oauth2)、[Clear user sessions](https://developer.okta.com/docs/guides/keep-me-signed-in/main/)。
+### 検証と移行
+
+Python APIの `clear_user_sessions` は時刻だけでなく `SessionClearReceipt` を返し、`verify_session_clear` はその受付証拠を要求します。旧時刻だけの呼出しを検証成功として扱いません。署名付き承認は[対象・実行先を含むschema2](APPROVALS.md)の再発行が必要です。
+
+テストは合成値とローカル受信器を使います。実際のOkta orgでのヘッダーとログの対応、ログ遅延、エンジン差、アプリ側の失効は未検証です。該当フィールドが出ない環境では安全側に未確認となり、その環境向けの明示的な検証設計が必要です。
+
+参考（2026-10-06確認）: [Okta System Log query](https://developer.okta.com/docs/reference/system-log-query/)、[Request IDの対応](https://support.okta.com/help/s/article/how-to-find-x-okta-request-id)、[セッションとトークン失効の区別](https://developer.okta.com/docs/guides/revoke-tokens/-/main/)、[アプリ側Universal Logoutの範囲](https://developer.okta.com/docs/guides/oin-universal-logout-overview/)。

@@ -61,14 +61,33 @@ or:
 
 The response must echo the request and proposal IDs. An HTTP success without
 `status: verified` and those matching IDs is not treated as containment. A
-timeout, malformed response, provider error, or verification failure marks the
-proposal as failed and never claims that the environment changed.
+timeout, malformed response, provider error, or incomplete verification leaves
+the proposal `delivery_unknown` with `executed: null`; this is not proof that
+the action did not happen. Only an explicit responder result of `failed` with
+`executed: false` is a confirmed failure in the local adapter contract. The
+webhook's `status: failed` therefore must mean positive non-execution, not a
+timeout or missing post-action evidence.
+
+The store reserves execution before calling the responder. An executing/unknown
+action blocks sibling proposals for the same finding across snapshots, and
+dispatch for the same action/provider target/audience. Unsigned audiences are
+handled conservatively. Restart does not clear the reservation. There is no
+automatic resend or implemented reconciliation override: deployments must close
+that operator workflow before using real response. Never edit the database to
+make an unknown action retryable. This is not a general distributed idempotency
+guarantee across independent stores or other tools.
+
+A background snapshot refresh does not rewrite a verified action as failed or
+not executed. The result retains its original snapshot ID in the audit and
+reports `snapshot_current: false`. The CLI prints non-verified results but exits
+2, so a successful process exit cannot silently represent unknown delivery.
 
 ## Operator requirements
 
 The CLI requires two distinct approval labels and two exact confirmation
 strings. This is a local control boundary, not proof of identity. For a real
-deployment, the responder must bind both approvals to authenticated users in
+deployment, [schema2 signed approvals](APPROVALS.md) bind the actual provider
+target and responder audience. The responder must bind both approvals to authenticated users in
 SSO/RBAC, apply least-privilege provider credentials, provide emergency stop
 and recovery procedures, and independently retain audit records.
 
