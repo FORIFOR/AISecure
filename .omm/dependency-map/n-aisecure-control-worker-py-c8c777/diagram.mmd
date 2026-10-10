@@ -1,0 +1,12 @@
+graph TD
+    source["ソース\naisecure/control/worker.py"]
+    n-logging-42f7b0["logging\n外部・別名・未解決"]
+    source -->|"Python AST: import／export"| n-logging-42f7b0
+    n-sys-b4c56e["sys\n外部・別名・未解決"]
+    source -->|"Python AST: import／export"| n-sys-b4c56e
+    n-documents-ec9666["documents\naisecure/control/documents.py"]
+    source -->|"Python AST: import／export"| n-documents-ec9666
+    n-common-94c8c2["common\naisecure/control/common.py"]
+    source -->|"Python AST: import／export"| n-common-94c8c2
+    n-resource-7a1047["resource\n外部・別名・未解決"]
+    source -->|"Python AST: import／export"| n-resource-7a1047

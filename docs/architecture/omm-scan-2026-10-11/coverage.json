@@ -1,0 +1,58 @@
+{
+  "repo": "FORIFOR/AISecure",
+  "branch": "main",
+  "tree_sha": "a65ecbc7b8ab1288f2499c395f3d3afc58da5b29",
+  "tree_files": 441,
+  "read_files": [
+    {
+      "path": "README.ja.md",
+      "sha": "0ede81f153e2d0a2fc43109705882fec77b2b6c9"
+    },
+    {
+      "path": "README.md",
+      "sha": "2233b16a69a1a5cc1ac04d5f726dd04497a66085"
+    },
+    {
+      "path": "pyproject.toml",
+      "sha": "d77b7ff108b45cfe42d108a57fc3f1901c6c3fca"
+    },
+    {
+      "path": "browser/aisecure/package.json",
+      "sha": "caeecb676f72b56536a07470c8388baa878693b3"
+    },
+    {
+      "path": "aisecure/server.py",
+      "sha": "2b4aeae478e56d0bc2d41d8a3e7abafdc072a3f0"
+    },
+    {
+      "path": "aisecure/control/worker.py",
+      "sha": "8c1ad4eb07d21dd36499f63d4fbd1db14c3102c3"
+    },
+    {
+      "path": "aisecure/schema.py",
+      "sha": "eaceaa3f11141f0f208d025265c68f98d04c3266"
+    },
+    {
+      "path": "aisecure/store.py",
+      "sha": "04ff13b26dbfc0e91620ecc59dfedafc7e91a62d"
+    },
+    {
+      "path": "aisecure/demo.py",
+      "sha": "36931bc1d9ec4f3b047104049a74bea606a82d57"
+    },
+    {
+      "path": "aisecure/explain.py",
+      "sha": "66791180e4e36e72da612b8d4c0089c9fe86463d"
+    },
+    {
+      "path": "aisecure/control/documents.py",
+      "sha": "679dcccea796188f854488c04ca8d45d0ca9746c"
+    },
+    {
+      "path": "aisecure/control/common.py",
+      "sha": "da64348122a73b9510827b5bb902d0277b48fd60"
+    }
+  ],
+  "not_read_count": 429,
+  "scope": "initial entry-point and direct-import analysis; not exhaustive semantic scan"
+}

@@ -1,0 +1,27 @@
+確認したパス: `tools`。配下の登録ファイルは25件。
+
+- `tools/__init__.py`（一覧のみ）
+- `tools/build_demo_video.py`（一覧のみ）
+- `tools/build_release.py`（一覧のみ）
+- `tools/capture.py`（一覧のみ）
+- `tools/check_control.py`（一覧のみ）
+- `tools/check_control_browser.cjs`（一覧のみ）
+- `tools/check_control_package.py`（一覧のみ）
+- `tools/check_product_presentation.py`（一覧のみ）
+- `tools/check_workbench.py`（一覧のみ）
+- `tools/dom-check.mjs`（一覧のみ）
+- `tools/install_control_native.py`（一覧のみ）
+- `tools/make-demo.py`（一覧のみ）
+- `tools/make-intro.py`（一覧のみ）
+- `tools/make-preview.py`（一覧のみ）
+- `tools/make-screendemo.py`（一覧のみ）
+- `tools/make_endcards.cjs`（一覧のみ）
+- `tools/make_workbench_examples.py`（一覧のみ）
+- `tools/measure_detection.py`（一覧のみ）
+- `tools/network_boundary_lab.py`（一覧のみ）
+- `tools/record_demo.cjs`（一覧のみ）
+- `tools/release_gate.py`（一覧のみ）
+- `tools/render_product_film.py`（一覧のみ）
+- `tools/run_full_tests.py`（一覧のみ）
+- `tools/split_corpus_literals.py`（一覧のみ）
+- `tools/update_manifest.py`（一覧のみ）

@@ -1,0 +1,27 @@
+実在パス: `docs/media`。32ファイル。
+
+- `docs/media/demo-build.json`
+- `docs/media/demo-desktop.mp4`
+- `docs/media/demo-poster.jpg`
+- `docs/media/demo-raw/marks.json`
+- `docs/media/demo-raw/raw.webm`
+- `docs/media/demo-raw/report.json`
+- `docs/media/demo-vertical.mp4`
+- `docs/media/demo.gif`
+- `docs/media/demo.mp4`
+- `docs/media/intro-ja.mp4`
+- `docs/media/intro-narrated-ja.mp4`
+- `docs/media/intro-narrated.mp4`
+- `docs/media/intro-poster-ja.png`
+- `docs/media/intro-poster.png`
+- `docs/media/intro.mp4`
+- `docs/media/launch-kit/aisecure-film-poster.jpg`
+- `docs/media/launch-kit/aisecure-film-vertical.mp4`
+- `docs/media/launch-kit/aisecure-film.mp4`
+- `docs/media/launch-kit/aisecure-film.srt`
+- `docs/media/launch-kit/aisecure-launch-kit.zip`
+- `docs/media/product-film-en-poster.jpg`
+- `docs/media/product-film-en.mp4`
+- `docs/media/product-film-en.vtt`
+- `docs/media/product-film-ja-poster.jpg`
+- `docs/media/product-film-ja.mp4`

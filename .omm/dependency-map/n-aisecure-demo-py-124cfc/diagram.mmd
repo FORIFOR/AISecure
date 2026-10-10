@@ -1,0 +1,6 @@
+graph TD
+    source["ソース\naisecure/demo.py"]
+    n-datetime-89ffad["datetime\n外部・別名・未解決"]
+    source -->|"Python AST: import／export"| n-datetime-89ffad
+    n-schema-fe7042["schema\naisecure/schema.py"]
+    source -->|"Python AST: import／export"| n-schema-fe7042
